@@ -24,6 +24,8 @@ import java.util.List;
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
 public class MainActivity extends Activity implements Flow.Listener {
+  private static final String BUNDLE_BACKSTACK = "backstack";
+
   @InjectView(R.id.container) FrameLayout containerView;
 
   private MenuItem friendsMenu;
@@ -41,11 +43,16 @@ public class MainActivity extends Activity implements Flow.Listener {
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
 
-    flow = new Flow(Backstack.single(new App.ConversationList()), this);
+    flow = new Flow(getInitialBackstack(savedInstanceState), this);
     activityGraph = ObjectGraph.create(new ActivityModule());
 
-    invalidateOptionsMenu();
     go(flow.getBackstack(), Flow.Direction.FORWARD);
+  }
+
+  @Override protected void onSaveInstanceState(Bundle outState) {
+    super.onSaveInstanceState(outState);
+
+    outState.putParcelable(BUNDLE_BACKSTACK, flow.getBackstack());
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -87,6 +94,14 @@ public class MainActivity extends Activity implements Flow.Listener {
 
     if (friendsMenu == null) return;
     friendsMenu.setVisible(!hasUp);
+  }
+
+  private Backstack getInitialBackstack(Bundle savedInstanceState) {
+    if (savedInstanceState != null) {
+      return savedInstanceState.getParcelable(BUNDLE_BACKSTACK);
+    } else {
+      return Backstack.single(new App.FriendList());
+    }
   }
 
   private View getView(Screen screen) {
