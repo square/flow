@@ -1,21 +1,22 @@
 buildscript {
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.5.+'
-    }
-
+  dependencies {
+    classpath 'com.android.tools.build:gradle:0.5.+'
+  }
 }
 apply plugin: 'android'
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "18.0.1"
+  compileSdkVersion 18
+  buildToolsVersion "18.0.1"
 
-    defaultConfig {
-        minSdkVersion 7
-        targetSdkVersion 16
-    }
+  defaultConfig {
+    minSdkVersion 14
+    targetSdkVersion 18
+  }
 }
 
 dependencies {
-    compile 'com.android.support:appcompat-v7:18.0.0'
+  compile 'com.squareup.dagger:dagger:1.0.1'
+  compile 'com.jakewharton:butterknife:3.0.0'
+  compile project(':flow')
 }

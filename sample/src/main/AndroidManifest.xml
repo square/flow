@@ -1,24 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.squareup.flow"
+    package="com.example.flow"
     android:versionCode="1"
-    android:versionName="1.0" >
+    android:versionName="1.0">
 
-    <uses-sdk
-        android:minSdkVersion="7"
-        android:targetSdkVersion="16" />
+  <uses-sdk
+      android:minSdkVersion="14"
+      android:targetSdkVersion="18"/>
 
-    <application
-        android:allowBackup="true">
-        <activity
-            android:name="com.squareup.flow.MainActivity"
-            android:label="Sample" >
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+  <application>
+    <activity
+        android:name=".MainActivity"
+        android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
+        android:label="Sample">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-        </activity>
-    </application>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+    </activity>
+  </application>
 
 </manifest>
