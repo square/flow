@@ -27,9 +27,14 @@ import java.util.Iterator;
 import java.util.List;
 
 /** Describes the backstack of a flow at a specific point in time. */
-public final class Backstack implements Iterable<Backstack.Entry>, Parcelable {
+public final class Backstack implements Iterable<Backstack.Entry> {
   private final long highestId;
   private final Deque<Entry> backstack;
+
+  public static Backstack from(Parcelable parcelable, Parcer<Screen> parcer) {
+    ParcelableBackstack backstack = (ParcelableBackstack) parcelable;
+    return backstack.getBackstack(parcer);
+  }
 
   public static Builder emptyBuilder() {
     return new Builder(-1, Collections.<Entry>emptyList());
@@ -52,6 +57,10 @@ public final class Backstack implements Iterable<Backstack.Entry>, Parcelable {
     return new ReadIterator<Entry>(backstack.descendingIterator());
   }
 
+  public Parcelable getParcelable(Parcer<Screen> parcer) {
+    return new ParcelableBackstack.Memory(this, parcer);
+  }
+
   public int size() {
     return backstack.size();
   }
@@ -68,31 +77,7 @@ public final class Backstack implements Iterable<Backstack.Entry>, Parcelable {
     return backstack.toString();
   }
 
-  @Override public int describeContents() {
-    return 0;
-  }
-
-  @Override public void writeToParcel(Parcel out, int flags) {
-    out.writeLong(highestId);
-    List<Entry> list = new ArrayList<Entry>(backstack);
-    out.writeTypedList(list);
-  }
-
-  public static final Parcelable.Creator<Backstack> CREATOR = new Parcelable.Creator<Backstack>() {
-    @Override public Backstack createFromParcel(Parcel in) {
-      long highestId = in.readLong();
-      List<Entry> list = new ArrayList<Entry>();
-      in.readTypedList(list, Entry.CREATOR);
-      Deque<Entry> backstack = new ArrayDeque<Entry>(list);
-      return new Backstack(highestId, backstack);
-    }
-
-    @Override public Backstack[] newArray(int size) {
-      return new Backstack[size];
-    }
-  };
-
-  public static class Entry implements Parcelable {
+  public static class Entry {
     private final long id;
     private final Screen screen;
 
@@ -112,28 +97,6 @@ public final class Backstack implements Iterable<Backstack.Entry>, Parcelable {
     @Override public String toString() {
       return "{" + id + ", " + screen + "}";
     }
-
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel out, int flags) {
-      out.writeLong(id);
-      out.writeParcelable(screen, screen.describeContents());
-    }
-
-    public static final Parcelable.Creator<Entry> CREATOR = new Parcelable.Creator<Entry>() {
-      @Override public Entry createFromParcel(Parcel in) {
-        long id = in.readLong();
-        Screen screen = in.readParcelable(getClass().getClassLoader());
-
-        return new Entry(id, screen);
-      }
-
-      @Override public Entry[] newArray(int size) {
-        return new Entry[size];
-      }
-    };
   }
 
   public static class Builder {
@@ -195,6 +158,77 @@ public final class Backstack implements Iterable<Backstack.Entry>, Parcelable {
 
     @Override public void remove() {
       throw new UnsupportedOperationException();
+    }
+  }
+
+  private interface ParcelableBackstack extends Parcelable {
+    Backstack getBackstack(Parcer<Screen> parcer);
+
+    public static final Parcelable.Creator<ParcelableBackstack> CREATOR =
+        new Parcelable.Creator<ParcelableBackstack>() {
+          @Override public ParcelableBackstack createFromParcel(Parcel in) {
+            Parcelable[] parcelables = in.readParcelableArray(getClass().getClassLoader());
+            return new Parcelled(parcelables);
+          }
+
+          @Override public ParcelableBackstack[] newArray(int size) {
+            return new Parcelled[size];
+          }
+        };
+
+    static class Memory implements ParcelableBackstack {
+      private final Backstack backstack;
+      private final Parcer<Screen> parcer;
+
+      Memory(Backstack backstack, Parcer<Screen> parcer) {
+        this.backstack = backstack;
+        this.parcer = parcer;
+      }
+
+      @Override public Backstack getBackstack(Parcer<Screen> parcer) {
+        return backstack;
+      }
+
+      @Override public int describeContents() {
+        return 0;
+      }
+
+      @Override public void writeToParcel(Parcel out, int flags) {
+        Parcelable[] parcelables = new Parcelable[backstack.size()];
+        int i = 0;
+        for (Iterator<Entry> iterator = backstack.reverseIterator(); iterator.hasNext(); ) {
+          Entry entry = iterator.next();
+          parcelables[i++] = parcer.wrap(entry.getScreen());
+        }
+
+        out.writeParcelableArray(parcelables, flags);
+      }
+    }
+
+    static class Parcelled implements ParcelableBackstack {
+      private final Parcelable[] parcelables;
+
+      public Parcelled(Parcelable[] parcelables) {
+        this.parcelables = parcelables;
+      }
+
+      @Override public Backstack getBackstack(Parcer<Screen> parcer) {
+        // TODO: This does not preserve the backstack id
+        List<Screen> screens = new ArrayList<Screen>();
+        for (Parcelable parcelable : parcelables) {
+          screens.add(parcer.unwrap(parcelable));
+        }
+
+        return emptyBuilder().addAll(screens).build();
+      }
+
+      @Override public int describeContents() {
+        return 0;
+      }
+
+      @Override public void writeToParcel(Parcel out, int flags) {
+        out.writeParcelableArray(parcelables, flags);
+      }
     }
   }
 }

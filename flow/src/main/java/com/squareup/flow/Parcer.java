@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-buildscript {
-  dependencies {
-    classpath 'com.android.tools.build:gradle:0.5.+'
-  }
-}
-apply plugin: 'android'
+package com.squareup.flow;
 
-android {
-  compileSdkVersion 18
-  buildToolsVersion "18.0.1"
+import android.os.Parcelable;
 
-  defaultConfig {
-    minSdkVersion 14
-    targetSdkVersion 18
-  }
-}
-
-dependencies {
-  compile 'com.google.code.gson:gson:2.2.4'
-  compile 'com.squareup.dagger:dagger:1.0.1'
-  compile 'com.jakewharton:butterknife:3.0.0'
-  compile project(':flow')
+public interface Parcer<T> {
+  Parcelable wrap(T instance);
+  T unwrap(Parcelable parcelable);
 }
