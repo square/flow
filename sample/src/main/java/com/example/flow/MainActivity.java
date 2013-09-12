@@ -50,8 +50,6 @@ public class MainActivity extends Activity implements Flow.Listener {
   @InjectView(R.id.container) ContainerView containerView;
   @Inject Parcer<Screen> parcer;
 
-  private MenuItem friendsMenu;
-
   private Flow flow;
   private ObjectGraph activityGraph;
 
@@ -80,7 +78,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
-    friendsMenu = menu.add("Friends")
+    MenuItem friendsMenu = menu.add("Friends")
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
@@ -88,6 +86,11 @@ public class MainActivity extends Activity implements Flow.Listener {
             return true;
           }
         });
+
+    Screen screen = flow.getBackstack().current().getScreen();
+    boolean hasUp = screen instanceof Screen.HasParent<?>;
+    friendsMenu.setVisible(!hasUp);
+
     return true;
   }
 
@@ -116,8 +119,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     actionBar.setDisplayHomeAsUpEnabled(hasUp);
     actionBar.setHomeButtonEnabled(hasUp);
 
-    if (friendsMenu == null) return;
-    friendsMenu.setVisible(!hasUp);
+    invalidateOptionsMenu();
   }
 
   private Backstack getInitialBackstack(Bundle savedInstanceState) {
