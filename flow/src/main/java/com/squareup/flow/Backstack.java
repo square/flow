@@ -26,11 +26,13 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-/** Describes the backstack of a flow at a specific point in time. */
+/** Describes the history of a {@link Flow} at a specific point in time. For persisting the
+ * supplied {@link Parcer} needs to be able to handle all screen types. */
 public final class Backstack implements Iterable<Backstack.Entry> {
   private final long highestId;
   private final Deque<Entry> backstack;
 
+  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parcer}. */
   public static Backstack from(Parcelable parcelable, Parcer<Screen> parcer) {
     ParcelableBackstack backstack = (ParcelableBackstack) parcelable;
     return backstack.getBackstack(parcer);
@@ -40,6 +42,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return new Builder(-1, Collections.<Entry>emptyList());
   }
 
+  /** Create a backstack that contains a single screen. */
   public static Backstack single(Screen screen) {
     return emptyBuilder().push(screen).build();
   }
@@ -57,6 +60,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return new ReadIterator<Entry>(backstack.descendingIterator());
   }
 
+  /** Get a {@link Parcelable} of this backstack using the supplied {@link Parcer}. */
   public Parcelable getParcelable(Parcer<Screen> parcer) {
     return new ParcelableBackstack.Memory(this, parcer);
   }
@@ -69,6 +73,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return backstack.peek();
   }
 
+  /** Get a builder to modify a copy of this backstack. */
   public Builder buildUpon() {
     return new Builder(highestId, backstack);
   }

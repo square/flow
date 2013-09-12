@@ -32,6 +32,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.squareup.flow.Backstack;
 import com.squareup.flow.Flow;
+import com.squareup.flow.HasParent;
 import com.squareup.flow.Parcer;
 import com.squareup.flow.Screen;
 import com.squareup.flow.Screens;
@@ -88,7 +89,7 @@ public class MainActivity extends Activity implements Flow.Listener {
         });
 
     Screen screen = flow.getBackstack().current().getScreen();
-    boolean hasUp = screen instanceof Screen.HasParent;
+    boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
     return true;
@@ -115,7 +116,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     setTitle(screen.getClass().getSimpleName());
 
     ActionBar actionBar = getActionBar();
-    boolean hasUp = screen instanceof Screen.HasParent;
+    boolean hasUp = screen instanceof HasParent;
     actionBar.setDisplayHomeAsUpEnabled(hasUp);
     actionBar.setHomeButtonEnabled(hasUp);
 

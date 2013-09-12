@@ -22,6 +22,11 @@ import java.lang.annotation.Target;
 import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
+/**
+ * Specifies the view class that represents this screen.
+ * The view can be created using
+ * {@link com.squareup.flow.Screens#createView(android.content.Context, com.squareup.flow.Screen)}.
+ */
 @Retention(RUNTIME) @Target(TYPE)
 public @interface View {
   Class<? extends android.view.View> value();

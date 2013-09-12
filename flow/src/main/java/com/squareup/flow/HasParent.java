@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package com.squareup.flow.annotation;
-
-import java.lang.annotation.Retention;
-import java.lang.annotation.Target;
-
-import static java.lang.annotation.ElementType.TYPE;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+package com.squareup.flow;
 
 /**
- * Specifies a layout resource that represents this screen.
- * The view can be created using
- * {@link com.squareup.flow.Screens#createView(android.content.Context, com.squareup.flow.Screen)}.
+ * Describes the parent of a specific screen which is used to support the up affordance.
+ * Implementing screens are required to be able to return an instance of their parent.
  */
-@Retention(RUNTIME) @Target(TYPE)
-public @interface Layout {
-  int value();
+public interface HasParent<T extends Screen> {
+  T getParent();
 }

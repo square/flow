@@ -22,6 +22,7 @@ import com.example.flow.view.ConversationView;
 import com.example.flow.view.FriendListView;
 import com.example.flow.view.FriendView;
 import com.example.flow.view.MessageView;
+import com.squareup.flow.HasParent;
 import com.squareup.flow.Screen;
 import com.squareup.flow.annotation.Layout;
 import com.squareup.flow.annotation.View;
@@ -36,7 +37,7 @@ public @interface App {
 
   @View(ConversationView.class) //
   @Module(injects = ConversationView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class Conversation implements Screen, Screen.HasParent<ConversationList> {
+  public static class Conversation implements Screen, HasParent<ConversationList> {
     public final int conversationIndex;
 
     public Conversation(int conversationIndex) {
@@ -54,7 +55,7 @@ public @interface App {
 
   @Layout(R.layout.message_view) //
   @Module(injects = MessageView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class Message implements Screen, Screen.HasParent<Conversation> {
+  public static class Message implements Screen, HasParent<Conversation> {
     public final int conversationIndex;
     public final int messageId;
 
@@ -74,7 +75,7 @@ public @interface App {
 
   @View(FriendListView.class) //
   @Module(injects = FriendListView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class FriendList implements Screen, Screen.HasParent<ConversationList> {
+  public static class FriendList implements Screen, HasParent<ConversationList> {
     @Override public ConversationList getParent() {
       return new ConversationList();
     }
@@ -82,7 +83,7 @@ public @interface App {
 
   @View(FriendView.class) //
   @Module(injects = FriendView.class)
-  public static class Friend implements Screen, Screen.HasParent<FriendList> {
+  public static class Friend implements Screen, HasParent<FriendList> {
     public final int index;
 
     public Friend(int index) {

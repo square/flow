@@ -16,8 +16,9 @@
 
 package com.squareup.flow;
 
+/**
+ * Marker interface that designates a screen. A screen is a distinct part of an application
+ * containing all information that describes this state.
+ */
 public interface Screen {
-  interface HasParent<T extends Screen> {
-    T getParent();
-  }
 }
