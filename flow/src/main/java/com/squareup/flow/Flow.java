@@ -48,7 +48,7 @@ public final class Flow {
   public void resetTo(Screen screen) {
     Backstack.Builder builder = backstack.buildUpon();
     int count = 0;
-    for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext(); ) {
+    for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
       Backstack.Entry entry = it.next();
 
       if (entry.getScreen() == screen) {
