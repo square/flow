@@ -22,7 +22,7 @@ import android.view.LayoutInflater;
 import dagger.ObjectGraph;
 
 public class ScopedContext extends ContextWrapper implements Injector {
-  public final ObjectGraph graph;
+  private final ObjectGraph graph;
 
   private LayoutInflater inflater;
 

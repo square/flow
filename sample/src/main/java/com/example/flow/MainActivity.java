@@ -23,11 +23,11 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.FrameLayout;
 import butterknife.InjectView;
 import butterknife.Views;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
+import com.example.flow.view.ContainerView;
 import com.squareup.flow.Backstack;
 import com.squareup.flow.Flow;
 import com.squareup.flow.Screen;
@@ -42,7 +42,7 @@ import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 public class MainActivity extends Activity implements Flow.Listener {
   private static final String BUNDLE_BACKSTACK = "backstack";
 
-  @InjectView(R.id.container) FrameLayout containerView;
+  @InjectView(R.id.container) ContainerView containerView;
 
   private MenuItem friendsMenu;
 
@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements Flow.Listener {
 
   @Override public void go(Backstack backstack, Flow.Direction direction) {
     Screen screen = backstack.current().getScreen();
-    displayView(getView(screen));
+    containerView.displayView(getView(screen), direction);
 
     setTitle(screen.getClass().getSimpleName());
 
@@ -116,7 +116,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     if (savedInstanceState != null) {
       return savedInstanceState.getParcelable(BUNDLE_BACKSTACK);
     } else {
-      return Backstack.single(new App.FriendList());
+      return Backstack.single(new App.ConversationList());
     }
   }
 
@@ -124,11 +124,6 @@ public class MainActivity extends Activity implements Flow.Listener {
     ObjectGraph graph = activityGraph.plus(screen);
     Context scopedContext = new ScopedContext(this, graph);
     return Screens.createView(scopedContext, screen);
-  }
-
-  private void displayView(View view) {
-    containerView.removeAllViews();
-    containerView.addView(view);
   }
 
   @Module(library = true) class ActivityModule {
