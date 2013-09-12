@@ -167,8 +167,10 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     public static final Parcelable.Creator<ParcelableBackstack> CREATOR =
         new Parcelable.Creator<ParcelableBackstack>() {
           @Override public ParcelableBackstack createFromParcel(Parcel in) {
-            Parcelable[] parcelables = in.readParcelableArray(getClass().getClassLoader());
-            return new Parcelled(parcelables);
+            List<ParcelableEntry> entries = new ArrayList<ParcelableEntry>();
+            long highestId = in.readLong();
+            in.readTypedList(entries, ParcelableEntry.CREATOR);
+            return new Parcelled(highestId, entries);
           }
 
           @Override public ParcelableBackstack[] newArray(int size) {
@@ -194,32 +196,32 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       }
 
       @Override public void writeToParcel(Parcel out, int flags) {
-        Parcelable[] parcelables = new Parcelable[backstack.size()];
-        int i = 0;
-        for (Iterator<Entry> iterator = backstack.reverseIterator(); iterator.hasNext(); ) {
-          Entry entry = iterator.next();
-          parcelables[i++] = parcer.wrap(entry.getScreen());
+        List<ParcelableEntry> entries = new ArrayList<ParcelableEntry>();
+        for (Entry entry : backstack) {
+          entries.add(new ParcelableEntry(entry.id, parcer.wrap(entry.getScreen())));
         }
 
-        out.writeParcelableArray(parcelables, flags);
+        out.writeLong(backstack.highestId);
+        out.writeTypedList(entries);
       }
     }
 
     static class Parcelled implements ParcelableBackstack {
-      private final Parcelable[] parcelables;
+      private final long highestId;
+      private final List<ParcelableEntry> entries;
 
-      public Parcelled(Parcelable[] parcelables) {
-        this.parcelables = parcelables;
+      Parcelled(long highestId, List<ParcelableEntry> entries) {
+        this.highestId = highestId;
+        this.entries = entries;
       }
 
       @Override public Backstack getBackstack(Parcer<Screen> parcer) {
-        // TODO: This does not preserve the backstack id
-        List<Screen> screens = new ArrayList<Screen>();
-        for (Parcelable parcelable : parcelables) {
-          screens.add(parcer.unwrap(parcelable));
+        List<Entry> backstack = new ArrayList<Entry>();
+        for (ParcelableEntry entry : entries) {
+          backstack.add(entry.toRealEntry(parcer));
         }
 
-        return emptyBuilder().addAll(screens).build();
+        return new Builder(highestId, backstack).build();
       }
 
       @Override public int describeContents() {
@@ -227,8 +229,45 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       }
 
       @Override public void writeToParcel(Parcel out, int flags) {
-        out.writeParcelableArray(parcelables, flags);
+        out.writeLong(highestId);
+        out.writeTypedList(entries);
       }
     }
+  }
+
+  private static class ParcelableEntry implements Parcelable {
+    private final long id;
+    private final Parcelable parcelable;
+
+    ParcelableEntry(long id, Parcelable parcelable) {
+      this.id = id;
+      this.parcelable = parcelable;
+    }
+
+    public Entry toRealEntry(Parcer<Screen> parcer) {
+      return new Entry(id, parcer.unwrap(parcelable));
+    }
+
+    @Override public int describeContents() {
+      return 0;
+    }
+
+    @Override public void writeToParcel(Parcel out, int flags) {
+      out.writeLong(id);
+      out.writeParcelable(parcelable, flags);
+    }
+
+    public static final Parcelable.Creator<ParcelableEntry> CREATOR =
+        new Parcelable.Creator<ParcelableEntry>() {
+          @Override public ParcelableEntry createFromParcel(Parcel in) {
+            long id = in.readLong();
+            Parcelable parcelable = in.readParcelable(getClass().getClassLoader());
+            return new ParcelableEntry(id, parcelable);
+          }
+
+          @Override public ParcelableEntry[] newArray(int size) {
+            return new ParcelableEntry[size];
+          }
+        };
   }
 }
