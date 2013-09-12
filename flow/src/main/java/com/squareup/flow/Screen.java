@@ -16,9 +16,7 @@
 
 package com.squareup.flow;
 
-import android.os.Parcelable;
-
-public interface Screen extends Parcelable {
+public interface Screen {
   interface HasParent<T extends Screen> {
     T getParent();
   }

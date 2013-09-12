@@ -16,8 +16,6 @@
 
 package com.example.flow;
 
-import android.os.Parcel;
-import android.os.Parcelable;
 import com.example.flow.model.User;
 import com.example.flow.view.ConversationListView;
 import com.example.flow.view.ConversationView;
@@ -34,15 +32,6 @@ public @interface App {
   @View(ConversationListView.class) //
   @Module(injects = ConversationListView.class, addsTo = MainActivity.ActivityModule.class)
   public static class ConversationList implements Screen {
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel parcel, int i) {
-    }
-
-    public static final Parcelable.Creator<ConversationList> CREATOR =
-        Parcelables.emptyCreator(ConversationList.class);
   }
 
   @View(ConversationView.class) //
@@ -61,26 +50,6 @@ public @interface App {
     @Override public ConversationList getParent() {
       return new ConversationList();
     }
-
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel out, int flags) {
-      out.writeInt(conversationIndex);
-    }
-
-    public static final Parcelable.Creator<Conversation> CREATOR =
-        new Parcelable.Creator<Conversation>() {
-          @Override public Conversation createFromParcel(Parcel in) {
-            int index = in.readInt();
-            return new Conversation(index);
-          }
-
-          @Override public Conversation[] newArray(int size) {
-            return new Conversation[size];
-          }
-        };
   }
 
   @Layout(R.layout.message_view) //
@@ -101,27 +70,6 @@ public @interface App {
     @Override public Conversation getParent() {
       return new Conversation(conversationIndex);
     }
-
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel out, int flags) {
-      out.writeInt(conversationIndex);
-      out.writeInt(messageId);
-    }
-
-    public static final Parcelable.Creator<Message> CREATOR = new Parcelable.Creator<Message>() {
-      @Override public Message createFromParcel(Parcel in) {
-        int conversationIndex = in.readInt();
-        int messageIndex = in.readInt();
-        return new Message(conversationIndex, messageIndex);
-      }
-
-      @Override public Message[] newArray(int size) {
-        return new Message[size];
-      }
-    };
   }
 
   @View(FriendListView.class) //
@@ -130,17 +78,6 @@ public @interface App {
     @Override public ConversationList getParent() {
       return new ConversationList();
     }
-
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel parcel, int i) {
-
-    }
-
-    public static final Parcelable.Creator<FriendList> CREATOR =
-        Parcelables.emptyCreator(FriendList.class);
   }
 
   @View(FriendView.class) //
@@ -158,14 +95,6 @@ public @interface App {
 
     @Override public FriendList getParent() {
       return new FriendList();
-    }
-
-    @Override public int describeContents() {
-      return 0; // TODO
-    }
-
-    @Override public void writeToParcel(Parcel parcel, int i) {
-      // TODO
     }
   }
 }

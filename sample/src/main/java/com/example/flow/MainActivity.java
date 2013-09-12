@@ -28,14 +28,19 @@ import butterknife.Views;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 import com.example.flow.view.ContainerView;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.squareup.flow.Backstack;
 import com.squareup.flow.Flow;
+import com.squareup.flow.Parcer;
 import com.squareup.flow.Screen;
 import com.squareup.flow.Screens;
 import dagger.Module;
 import dagger.ObjectGraph;
 import dagger.Provides;
 import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
@@ -43,6 +48,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   private static final String BUNDLE_BACKSTACK = "backstack";
 
   @InjectView(R.id.container) ContainerView containerView;
+  @Inject Parcer<Screen> parcer;
 
   private MenuItem friendsMenu;
 
@@ -59,8 +65,10 @@ public class MainActivity extends Activity implements Flow.Listener {
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
 
-    flow = new Flow(getInitialBackstack(savedInstanceState), this);
     activityGraph = ObjectGraph.create(new ActivityModule());
+    activityGraph.inject(this);
+
+    flow = new Flow(getInitialBackstack(savedInstanceState), this);
 
     go(flow.getBackstack(), Flow.Direction.FORWARD);
   }
@@ -68,7 +76,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
 
-    outState.putParcelable(BUNDLE_BACKSTACK, flow.getBackstack());
+    outState.putParcelable(BUNDLE_BACKSTACK, flow.getBackstack().getParcelable(parcer));
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -104,7 +112,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     setTitle(screen.getClass().getSimpleName());
 
     ActionBar actionBar = getActionBar();
-    boolean hasUp = backstack.current().getScreen() instanceof Screen.HasParent<?>;
+    boolean hasUp = screen instanceof Screen.HasParent<?>;
     actionBar.setDisplayHomeAsUpEnabled(hasUp);
     actionBar.setHomeButtonEnabled(hasUp);
 
@@ -114,7 +122,7 @@ public class MainActivity extends Activity implements Flow.Listener {
 
   private Backstack getInitialBackstack(Bundle savedInstanceState) {
     if (savedInstanceState != null) {
-      return savedInstanceState.getParcelable(BUNDLE_BACKSTACK);
+      return Backstack.from(savedInstanceState.getParcelable(BUNDLE_BACKSTACK), parcer);
     } else {
       return Backstack.single(new App.ConversationList());
     }
@@ -126,7 +134,8 @@ public class MainActivity extends Activity implements Flow.Listener {
     return Screens.createView(scopedContext, screen);
   }
 
-  @Module(library = true) class ActivityModule {
+  @Module(injects = MainActivity.class, library = true)
+  class ActivityModule {
     @Provides @App Flow provideAppFlow() {
       return flow;
     }
@@ -137,6 +146,14 @@ public class MainActivity extends Activity implements Flow.Listener {
 
     @Provides List<User> provideFriends() {
       return SampleData.FRIENDS;
+    }
+
+    @Provides @Singleton Gson provideGson() {
+      return new GsonBuilder().create();
+    }
+
+    @Provides @Singleton Parcer<Screen> provideParcer(Gson gson) {
+      return new GsonParcer<Screen>(gson);
     }
   }
 }
