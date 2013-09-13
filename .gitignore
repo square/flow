@@ -1,6 +1,10 @@
 # IntelliJ IDEA
 .idea
 *.iml
+gen
+
+# Maven
+target/
 
 # Gradle
 .gradle

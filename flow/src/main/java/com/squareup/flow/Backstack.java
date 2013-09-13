@@ -77,7 +77,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return backstack.toString();
   }
 
-  public static class Entry {
+  public static final class Entry {
     private final long id;
     private final Screen screen;
 
@@ -99,7 +99,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     }
   }
 
-  public static class Builder {
+  public static final class Builder {
     private long highestId;
     private final Deque<Entry> backstack;
 
@@ -164,7 +164,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   private interface ParcelableBackstack extends Parcelable {
     Backstack getBackstack(Parcer<Screen> parcer);
 
-    public static final Parcelable.Creator<ParcelableBackstack> CREATOR =
+    Parcelable.Creator<ParcelableBackstack> CREATOR =
         new Parcelable.Creator<ParcelableBackstack>() {
           @Override public ParcelableBackstack createFromParcel(Parcel in) {
             List<ParcelableEntry> entries = new ArrayList<ParcelableEntry>();

@@ -20,7 +20,7 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
-public class Utils {
+public final class Utils {
   public interface OnMeasuredCallback {
     void onMeasured(View view, int width, int height);
   }
@@ -37,7 +37,9 @@ public class Utils {
     final ViewTreeObserver observer = view.getViewTreeObserver();
     observer.addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
       @Override public boolean onPreDraw() {
-        if (observer.isAlive()) observer.removeOnPreDrawListener(this);
+        if (observer.isAlive()) {
+          observer.removeOnPreDrawListener(this);
+        }
 
         callback.onMeasured(view, view.getWidth(), view.getHeight());
 
@@ -50,5 +52,6 @@ public class Utils {
     ((Injector) context).inject(view);
   }
 
-  private Utils() {}
+  private Utils() {
+  }
 }

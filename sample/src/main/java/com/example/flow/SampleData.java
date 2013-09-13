@@ -21,7 +21,7 @@ import com.example.flow.model.User;
 import java.util.Arrays;
 import java.util.List;
 
-public class SampleData {
+public final class SampleData {
   public static final List<User> FRIENDS;
   public static final List<Conversation> CONVERSATIONS;
 
@@ -45,5 +45,6 @@ public class SampleData {
     );
   }
 
-  private SampleData() {}
+  private SampleData() {
+  }
 }

@@ -23,7 +23,7 @@ import com.squareup.flow.annotation.Layout;
 import com.squareup.flow.annotation.View;
 import java.lang.reflect.Constructor;
 
-public class Screens {
+public final class Screens {
   private static final Class<?>[] VIEW_CONSTRUCTOR = new Class[] {
       Context.class, AttributeSet.class
   };
