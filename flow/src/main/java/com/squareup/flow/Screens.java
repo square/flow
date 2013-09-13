@@ -28,10 +28,12 @@ public final class Screens {
       Context.class, AttributeSet.class
   };
 
+  /** Create an instance of the view specified in a {@link View} or {@link Layout} annotation. */
   public static android.view.View createView(Context context, Screen screen) {
     return createView(context, screen.getClass());
   }
 
+  /** Create an instance of the view specified in a {@link View} or {@link Layout} annotation. */
   public static android.view.View createView(Context context, Class<? extends Screen> screenType) {
     View view = screenType.getAnnotation(View.class);
     if (view != null) {

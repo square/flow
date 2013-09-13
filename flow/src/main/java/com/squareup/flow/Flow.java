@@ -19,6 +19,7 @@ package com.squareup.flow;
 import java.util.Iterator;
 import java.util.LinkedList;
 
+/** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
   public enum Direction {
     FORWARD, BACKWARD
@@ -40,11 +41,13 @@ public final class Flow {
     return backstack;
   }
 
-  public void goTo(Screen desired) {
-    Backstack newBackstack = backstack.buildUpon().push(desired).build();
+  /** Push the screen onto the backstack. */
+  public void goTo(Screen screen) {
+    Backstack newBackstack = backstack.buildUpon().push(screen).build();
     forward(newBackstack);
   }
 
+  /** Reset to the specified screen. Pops until the screen is found (inclusive) and appends.  */
   public void resetTo(Screen screen) {
     Backstack.Builder builder = backstack.buildUpon();
     int count = 0;
@@ -66,13 +69,14 @@ public final class Flow {
     backward(builder.build());
   }
 
-  public void replaceTo(Screen to) {
+  /** Replaces the current backstack with the up stack of the screen. */
+  public void replaceTo(Screen screen) {
     LinkedList<Screen> newBackstack = new LinkedList<Screen>();
 
-    Screen current = to;
-    while (current instanceof Screen.HasParent<?>) {
+    Screen current = screen;
+    while (current instanceof HasParent<?>) {
       newBackstack.addFirst(current);
-      current = ((Screen.HasParent) current).getParent();
+      current = ((HasParent) current).getParent();
     }
     newBackstack.addFirst(current);
 
@@ -82,16 +86,24 @@ public final class Flow {
     backward(builder.build());
   }
 
+  /**
+   * Go up one screen.
+   * @return false if going up is not possible.
+   */
   public boolean goUp() {
     Screen current = backstack.current().getScreen();
-    if (current instanceof Screen.HasParent<?>) {
-      replaceTo(((Screen.HasParent) current).getParent());
+    if (current instanceof HasParent<?>) {
+      replaceTo(((HasParent) current).getParent());
       return true;
     } else {
       return false;
     }
   }
 
+  /**
+   * Go back one screen.
+   * @return false if going back is not possible.
+   */
   public boolean goBack() {
     if (backstack.size() == 1) {
       return false;
@@ -104,11 +116,13 @@ public final class Flow {
     return true;
   }
 
+  /** Goes forward to a new backstack. */
   public void forward(Backstack newBackstack) {
     listener.go(newBackstack, Direction.FORWARD);
     backstack = newBackstack;
   }
 
+  /** Goes backward to a new backstack. */
   public void backward(Backstack newBackstack) {
     listener.go(newBackstack, Direction.BACKWARD);
     backstack = newBackstack;
