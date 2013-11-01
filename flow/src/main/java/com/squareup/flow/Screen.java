@@ -28,10 +28,10 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * containing all information that describes this state. Optionally specifies its view or layout.
  *
  * <p>For example, <pre><code>
- * {@literal@}Screen(Conversation.class)
+ * {@literal@}Screen(WelcomeScreenView.class)
  * public class WelcomeScreen { ... }
  *
- * {@literal@}Screen(layout=R.layout.conversation_layout)
+ * {@literal@}Screen(layout=R.layout.conversation_screen_layout)
  * public class ConversationScreen { ... }
  * </code></pre>
  */
