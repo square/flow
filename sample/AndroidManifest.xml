@@ -24,11 +24,14 @@
       android:minSdkVersion="14"
       android:targetSdkVersion="18"/>
 
-  <application>
+  <application
+      android:icon="@drawable/flow_icon"
+      >
     <activity
+        android:label="Flow"
         android:name=".MainActivity"
         android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
-        android:label="Sample">
+        >
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
 
