@@ -31,7 +31,7 @@ import dagger.Provides;
 
 public @interface App {
   @View(ConversationListView.class) //
-  @Module(injects = ConversationListView.class, addsTo = MainActivity.ActivityModule.class)
+  @Module(injects = ConversationListView.class, complete =  false)
   public static class ConversationList implements Screen {
   }
 
