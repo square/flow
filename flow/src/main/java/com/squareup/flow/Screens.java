@@ -19,8 +19,7 @@ package com.squareup.flow;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import com.squareup.flow.annotation.Layout;
-import com.squareup.flow.annotation.View;
+import android.view.View;
 import java.lang.reflect.Constructor;
 
 public final class Screens {
@@ -28,25 +27,24 @@ public final class Screens {
       Context.class, AttributeSet.class
   };
 
-  /** Create an instance of the view specified in a {@link View} or {@link Layout} annotation. */
-  public static android.view.View createView(Context context, Screen screen) {
+  /** Create an instance of the view specified in a {@link Screen} annotation. */
+  public static android.view.View createView(Context context, Object screen) {
     return createView(context, screen.getClass());
   }
 
-  /** Create an instance of the view specified in a {@link View} or {@link Layout} annotation. */
-  public static android.view.View createView(Context context, Class<? extends Screen> screenType) {
-    View view = screenType.getAnnotation(View.class);
-    if (view != null) {
-      return instantiateView(context, view.value());
+  /** Create an instance of the view specified in a {@link Screen} annotation. */
+  public static android.view.View createView(Context context, Class<?> screenType) {
+    Screen screen = screenType.getAnnotation(Screen.class);
+    if (screen == null) {
+      throw new IllegalArgumentException(
+          String.format("@%s annotation not found on class %s", Screen.class.getSimpleName(),
+              screenType.getName()));
     }
 
-    Layout layout = screenType.getAnnotation(Layout.class);
-    if (layout != null) {
-      return inflateLayout(context, layout.value());
-    }
+    int layout = screen.layout();
+    if (layout != View.NO_ID) return inflateLayout(context, layout);
 
-    throw new IllegalArgumentException(
-        screenType + " does not have either a @View or @Layout annotation");
+    return instantiateView(context, screen.value());
   }
 
   private static android.view.View inflateLayout(Context context, int layoutId) {

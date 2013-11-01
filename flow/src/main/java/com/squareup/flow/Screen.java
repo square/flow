@@ -16,9 +16,27 @@
 
 package com.squareup.flow;
 
+import android.view.View;
+import java.lang.annotation.Retention;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.TYPE;
+import static java.lang.annotation.RetentionPolicy.RUNTIME;
+
 /**
- * Marker interface that designates a screen. A screen is a distinct part of an application
- * containing all information that describes this state.
+ * Marks a class that designates a screen. A screen is a distinct part of an application
+ * containing all information that describes this state. Optionally specifies its view or layout.
+ *
+ * <p>For example, <pre><code>
+ * {@literal@}Screen(R.layout.welcome_layout)
+ * public class WelcomeScreen { ... }
+ *
+ * {@literal@}Screen(view=Conversation.class)
+ * public class ConversationScreen { ... }
+ * </code></pre>
  */
-public interface Screen {
+@Retention(RUNTIME) @Target(TYPE)
+public @interface Screen {
+  int layout() default View.NO_ID;
+  Class<? extends android.view.View> value() default View.class;
 }
