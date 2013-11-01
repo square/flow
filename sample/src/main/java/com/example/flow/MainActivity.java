@@ -34,7 +34,6 @@ import com.squareup.flow.Backstack;
 import com.squareup.flow.Flow;
 import com.squareup.flow.HasParent;
 import com.squareup.flow.Parcer;
-import com.squareup.flow.Screen;
 import com.squareup.flow.Screens;
 import dagger.Module;
 import dagger.ObjectGraph;
@@ -49,7 +48,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   private static final String BUNDLE_BACKSTACK = "backstack";
 
   @InjectView(R.id.container) ContainerView containerView;
-  @Inject Parcer<Screen> parcer;
+  @Inject Parcer<Object> parcer;
 
   private Flow flow;
   private ObjectGraph activityGraph;
@@ -88,7 +87,7 @@ public class MainActivity extends Activity implements Flow.Listener {
           }
         });
 
-    Screen screen = flow.getBackstack().current().getScreen();
+    Object screen = flow.getBackstack().current().getScreen();
     boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
@@ -110,7 +109,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   }
 
   @Override public void go(Backstack backstack, Flow.Direction direction) {
-    Screen screen = backstack.current().getScreen();
+    Object screen = backstack.current().getScreen();
     containerView.displayView(getView(screen), direction);
 
     setTitle(screen.getClass().getSimpleName());
@@ -131,7 +130,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     }
   }
 
-  private View getView(Screen screen) {
+  private View getView(Object screen) {
     ObjectGraph graph = activityGraph.plus(screen);
     Context scopedContext = new ScopedContext(this, graph);
     return Screens.createView(scopedContext, screen);
@@ -155,8 +154,8 @@ public class MainActivity extends Activity implements Flow.Listener {
       return new GsonBuilder().create();
     }
 
-    @Provides @Singleton Parcer<Screen> provideParcer(Gson gson) {
-      return new GsonParcer<Screen>(gson);
+    @Provides @Singleton Parcer<Object> provideParcer(Gson gson) {
+      return new GsonParcer<Object>(gson);
     }
   }
 }

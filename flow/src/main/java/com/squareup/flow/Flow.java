@@ -42,13 +42,13 @@ public final class Flow {
   }
 
   /** Push the screen onto the backstack. */
-  public void goTo(Screen screen) {
+  public void goTo(Object screen) {
     Backstack newBackstack = backstack.buildUpon().push(screen).build();
     forward(newBackstack);
   }
 
   /** Reset to the specified screen. Pops until the screen is found (inclusive) and appends.  */
-  public void resetTo(Screen screen) {
+  public void resetTo(Object screen) {
     Backstack.Builder builder = backstack.buildUpon();
     int count = 0;
     for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
@@ -70,10 +70,10 @@ public final class Flow {
   }
 
   /** Replaces the current backstack with the up stack of the screen. */
-  public void replaceTo(Screen screen) {
-    LinkedList<Screen> newBackstack = new LinkedList<Screen>();
+  public void replaceTo(Object screen) {
+    LinkedList<Object> newBackstack = new LinkedList<Object>();
 
-    Screen current = screen;
+    Object current = screen;
     while (current instanceof HasParent<?>) {
       newBackstack.addFirst(current);
       current = ((HasParent) current).getParent();
@@ -91,7 +91,7 @@ public final class Flow {
    * @return false if going up is not possible.
    */
   public boolean goUp() {
-    Screen current = backstack.current().getScreen();
+    Object current = backstack.current().getScreen();
     if (current instanceof HasParent<?>) {
       replaceTo(((HasParent) current).getParent());
       return true;

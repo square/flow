@@ -26,14 +26,16 @@ import java.util.Deque;
 import java.util.Iterator;
 import java.util.List;
 
-/** Describes the history of a {@link Flow} at a specific point in time. For persisting the
- * supplied {@link Parcer} needs to be able to handle all screen types. */
+/**
+ * Describes the history of a {@link Flow} at a specific point in time. For persisting the supplied
+ * {@link Parcer} needs to be able to handle all screen types.
+ */
 public final class Backstack implements Iterable<Backstack.Entry> {
   private final long highestId;
   private final Deque<Entry> backstack;
 
   /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parcer}. */
-  public static Backstack from(Parcelable parcelable, Parcer<Screen> parcer) {
+  public static Backstack from(Parcelable parcelable, Parcer<Object> parcer) {
     ParcelableBackstack backstack = (ParcelableBackstack) parcelable;
     return backstack.getBackstack(parcer);
   }
@@ -43,7 +45,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   /** Create a backstack that contains a single screen. */
-  public static Backstack single(Screen screen) {
+  public static Backstack single(Object screen) {
     return emptyBuilder().push(screen).build();
   }
 
@@ -61,7 +63,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   /** Get a {@link Parcelable} of this backstack using the supplied {@link Parcer}. */
-  public Parcelable getParcelable(Parcer<Screen> parcer) {
+  public Parcelable getParcelable(Parcer<Object> parcer) {
     return new ParcelableBackstack.Memory(this, parcer);
   }
 
@@ -84,9 +86,9 @@ public final class Backstack implements Iterable<Backstack.Entry> {
 
   public static final class Entry {
     private final long id;
-    private final Screen screen;
+    private final Object screen;
 
-    private Entry(long id, Screen screen) {
+    private Entry(long id, Object screen) {
       this.id = id;
       this.screen = screen;
     }
@@ -95,7 +97,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       return id;
     }
 
-    public Screen getScreen() {
+    public Object getScreen() {
       return screen;
     }
 
@@ -113,14 +115,14 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       this.backstack = new ArrayDeque<Entry>(backstack);
     }
 
-    public Builder push(Screen screen) {
+    public Builder push(Object screen) {
       backstack.push(new Entry(++highestId, screen));
 
       return this;
     }
 
-    public Builder addAll(Collection<Screen> c) {
-      for (Screen screen : c) {
+    public Builder addAll(Collection<Object> c) {
+      for (Object screen : c) {
         backstack.push(new Entry(++highestId, screen));
       }
 
@@ -167,8 +169,9 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   private interface ParcelableBackstack extends Parcelable {
-    Backstack getBackstack(Parcer<Screen> parcer);
+    Backstack getBackstack(Parcer<Object> parcer);
 
+    @SuppressWarnings("UnusedDeclaration")
     Parcelable.Creator<ParcelableBackstack> CREATOR =
         new Parcelable.Creator<ParcelableBackstack>() {
           @Override public ParcelableBackstack createFromParcel(Parcel in) {
@@ -185,14 +188,14 @@ public final class Backstack implements Iterable<Backstack.Entry> {
 
     static class Memory implements ParcelableBackstack {
       private final Backstack backstack;
-      private final Parcer<Screen> parcer;
+      private final Parcer<Object> parcer;
 
-      Memory(Backstack backstack, Parcer<Screen> parcer) {
+      Memory(Backstack backstack, Parcer<Object> parcer) {
         this.backstack = backstack;
         this.parcer = parcer;
       }
 
-      @Override public Backstack getBackstack(Parcer<Screen> parcer) {
+      @Override public Backstack getBackstack(Parcer<Object> parcer) {
         return backstack;
       }
 
@@ -220,7 +223,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
         this.entries = entries;
       }
 
-      @Override public Backstack getBackstack(Parcer<Screen> parcer) {
+      @Override public Backstack getBackstack(Parcer<Object> parcer) {
         List<Entry> backstack = new ArrayList<Entry>();
         for (ParcelableEntry entry : entries) {
           backstack.add(entry.toRealEntry(parcer));
@@ -249,7 +252,7 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       this.parcelable = parcelable;
     }
 
-    public Entry toRealEntry(Parcer<Screen> parcer) {
+    public Entry toRealEntry(Parcer<Object> parcer) {
       return new Entry(id, parcer.unwrap(parcelable));
     }
 
