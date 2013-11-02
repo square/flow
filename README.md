@@ -7,8 +7,8 @@ Flow is a small library that helps with describing an app as a collection of mod
 A screen describes a distinct state of an application. It contains enough information to bootstrap the view.
 
 ```java
-  @Layout(R.layout.track)
-  public class TrackScreen implements Screen, HasParent<AlbumScreen> {
+  @Screen(layout = R.layout.track)
+  public class TrackScreen implements HasParent<AlbumScreen> {
     public final int albumId;
     public final int trackId;
 
