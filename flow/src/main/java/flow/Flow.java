@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.flow;
+package flow;
 
 import java.util.Iterator;
 import java.util.LinkedList;

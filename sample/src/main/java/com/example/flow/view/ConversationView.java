@@ -26,7 +26,7 @@ import com.example.flow.App;
 import com.example.flow.SampleData;
 import com.example.flow.Utils;
 import com.example.flow.model.Conversation;
-import com.squareup.flow.Flow;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.flow;
+package flow;
 
 /**
  * Describes the parent of a specific screen which is used to support the up affordance.

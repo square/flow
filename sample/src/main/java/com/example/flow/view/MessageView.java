@@ -28,7 +28,7 @@ import com.example.flow.R;
 import com.example.flow.SampleData;
 import com.example.flow.Utils;
 import com.example.flow.model.Conversation;
-import com.squareup.flow.Flow;
+import flow.Flow;
 import javax.inject.Inject;
 
 public class MessageView extends LinearLayout {

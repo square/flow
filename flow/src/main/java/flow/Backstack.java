@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.squareup.flow;
+package flow;
 
 import android.os.Parcel;
 import android.os.Parcelable;

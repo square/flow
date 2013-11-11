@@ -22,8 +22,8 @@ import com.example.flow.view.ConversationView;
 import com.example.flow.view.FriendListView;
 import com.example.flow.view.FriendView;
 import com.example.flow.view.MessageView;
-import com.squareup.flow.HasParent;
-import com.squareup.flow.Screen;
+import flow.HasParent;
+import flow.Screen;
 import dagger.Module;
 import dagger.Provides;
 

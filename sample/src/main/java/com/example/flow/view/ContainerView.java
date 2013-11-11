@@ -26,7 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
 import com.example.flow.Utils;
-import com.squareup.flow.Flow;
+import flow.Flow;
 
 public class ContainerView extends FrameLayout {
   private boolean disabled;
