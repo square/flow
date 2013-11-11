@@ -25,9 +25,9 @@
     <version>7</version>
   </parent>
 
-  <groupId>com.squareup</groupId>
+  <groupId>com.squareup.flow</groupId>
   <artifactId>flow-parent</artifactId>
-  <version>1.0.0-SNAPSHOT</version>
+  <version>0.2</version>
   <packaging>pom</packaging>
 
   <name>Flow (Parent)</name>
