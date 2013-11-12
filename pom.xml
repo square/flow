@@ -36,7 +36,7 @@
 
   <modules>
     <module>flow</module>
-    <module>sample</module>
+    <module>flow-sample</module>
   </modules>
 
   <properties>
