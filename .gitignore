@@ -5,6 +5,7 @@ gen
 
 # Maven
 target/
+pom.xml.versionsBackup
 
 # Gradle
 .gradle
