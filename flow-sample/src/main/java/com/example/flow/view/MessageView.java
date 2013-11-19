@@ -25,15 +25,17 @@ import butterknife.OnClick;
 import butterknife.Views;
 import com.example.flow.App;
 import com.example.flow.R;
-import com.example.flow.SampleData;
 import com.example.flow.Utils;
 import com.example.flow.model.Conversation;
+import com.example.flow.model.User;
 import flow.Flow;
+import java.util.List;
 import javax.inject.Inject;
 
 public class MessageView extends LinearLayout {
   @Inject @App Flow flow;
   @Inject Conversation.Item message;
+  @Inject List<User> friendList;
 
   @InjectView(R.id.user) TextView userView;
   @InjectView(R.id.message) TextView messageView;
@@ -56,7 +58,7 @@ public class MessageView extends LinearLayout {
   }
 
   @OnClick(R.id.user) void userClicked() {
-    int position = SampleData.FRIENDS.indexOf(message.from);
+    int position = friendList.indexOf(message.from);
     if (position != -1) {
       flow.goTo(new App.Friend(position));
     }
