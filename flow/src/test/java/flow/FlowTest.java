@@ -201,4 +201,38 @@ public class FlowTest {
 
     assertThat(flow.goBack()).isFalse();
   }
+
+  @Test public void replaceWithNonUppy() {
+    Backstack backstack = Backstack.emptyBuilder()
+        .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
+            new Picky("Delta")))
+        .build();
+    Flow flow = new Flow(backstack, new FlowListener());
+
+    flow.replaceTo("Echo");
+    Backstack newBack = flow.getBackstack();
+    assertThat(newBack.size()).isEqualTo(1);
+    assertThat(newBack.current().getScreen()).isEqualTo("Echo");
+  }
+
+  /**
+   * Sometimes its nice to jump into a new flow at a midpoint.
+   */
+  @Test public void buildFromUp() {
+    Backstack backstack = Backstack.fromUpChain(new Tres());
+    assertThat(backstack.size()).isEqualTo(3);
+
+    Flow flow = new Flow(backstack, new FlowListener());
+    assertThat(flow.getBackstack().current().getScreen()).isInstanceOf(Tres.class);
+
+    assertThat(flow.goBack()).isTrue();
+    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
+
+    assertThat(flow.goBack()).isTrue();
+    assertThat(lastStack.current().getScreen()).isInstanceOf(Uno.class);
+    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
+
+    assertThat(flow.goBack()).isFalse();
+  }
 }
