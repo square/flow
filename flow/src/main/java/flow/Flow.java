@@ -54,7 +54,7 @@ public final class Flow {
     for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
       Backstack.Entry entry = it.next();
 
-      if (entry.getScreen() == screen) {
+      if (entry.getScreen().equals(screen)) {
         // Clear up to the target screen.
         for (int i = 0; i < backstack.size() - count; i++) {
           builder.pop();
