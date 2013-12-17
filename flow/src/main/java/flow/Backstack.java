@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -82,6 +83,21 @@ public final class Backstack implements Iterable<Backstack.Entry> {
 
   @Override public String toString() {
     return backstack.toString();
+  }
+
+  public static Backstack fromUpChain(Object screen) {
+    LinkedList<Object> newBackstack = new LinkedList<Object>();
+
+    Object current = screen;
+    while (current instanceof HasParent<?>) {
+      newBackstack.addFirst(current);
+      current = ((HasParent) current).getParent();
+    }
+    newBackstack.addFirst(current);
+
+    Backstack.Builder builder = emptyBuilder();
+    builder.addAll(newBackstack);
+    return builder.build();
   }
 
   public static final class Entry {

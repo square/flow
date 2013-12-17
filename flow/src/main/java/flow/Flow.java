@@ -17,7 +17,6 @@
 package flow;
 
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
@@ -71,19 +70,7 @@ public final class Flow {
 
   /** Replaces the current backstack with the up stack of the screen. */
   public void replaceTo(Object screen) {
-    LinkedList<Object> newBackstack = new LinkedList<Object>();
-
-    Object current = screen;
-    while (current instanceof HasParent<?>) {
-      newBackstack.addFirst(current);
-      current = ((HasParent) current).getParent();
-    }
-    newBackstack.addFirst(current);
-
-    Backstack.Builder builder = backstack.buildUpon().clear();
-    builder.addAll(newBackstack);
-
-    backward(builder.build());
+    backward(Backstack.fromUpChain(screen));
   }
 
   /**
