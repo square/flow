@@ -20,17 +20,21 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import butterknife.InjectView;
-import butterknife.OnClick;
-import butterknife.Views;
+
 import com.example.flow.App;
 import com.example.flow.R;
 import com.example.flow.Utils;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
-import flow.Flow;
+
 import java.util.List;
+
 import javax.inject.Inject;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import butterknife.OnClick;
+import flow.Flow;
 
 public class MessageView extends LinearLayout {
   @Inject @App Flow flow;
@@ -51,7 +55,7 @@ public class MessageView extends LinearLayout {
   @Override protected void onFinishInflate() {
     super.onFinishInflate();
 
-    Views.inject(this);
+    ButterKnife.inject(this);
 
     userView.setText(String.valueOf(message.from));
     messageView.setText(String.valueOf(message.message));
