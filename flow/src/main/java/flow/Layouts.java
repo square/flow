@@ -17,50 +17,32 @@
 package flow;
 
 import android.content.Context;
-import android.util.AttributeSet;
 import android.view.LayoutInflater;
-import android.view.View;
-import java.lang.reflect.Constructor;
 
-public final class Screens {
-  private static final Class<?>[] VIEW_CONSTRUCTOR = new Class[] {
-      Context.class, AttributeSet.class
-  };
+public final class Layouts {
 
-  /** Create an instance of the view specified in a {@link Screen} annotation. */
+  /** Create an instance of the view specified in a {@link Layout} annotation. */
   public static android.view.View createView(Context context, Object screen) {
     return createView(context, screen.getClass());
   }
 
-  /** Create an instance of the view specified in a {@link Screen} annotation. */
+  /** Create an instance of the view specified in a {@link Layout} annotation. */
   public static android.view.View createView(Context context, Class<?> screenType) {
-    Screen screen = screenType.getAnnotation(Screen.class);
+    Layout screen = screenType.getAnnotation(Layout.class);
     if (screen == null) {
       throw new IllegalArgumentException(
-          String.format("@%s annotation not found on class %s", Screen.class.getSimpleName(),
+          String.format("@%s annotation not found on class %s", Layout.class.getSimpleName(),
               screenType.getName()));
     }
 
-    int layout = screen.layout();
-    if (layout != View.NO_ID) return inflateLayout(context, layout);
-
-    return instantiateView(context, screen.value());
+    int layout = screen.value();
+    return inflateLayout(context, layout);
   }
 
   private static android.view.View inflateLayout(Context context, int layoutId) {
     return LayoutInflater.from(context).inflate(layoutId, null);
   }
 
-  private static android.view.View instantiateView(Context context,
-      Class<? extends android.view.View> type) {
-    try {
-      Constructor<? extends android.view.View> constructor = type.getConstructor(VIEW_CONSTRUCTOR);
-      return constructor.newInstance(context, null);
-    } catch (Exception e) {
-      throw new IllegalStateException("View could not be created", e);
-    }
-  }
-
-  private Screens() {
+  private Layouts() {
   }
 }
