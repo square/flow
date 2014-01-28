@@ -23,28 +23,24 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-
+import butterknife.ButterKnife;
+import butterknife.InjectView;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 import com.example.flow.view.ContainerView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-
-import java.util.List;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-
-import butterknife.ButterKnife;
-import butterknife.InjectView;
 import dagger.Module;
 import dagger.ObjectGraph;
 import dagger.Provides;
 import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
+import flow.Layouts;
 import flow.Parcer;
-import flow.Screens;
+import java.util.List;
+import javax.inject.Inject;
+import javax.inject.Singleton;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
@@ -137,7 +133,7 @@ public class MainActivity extends Activity implements Flow.Listener {
   private View getView(Object screen) {
     ObjectGraph graph = activityGraph.plus(screen);
     Context scopedContext = new ScopedContext(this, graph);
-    return Screens.createView(scopedContext, screen);
+    return Layouts.createView(scopedContext, screen);
   }
 
   @Module(injects = MainActivity.class, library = true)

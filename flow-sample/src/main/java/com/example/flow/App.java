@@ -23,17 +23,17 @@ import com.example.flow.view.FriendListView;
 import com.example.flow.view.FriendView;
 import com.example.flow.view.MessageView;
 import flow.HasParent;
-import flow.Screen;
+import flow.Layout;
 import dagger.Module;
 import dagger.Provides;
 
 public @interface App {
-  @Screen(ConversationListView.class) //
+  @Layout(R.layout.conversation_list_view) //
   @Module(injects = ConversationListView.class, addsTo = MainActivity.ActivityModule.class)
   public static class ConversationList {
   }
 
-  @Screen(ConversationView.class) //
+  @Layout(R.layout.conversation_view) //
   @Module(injects = ConversationView.class, addsTo = MainActivity.ActivityModule.class)
   public static class Conversation implements HasParent<ConversationList> {
     public final int conversationIndex;
@@ -51,7 +51,7 @@ public @interface App {
     }
   }
 
-  @Screen(layout = R.layout.message_view) //
+  @Layout(R.layout.message_view) //
   @Module(injects = MessageView.class, addsTo = MainActivity.ActivityModule.class)
   public static class Message implements HasParent<Conversation> {
     public final int conversationIndex;
@@ -71,7 +71,7 @@ public @interface App {
     }
   }
 
-  @Screen(FriendListView.class) //
+  @Layout(R.layout.friend_list_view) //
   @Module(injects = FriendListView.class, addsTo = MainActivity.ActivityModule.class)
   public static class FriendList implements HasParent<ConversationList> {
     @Override public ConversationList getParent() {
@@ -79,7 +79,7 @@ public @interface App {
     }
   }
 
-  @Screen(FriendView.class) //
+  @Layout(R.layout.friend_view) //
   @Module(injects = FriendView.class)
   public static class Friend implements HasParent<FriendList> {
     public final int index;
