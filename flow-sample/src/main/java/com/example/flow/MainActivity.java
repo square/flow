@@ -23,24 +23,28 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import butterknife.InjectView;
-import butterknife.Views;
+
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 import com.example.flow.view.ContainerView;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import java.util.List;
+
+import javax.inject.Inject;
+import javax.inject.Singleton;
+
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import dagger.Module;
+import dagger.ObjectGraph;
+import dagger.Provides;
 import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
 import flow.Parcer;
 import flow.Screens;
-import dagger.Module;
-import dagger.ObjectGraph;
-import dagger.Provides;
-import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
@@ -58,7 +62,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     super.onCreate(savedInstanceState);
 
     setContentView(R.layout.activity_main);
-    Views.inject(this);
+    ButterKnife.inject(this);
 
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
