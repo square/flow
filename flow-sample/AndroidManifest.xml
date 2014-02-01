@@ -30,7 +30,7 @@
     <activity
         android:label="Flow"
         android:name=".MainActivity"
-        android:theme="@android:style/Theme.Holo.Light.DarkActionBar"
+        android:theme="@style/AppTheme"
         >
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>

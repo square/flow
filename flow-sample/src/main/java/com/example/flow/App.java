@@ -24,6 +24,7 @@ import com.example.flow.view.FriendView;
 import com.example.flow.view.MessageView;
 import flow.HasParent;
 import flow.Layout;
+import flow.Theme;
 import dagger.Module;
 import dagger.Provides;
 
@@ -80,6 +81,7 @@ public @interface App {
   }
 
   @Layout(R.layout.friend_view) //
+  @Theme(R.style.AppTheme_Dark) //
   @Module(injects = FriendView.class)
   public static class Friend implements HasParent<FriendList> {
     public final int index;
