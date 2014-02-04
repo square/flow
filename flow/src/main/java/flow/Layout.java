@@ -27,7 +27,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * an application containing all information that describes this state.
  *
  * <p>For example, <pre><code>
- * {@literal@}Screen(R.layout.conversation_screen_layout)
+ * {@literal@}Layout(R.layout.conversation_screen_layout)
  * public class ConversationScreen { ... }
  * </code></pre>
  */
