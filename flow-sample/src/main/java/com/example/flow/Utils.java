@@ -17,6 +17,7 @@
 package com.example.flow;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.view.View;
 import android.view.ViewTreeObserver;
 
@@ -49,7 +50,14 @@ public final class Utils {
   }
 
   public static void inject(Context context, View view) {
-    ((Injector) context).inject(view);
+    Context c = context;
+
+    // Find the Injector under any wrappers.
+    while (!(c instanceof Injector) && c instanceof ContextWrapper) {
+      c = ((ContextWrapper) c).getBaseContext();
+    }
+
+    ((Injector) c).inject(view);
   }
 
   private Utils() {

@@ -17,6 +17,7 @@
 package flow;
 
 import android.content.Context;
+import android.view.ContextThemeWrapper;
 import android.view.LayoutInflater;
 
 public final class Layouts {
@@ -36,7 +37,15 @@ public final class Layouts {
     }
 
     int layout = screen.value();
-    return inflateLayout(context, layout);
+
+    Context themedContext = context;
+
+    Theme theme = screenType.getAnnotation(Theme.class);
+    if (theme != null) {
+      themedContext = new ContextThemeWrapper(context, theme.value());
+    }
+
+    return inflateLayout(themedContext, layout);
   }
 
   private static android.view.View inflateLayout(Context context, int layoutId) {
