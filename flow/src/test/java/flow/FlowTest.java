@@ -155,6 +155,28 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
+  @Test public void resetToMissingScreenPushes() {
+    Backstack backstack = Backstack.emptyBuilder()
+        .addAll(Arrays.<Object>asList("Able", "Baker"))
+        .build();
+    Flow flow = new Flow(backstack, new FlowListener());
+    assertThat(backstack.size()).isEqualTo(2);
+
+    flow.resetTo("Charlie");
+    assertThat(lastStack.current().getScreen()).isEqualTo("Charlie");
+    assertThat(lastStack.size()).isEqualTo(3);
+    assertThat(lastDirection).isEqualTo(Flow.Direction.FORWARD);
+
+    assertThat(flow.goBack()).isTrue();
+    assertThat(lastStack.current().getScreen()).isEqualTo("Baker");
+    assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
+
+    assertThat(flow.goBack()).isTrue();
+    assertThat(lastStack.current().getScreen()).isEqualTo("Able");
+    assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
+    assertThat(flow.goBack()).isFalse();
+  }
+
   static class Picky {
     final String value;
 
