@@ -50,6 +50,7 @@ public final class Flow {
   public void resetTo(Object screen) {
     Backstack.Builder builder = backstack.buildUpon();
     int count = 0;
+    boolean popped = false;
     for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
       Backstack.Entry entry = it.next();
 
@@ -57,6 +58,7 @@ public final class Flow {
         // Clear up to the target screen.
         for (int i = 0; i < backstack.size() - count; i++) {
           builder.pop();
+          popped = true;
         }
         break;
       } else {
@@ -65,7 +67,11 @@ public final class Flow {
     }
 
     builder.push(screen);
-    backward(builder.build());
+    if (popped) {
+      backward(builder.build());
+    } else {
+      forward(builder.build());
+    }
   }
 
   /** Replaces the current backstack with the up stack of the screen. */
