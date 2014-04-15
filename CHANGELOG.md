@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.5 *(2014-04-15)*
+----------------------------
+  * Keep original screen on stack if found by resetTo.
+
 Version 0.4 *(2014-01-28)*
 ----------------------------
   * API break: @Screen(layout=R.layout.foo) > @Layout(R.layout.foo), and Screens > Layouts.
