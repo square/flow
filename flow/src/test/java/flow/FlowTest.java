@@ -177,6 +177,23 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
+  @Test public void resetKeepsOriginal() {
+    Screen able = new Screen("Able");
+    Screen baker = new Screen("Baker");
+    Backstack backstack = Backstack.emptyBuilder()
+        .addAll(Arrays.<Object>asList(able, baker))
+        .build();
+    Flow flow = new Flow(backstack, new FlowListener());
+    assertThat(backstack.size()).isEqualTo(2);
+
+    flow.resetTo(new Screen("Able"));
+    assertThat(lastStack.current().getScreen()).isEqualTo(new Screen("Able"));
+    assertThat(lastStack.current().getScreen() == able).isTrue();
+    assertThat(lastStack.current().getScreen()).isSameAs(able);
+    assertThat(lastStack.size()).isEqualTo(1);
+    assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
+  }
+
   static class Picky {
     final String value;
 
@@ -256,5 +273,26 @@ public class FlowTest {
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
+  }
+
+  private static final class Screen {
+    final String name;
+
+    Screen(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Screen screen = (Screen) o;
+      return name.equals(screen.name);
+    }
+
+    @Override
+    public int hashCode() {
+      return name.hashCode();
+    }
   }
 }
