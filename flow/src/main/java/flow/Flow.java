@@ -46,19 +46,24 @@ public final class Flow {
     forward(newBackstack);
   }
 
-  /** Reset to the specified screen. Pops until the screen is found (inclusive) and appends.  */
+  /**
+   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found, the
+   * entire backstack is replaced with the screen.
+   */
   public void resetTo(Object screen) {
     Backstack.Builder builder = backstack.buildUpon();
     int count = 0;
-    boolean popped = false;
+    // Take care to leave the original screen instance on the stack, if we find it.  This enables
+    // some arguably bad behavior on the part of clients, but it's still probably the right thing
+    // to do.
+    Object lastPopped = null;
     for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
       Backstack.Entry entry = it.next();
 
       if (entry.getScreen().equals(screen)) {
         // Clear up to the target screen.
         for (int i = 0; i < backstack.size() - count; i++) {
-          builder.pop();
-          popped = true;
+          lastPopped = builder.pop().getScreen();
         }
         break;
       } else {
@@ -66,10 +71,11 @@ public final class Flow {
       }
     }
 
-    builder.push(screen);
-    if (popped) {
+    if (lastPopped != null) {
+      builder.push(lastPopped);
       backward(builder.build());
     } else {
+      builder.push(screen);
       forward(builder.build());
     }
   }
