@@ -118,7 +118,7 @@ public class FlowTest {
 
     flow.replaceTo(new Tres());
     assertThat(lastStack.current().getScreen()).isInstanceOf(Tres.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
+    assertThat(lastDirection).isSameAs(Flow.Direction.REPLACE);
 
     assertThat(flow.goBack()).isTrue();
     assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);

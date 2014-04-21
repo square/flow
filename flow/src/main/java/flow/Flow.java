@@ -21,7 +21,7 @@ import java.util.Iterator;
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
   public enum Direction {
-    FORWARD, BACKWARD
+    FORWARD, BACKWARD, REPLACE
   }
 
   public interface Listener {
@@ -82,7 +82,7 @@ public final class Flow {
 
   /** Replaces the current backstack with the up stack of the screen. */
   public void replaceTo(Object screen) {
-    backward(Backstack.fromUpChain(screen));
+    replace(Backstack.fromUpChain(screen));
   }
 
   /**
@@ -92,7 +92,8 @@ public final class Flow {
   public boolean goUp() {
     Object current = backstack.current().getScreen();
     if (current instanceof HasParent<?>) {
-      replaceTo(((HasParent) current).getParent());
+      Object parent = ((HasParent) current).getParent();
+      backward(Backstack.fromUpChain(parent));
       return true;
     } else {
       return false;
@@ -124,6 +125,12 @@ public final class Flow {
   /** Goes backward to a new backstack. */
   public void backward(Backstack newBackstack) {
     listener.go(newBackstack, Direction.BACKWARD);
+    backstack = newBackstack;
+  }
+
+  /** Replaces to a new backstack. */
+  private void replace(Backstack newBackstack) {
+    listener.go(newBackstack, Direction.REPLACE);
     backstack = newBackstack;
   }
 }
