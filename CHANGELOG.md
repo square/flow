@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 0.6 *TBD*
+Version 0.6 *(2014-04-21)*
 ----------------------------
   * API break: replaceTo() now has a new Direction associated with it, `REPLACE`.
     This is logically more correct because the incumbent backstack is not
