@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 0.6 *TBD*
+----------------------------
+  * API break: replaceTo() now has a new Direction associated with it, `REPLACE`.
+    This is logically more correct because the incumbent backstack is not
+    consulted, and convenient because a replace transition is typically
+    different from a forward or backward transition.
+
 Version 0.5 *(2014-04-15)*
 ----------------------------
   * Keep original screen on stack if found by resetTo.
