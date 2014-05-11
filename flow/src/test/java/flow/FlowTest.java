@@ -194,6 +194,56 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
 
+  @Test public void replaceKeepsOriginals() {
+    Screen able = new Able();
+    Screen baker = new Baker();
+    Screen charlie = new Charlie();
+    Screen delta = new Screen("Delta");
+    Backstack backstack = Backstack.emptyBuilder()
+        .addAll(Arrays.<Object>asList(able, baker, charlie, delta))
+        .build();
+    Flow flow = new Flow(backstack, new FlowListener());
+    assertThat(backstack.size()).isEqualTo(4);
+
+    Screen foxtrot = new Foxtrot();
+    flow.replaceTo(foxtrot);
+    assertThat(lastStack.size()).isEqualTo(4);
+    assertThat(lastStack.current().getScreen()).isSameAs(foxtrot);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(3);
+    assertThat(lastStack.current().getScreen()).isEqualTo(new Echo());
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(2);
+    assertThat(lastStack.current().getScreen()).isSameAs(baker);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(1);
+    assertThat(lastStack.current().getScreen()).isSameAs(able);
+  }
+
+  @Test public void goUpKeepsOriginals() {
+    Screen able = new Able();
+    Screen baker = new Baker();
+    Screen charlie = new Charlie();
+    Screen delta = new Screen("Delta");
+    Screen foxtrot = new Foxtrot();
+
+    Backstack backstack = Backstack.emptyBuilder()
+        .addAll(Arrays.<Object>asList(able, baker, charlie, delta, foxtrot))
+        .build();
+    Flow flow = new Flow(backstack, new FlowListener());
+    assertThat(backstack.size()).isEqualTo(5);
+
+    flow.goUp();
+    assertThat(lastStack.size()).isEqualTo(3);
+    assertThat(lastStack.current().getScreen()).isEqualTo(new Echo());
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(2);
+    assertThat(lastStack.current().getScreen()).isSameAs(baker);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(1);
+    assertThat(lastStack.current().getScreen()).isSameAs(able);
+  }
+
   static class Picky {
     final String value;
 
@@ -275,7 +325,7 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  private static final class Screen {
+  private static class Screen {
     final String name;
 
     Screen(String name) {
@@ -293,6 +343,60 @@ public class FlowTest {
     @Override
     public int hashCode() {
       return name.hashCode();
+    }
+
+    @Override public String toString() {
+      return String.format("%s{%h}", name, this);
+    }
+  }
+
+  private static abstract class ChildScreen extends Screen implements HasParent<Screen> {
+    ChildScreen(String name) {
+      super(name);
+    }
+  }
+
+  static class Able extends Screen {
+    Able() {
+      super("Able");
+    }
+  }
+
+  static class Baker extends Screen implements HasParent<Screen> {
+    Baker() {
+      super("Baker");
+    }
+
+    @Override public Screen getParent() {
+      return new Able();
+    }
+  }
+
+  static class Charlie extends Screen implements HasParent<Screen> {
+    Charlie() {
+      super("Charlie");
+    }
+    @Override public Screen getParent() {
+      return new Baker();
+    }
+  }
+
+
+  static class Echo extends Screen implements HasParent<Screen> {
+    Echo() {
+      super("Echo");
+    }
+    @Override public Screen getParent() {
+      return new Baker();
+    }
+  }
+
+  static class Foxtrot extends Screen implements HasParent<Screen> {
+    Foxtrot() {
+      super("Foxtrot");
+    }
+    @Override public Screen getParent() {
+      return new Echo();
     }
   }
 }
