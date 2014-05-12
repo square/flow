@@ -82,7 +82,7 @@ public final class Flow {
 
   /** Replaces the current backstack with the up stack of the screen. */
   public void replaceTo(Object screen) {
-    replace(Backstack.fromUpChain(screen));
+    replace(preserveEquivalentPrefix(backstack, Backstack.fromUpChain(screen)));
   }
 
   /**
@@ -93,7 +93,7 @@ public final class Flow {
     Object current = backstack.current().getScreen();
     if (current instanceof HasParent<?>) {
       Object parent = ((HasParent) current).getParent();
-      backward(Backstack.fromUpChain(parent));
+      backward(preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent)));
       return true;
     } else {
       return false;
@@ -132,5 +132,32 @@ public final class Flow {
   private void replace(Backstack newBackstack) {
     listener.go(newBackstack, Direction.REPLACE);
     backstack = newBackstack;
+  }
+
+  private static Backstack preserveEquivalentPrefix(Backstack current, Backstack proposed) {
+    Iterator<Backstack.Entry> oldIt = current.reverseIterator();
+    Iterator<Backstack.Entry> newIt = proposed.reverseIterator();
+
+    Backstack.Builder preserving =  Backstack.emptyBuilder();
+
+    while (newIt.hasNext()) {
+      Backstack.Entry newEntry = newIt.next();
+      if (!oldIt.hasNext()) {
+        preserving.push(newEntry.getScreen());
+        break;
+      }
+      Backstack.Entry oldEntry = oldIt.next();
+      if (oldEntry.getScreen().equals(newEntry.getScreen())) {
+        preserving.push(oldEntry.getScreen());
+      } else {
+        preserving.push(newEntry.getScreen());
+        break;
+      }
+    }
+
+    while (newIt.hasNext()) {
+      preserving.push(newIt.next().getScreen());
+    }
+    return preserving.build();
   }
 }
