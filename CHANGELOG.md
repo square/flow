@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.7 *(2014-05-16)*
+----------------------------
+  * replaceTo and goUp keep original screens for a matching prefix of the stack.
+  * Fix waitForMeasureLoop in example code.
+
 Version 0.6 *(2014-04-21)*
 ----------------------------
   * API break: replaceTo() now has a new Direction associated with it, `REPLACE`.
