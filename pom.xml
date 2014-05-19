@@ -25,7 +25,7 @@
 
   <groupId>com.squareup.flow</groupId>
   <artifactId>flow-parent</artifactId>
-  <version>0.7</version>
+  <version>0.8-SNAPSHOT</version>
   <packaging>pom</packaging>
 
   <name>Flow (Parent)</name>
@@ -61,7 +61,7 @@
     <url>http://github.com/square/flow/</url>
     <connection>scm:git:git://github.com/square/flow.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/square/flow.git</developerConnection>
-    <tag>flow-parent-0.7</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
