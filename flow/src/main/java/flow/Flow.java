@@ -129,7 +129,7 @@ public final class Flow {
   }
 
   /** Replaces to a new backstack. */
-  private void replace(Backstack newBackstack) {
+  public void replace(Backstack newBackstack) {
     listener.go(newBackstack, Direction.REPLACE);
     backstack = newBackstack;
   }
