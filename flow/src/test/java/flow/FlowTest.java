@@ -69,6 +69,21 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
+  @Test public void backstackChangesAfterListenerCall() {
+    final Backstack firstBackstack = Backstack.single(new Uno());
+
+    class Ourrobouros implements Flow.Listener {
+      Flow flow = new Flow(firstBackstack ,this);
+
+      @Override public void go(Backstack backstack, Flow.Direction direction) {
+        assertThat(firstBackstack).isSameAs(flow.getBackstack());
+      }
+    }
+
+    Ourrobouros listener = new Ourrobouros();
+    listener.flow.goTo(new Dos());
+  }
+
   @Test public void noUpNoUps() {
     Backstack backstack = Backstack.single(new Uno());
     Flow flow = new Flow(backstack, new FlowListener());
@@ -347,12 +362,6 @@ public class FlowTest {
 
     @Override public String toString() {
       return String.format("%s{%h}", name, this);
-    }
-  }
-
-  private static abstract class ChildScreen extends Screen implements HasParent<Screen> {
-    ChildScreen(String name) {
-      super(name);
     }
   }
 
