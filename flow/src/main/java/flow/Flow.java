@@ -30,6 +30,7 @@ public final class Flow {
 
   private final Listener listener;
   private Backstack backstack;
+  private Backstack nextBackstack;
 
   public Flow(Backstack backstack, Listener listener) {
     this.listener = listener;
@@ -40,6 +41,14 @@ public final class Flow {
     return backstack;
   }
 
+  /**
+   * During transitions (that is, during calls to {@link Listener#go}), returns the
+   * backstack we're transitioning to. At any other time is equivalent to {@link #getBackstack()}.
+   */
+  public Backstack getNextBackstack() {
+    return nextBackstack != null ? nextBackstack : getBackstack();
+  }
+
   /** Push the screen onto the backstack. */
   public void goTo(Object screen) {
     Backstack newBackstack = backstack.buildUpon().push(screen).build();
@@ -47,8 +56,8 @@ public final class Flow {
   }
 
   /**
-   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found, the
-   * entire backstack is replaced with the screen.
+   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found,
+   * the entire backstack is replaced with the screen.
    */
   public void resetTo(Object screen) {
     Backstack.Builder builder = backstack.buildUpon();
@@ -87,6 +96,7 @@ public final class Flow {
 
   /**
    * Go up one screen.
+   *
    * @return false if going up is not possible.
    */
   public boolean goUp() {
@@ -102,6 +112,7 @@ public final class Flow {
 
   /**
    * Go back one screen.
+   *
    * @return false if going back is not possible.
    */
   public boolean goBack() {
@@ -118,27 +129,35 @@ public final class Flow {
 
   /** Goes forward to a new backstack. */
   public void forward(Backstack newBackstack) {
-    listener.go(newBackstack, Direction.FORWARD);
-    backstack = newBackstack;
+    go(newBackstack, Direction.FORWARD);
   }
 
   /** Goes backward to a new backstack. */
   public void backward(Backstack newBackstack) {
-    listener.go(newBackstack, Direction.BACKWARD);
-    backstack = newBackstack;
+    go(newBackstack, Direction.BACKWARD);
   }
 
   /** Replaces to a new backstack. */
   private void replace(Backstack newBackstack) {
-    listener.go(newBackstack, Direction.REPLACE);
+    go(newBackstack, Direction.REPLACE);
+  }
+
+  private void go(Backstack newBackstack, Direction direction) {
+    //if (nextBackstack != null) {
+    //  throw new IllegalStateException(
+    //      "Cannot transition while transitioning, already going to " + nextBackstack);
+    //}
+    nextBackstack = newBackstack;
+    listener.go(newBackstack, direction);
     backstack = newBackstack;
+    nextBackstack = null;
   }
 
   private static Backstack preserveEquivalentPrefix(Backstack current, Backstack proposed) {
     Iterator<Backstack.Entry> oldIt = current.reverseIterator();
     Iterator<Backstack.Entry> newIt = proposed.reverseIterator();
 
-    Backstack.Builder preserving =  Backstack.emptyBuilder();
+    Backstack.Builder preserving = Backstack.emptyBuilder();
 
     while (newIt.hasNext()) {
       Backstack.Entry newEntry = newIt.next();
