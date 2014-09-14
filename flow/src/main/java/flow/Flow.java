@@ -25,7 +25,12 @@ public final class Flow {
   }
 
   public interface Listener {
-    void go(Backstack backstack, Direction direction);
+    /**
+     * Notifies the listener that the backstack is about to change. Note that the change
+     * will not take effect until this method returns. That is, {@code nextBackstack} is where
+     * the Flow is going next, and {@link Flow#getBackstack()} is where it's coming from.
+     */
+    void go(Backstack nextBackstack, Direction direction);
   }
 
   private final Listener listener;
