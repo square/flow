@@ -108,8 +108,8 @@ public class MainActivity extends Activity implements Flow.Listener {
     }
   }
 
-  @Override public void go(Backstack backstack, Flow.Direction direction) {
-    Object screen = backstack.current().getScreen();
+  @Override public void go(Backstack nextBackstack, Flow.Direction direction) {
+    Object screen = nextBackstack.current().getScreen();
     containerView.displayView(getView(screen), direction);
 
     setTitle(screen.getClass().getSimpleName());
@@ -155,7 +155,7 @@ public class MainActivity extends Activity implements Flow.Listener {
     }
 
     @Provides @Singleton Parcer<Object> provideParcer(Gson gson) {
-      return new GsonParcer<Object>(gson);
+      return new GsonParcer<>(gson);
     }
   }
 }
