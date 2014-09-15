@@ -1,6 +1,13 @@
 Change Log
 ==========
 
+Version 0.8 *TBD*
+------------------
+  * API break: The Listener now gets a Callback, which it *must* call when it has completed a
+    transition.
+  * Flow now supports reentry.  While a Listener is executing, calls to Flow which modify the
+    backstack are enqueued.
+
 Version 0.7 *(2014-05-16)*
 ----------------------------
   * replaceTo and goUp keep original screens for a matching prefix of the stack.

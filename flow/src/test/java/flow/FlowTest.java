@@ -40,9 +40,10 @@ public class FlowTest {
   Flow.Direction lastDirection;
 
   class FlowListener implements Flow.Listener {
-    @Override public void go(Backstack nextBackstack, Flow.Direction direction) {
+    @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback callback) {
       lastStack = nextBackstack;
       lastDirection = direction;
+      callback.onComplete();
     }
   }
 
@@ -75,8 +76,9 @@ public class FlowTest {
     class Ourrobouros implements Flow.Listener {
       Flow flow = new Flow(firstBackstack ,this);
 
-      @Override public void go(Backstack nextBackstack, Flow.Direction direction) {
+      @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback onComplete) {
         assertThat(firstBackstack).isSameAs(flow.getBackstack());
+        onComplete.onComplete();
       }
     }
 
@@ -193,16 +195,16 @@ public class FlowTest {
   }
 
   @Test public void resetKeepsOriginal() {
-    Screen able = new Screen("Able");
-    Screen baker = new Screen("Baker");
+    TestScreen able = new TestScreen("Able");
+    TestScreen baker = new TestScreen("Baker");
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker))
         .build();
     Flow flow = new Flow(backstack, new FlowListener());
     assertThat(backstack.size()).isEqualTo(2);
 
-    flow.resetTo(new Screen("Able"));
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Screen("Able"));
+    flow.resetTo(new TestScreen("Able"));
+    assertThat(lastStack.current().getScreen()).isEqualTo(new TestScreen("Able"));
     assertThat(lastStack.current().getScreen() == able).isTrue();
     assertThat(lastStack.current().getScreen()).isSameAs(able);
     assertThat(lastStack.size()).isEqualTo(1);
@@ -210,17 +212,17 @@ public class FlowTest {
   }
 
   @Test public void replaceKeepsOriginals() {
-    Screen able = new Able();
-    Screen baker = new Baker();
-    Screen charlie = new Charlie();
-    Screen delta = new Screen("Delta");
+    TestScreen able = new Able();
+    TestScreen baker = new Baker();
+    TestScreen charlie = new Charlie();
+    TestScreen delta = new TestScreen("Delta");
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker, charlie, delta))
         .build();
     Flow flow = new Flow(backstack, new FlowListener());
     assertThat(backstack.size()).isEqualTo(4);
 
-    Screen foxtrot = new Foxtrot();
+    TestScreen foxtrot = new Foxtrot();
     flow.replaceTo(foxtrot);
     assertThat(lastStack.size()).isEqualTo(4);
     assertThat(lastStack.current().getScreen()).isSameAs(foxtrot);
@@ -236,11 +238,11 @@ public class FlowTest {
   }
 
   @Test public void goUpKeepsOriginals() {
-    Screen able = new Able();
-    Screen baker = new Baker();
-    Screen charlie = new Charlie();
-    Screen delta = new Screen("Delta");
-    Screen foxtrot = new Foxtrot();
+    TestScreen able = new Able();
+    TestScreen baker = new Baker();
+    TestScreen charlie = new Charlie();
+    TestScreen delta = new TestScreen("Delta");
+    TestScreen foxtrot = new Foxtrot();
 
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker, charlie, delta, foxtrot))
@@ -340,71 +342,46 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  private static class Screen {
-    final String name;
-
-    Screen(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Screen screen = (Screen) o;
-      return name.equals(screen.name);
-    }
-
-    @Override
-    public int hashCode() {
-      return name.hashCode();
-    }
-
-    @Override public String toString() {
-      return String.format("%s{%h}", name, this);
-    }
-  }
-
-  static class Able extends Screen {
+  static class Able extends TestScreen {
     Able() {
       super("Able");
     }
   }
 
-  static class Baker extends Screen implements HasParent<Screen> {
+  static class Baker extends TestScreen implements HasParent<TestScreen> {
     Baker() {
       super("Baker");
     }
 
-    @Override public Screen getParent() {
+    @Override public TestScreen getParent() {
       return new Able();
     }
   }
 
-  static class Charlie extends Screen implements HasParent<Screen> {
+  static class Charlie extends TestScreen implements HasParent<TestScreen> {
     Charlie() {
       super("Charlie");
     }
-    @Override public Screen getParent() {
+    @Override public TestScreen getParent() {
       return new Baker();
     }
   }
 
 
-  static class Echo extends Screen implements HasParent<Screen> {
+  static class Echo extends TestScreen implements HasParent<TestScreen> {
     Echo() {
       super("Echo");
     }
-    @Override public Screen getParent() {
+    @Override public TestScreen getParent() {
       return new Baker();
     }
   }
 
-  static class Foxtrot extends Screen implements HasParent<Screen> {
+  static class Foxtrot extends TestScreen implements HasParent<TestScreen> {
     Foxtrot() {
       super("Foxtrot");
     }
-    @Override public Screen getParent() {
+    @Override public TestScreen getParent() {
       return new Echo();
     }
   }

@@ -145,6 +145,10 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       return this;
     }
 
+    public Entry peek() {
+      return backstack.peek();
+    }
+
     public Entry pop() {
       return backstack.pop();
     }
