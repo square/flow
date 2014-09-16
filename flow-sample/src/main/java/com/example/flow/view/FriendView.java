@@ -18,18 +18,36 @@ package com.example.flow.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
+import android.widget.FrameLayout;
 import android.widget.TextView;
-import com.example.flow.Utils;
+import butterknife.ButterKnife;
+import butterknife.InjectView;
+import com.example.flow.R;
+import com.example.flow.Screens;
+import com.example.flow.appflow.AppFlow;
+import com.example.flow.util.Utils;
 import com.example.flow.model.User;
+import java.util.List;
 import javax.inject.Inject;
 
-public class FriendView extends TextView {
-  @Inject User friend;
+public class FriendView extends FrameLayout {
+  @Inject List<User> friends;
+
+  private final User friend;
+
+  @InjectView(R.id.friend_info) TextView friendInfo;
 
   public FriendView(Context context, AttributeSet attrs) {
     super(context, attrs);
-
     Utils.inject(context, this);
-    setText("Name: " + friend.name);
+
+    Screens.Friend screen = AppFlow.getScreen(context);
+    friend = friends.get(screen.index);
+  }
+
+  @Override protected void onFinishInflate() {
+    super.onFinishInflate();
+    ButterKnife.inject(this);
+    friendInfo.setText("Name: " + friend.name);
   }
 }

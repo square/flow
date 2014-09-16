@@ -51,6 +51,7 @@
     <dagger.version>1.0.1</dagger.version>
     <gson.version>2.2.4</gson.version>
     <butterknife.version>4.0.1</butterknife.version>
+    <findbugs.version>2.0.3</findbugs.version>
 
     <!-- Test Dependencies -->
     <junit.version>4.10</junit.version>

@@ -14,13 +14,18 @@
  * limitations under the License.
  */
 
-package com.example.flow;
+package com.example.flow.util;
 
 import android.content.Context;
 import android.view.View;
 import android.view.ViewTreeObserver;
+import com.example.flow.DemoApp;
 
 public final class Utils {
+  public static void inject(Context context, Object thing) {
+    ((DemoApp) context.getApplicationContext()).getGlobalGraph().inject(thing);
+  }
+
   public interface OnMeasuredCallback {
     void onMeasured(View view, int width, int height);
   }
@@ -46,10 +51,6 @@ public final class Utils {
         return true;
       }
     });
-  }
-
-  public static void inject(Context context, View view) {
-    ((Injector) context).inject(view);
   }
 
   private Utils() {
