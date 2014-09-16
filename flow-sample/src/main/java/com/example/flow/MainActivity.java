@@ -18,40 +18,30 @@ package com.example.flow;
 
 import android.app.ActionBar;
 import android.app.Activity;
-import android.content.Context;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.example.flow.model.Conversation;
-import com.example.flow.model.User;
-import com.example.flow.view.ContainerView;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import dagger.Module;
-import dagger.ObjectGraph;
-import dagger.Provides;
+import com.example.flow.appflow.AppFlow;
+import com.example.flow.appflow.FlowBundler;
+import com.example.flow.appflow.Screen;
+import com.example.flow.screenswitcher.FrameScreenSwitcherView;
 import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
-import flow.Layouts;
-import flow.Parcer;
-import java.util.List;
-import javax.inject.Inject;
-import javax.inject.Singleton;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 
 public class MainActivity extends Activity implements Flow.Listener {
   private static final String BUNDLE_BACKSTACK = "backstack";
 
-  @InjectView(R.id.container) ContainerView containerView;
-  @Inject Parcer<Object> parcer;
+  private final FlowBundler flowBundler =
+      new FlowBundler(MainActivity.this, new Screens.ConversationList());
 
-  private Flow flow;
-  private ObjectGraph activityGraph;
+  @InjectView(R.id.container) FrameScreenSwitcherView container;
+
+  private AppFlow.FlowHolder flowHolder;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -63,18 +53,21 @@ public class MainActivity extends Activity implements Flow.Listener {
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
 
-    activityGraph = ObjectGraph.create(new ActivityModule());
-    activityGraph.inject(this);
+    DemoApp app = (DemoApp) getApplication();
 
-    flow = new Flow(getInitialBackstack(savedInstanceState), this);
+    flowHolder = flowBundler.onCreate(savedInstanceState);
 
-    go(flow.getBackstack(), Flow.Direction.FORWARD);
+    AppFlow.loadInitialScreen(this);
+  }
+
+  @Override public Object getSystemService(String name) {
+    if (AppFlow.isFlowHolderSystemService(name)) return flowHolder;
+    return super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-
-    outState.putParcelable(BUNDLE_BACKSTACK, flow.getBackstack().getParcelable(parcer));
+    flowBundler.onSaveInstanceState(outState);
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -82,12 +75,12 @@ public class MainActivity extends Activity implements Flow.Listener {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            flow.goTo(new App.FriendList());
+            AppFlow.get(MainActivity.this).goTo(new Screens.FriendList());
             return true;
           }
         });
 
-    Object screen = flow.getBackstack().current().getScreen();
+    Object screen = AppFlow.get(this).getBackstack().current().getScreen();
     boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
@@ -96,21 +89,21 @@ public class MainActivity extends Activity implements Flow.Listener {
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      return flow.goUp();
+      return container.onUpPressed();
     } else {
       return super.onOptionsItemSelected(item);
     }
   }
 
   @Override public void onBackPressed() {
-    if (!flow.goBack()) {
-      finish();
+    if (!container.onBackPressed()) {
+      super.onBackPressed();
     }
   }
 
   @Override public void go(Backstack nextBackstack, Flow.Direction direction) {
-    Object screen = nextBackstack.current().getScreen();
-    containerView.displayView(getView(screen), direction);
+    Screen screen = (Screen) nextBackstack.current().getScreen();
+    container.showScreen(screen);
 
     setTitle(screen.getClass().getSimpleName());
 
@@ -120,42 +113,5 @@ public class MainActivity extends Activity implements Flow.Listener {
     actionBar.setHomeButtonEnabled(hasUp);
 
     invalidateOptionsMenu();
-  }
-
-  private Backstack getInitialBackstack(Bundle savedInstanceState) {
-    if (savedInstanceState != null) {
-      return Backstack.from(savedInstanceState.getParcelable(BUNDLE_BACKSTACK), parcer);
-    } else {
-      return Backstack.single(new App.ConversationList());
-    }
-  }
-
-  private View getView(Object screen) {
-    ObjectGraph graph = activityGraph.plus(screen);
-    Context scopedContext = new ScopedContext(this, graph);
-    return Layouts.createView(scopedContext, screen);
-  }
-
-  @Module(injects = MainActivity.class, library = true)
-  class ActivityModule {
-    @Provides @App Flow provideAppFlow() {
-      return flow;
-    }
-
-    @Provides List<Conversation> provideConversations() {
-      return SampleData.CONVERSATIONS;
-    }
-
-    @Provides List<User> provideFriends() {
-      return SampleData.FRIENDS;
-    }
-
-    @Provides @Singleton Gson provideGson() {
-      return new GsonBuilder().create();
-    }
-
-    @Provides @Singleton Parcer<Object> provideParcer(Gson gson) {
-      return new GsonParcer<>(gson);
-    }
   }
 }

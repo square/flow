@@ -21,9 +21,9 @@ import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.example.flow.App;
+import com.example.flow.Screens;
 import com.example.flow.R;
-import com.example.flow.Utils;
+import com.example.flow.util.Utils;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 
@@ -37,7 +37,7 @@ import butterknife.OnClick;
 import flow.Flow;
 
 public class MessageView extends LinearLayout {
-  @Inject @App Flow flow;
+  @Inject @Screens Flow flow;
   @Inject Conversation.Item message;
   @Inject List<User> friendList;
 
@@ -64,7 +64,7 @@ public class MessageView extends LinearLayout {
   @OnClick(R.id.user) void userClicked() {
     int position = friendList.indexOf(message.from);
     if (position != -1) {
-      flow.goTo(new App.Friend(position));
+      flow.goTo(new Screens.Friend(position));
     }
   }
 }
