@@ -20,36 +20,34 @@ import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-
-import com.example.flow.App;
-import com.example.flow.R;
-import com.example.flow.Utils;
-import com.example.flow.model.Conversation;
-import com.example.flow.model.User;
-
-import java.util.List;
-
-import javax.inject.Inject;
-
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
-import flow.Flow;
+import com.example.flow.R;
+import com.example.flow.Screens;
+import com.example.flow.appflow.AppFlow;
+import com.example.flow.model.Conversation;
+import com.example.flow.model.User;
+import com.example.flow.util.Utils;
+import java.util.List;
+import javax.inject.Inject;
 
 public class MessageView extends LinearLayout {
-  @Inject @App Flow flow;
-  @Inject Conversation.Item message;
+  @Inject List<Conversation> conversations;
   @Inject List<User> friendList;
+
+  private Conversation.Item message;
 
   @InjectView(R.id.user) TextView userView;
   @InjectView(R.id.message) TextView messageView;
 
   public MessageView(Context context, AttributeSet attrs) {
     super(context, attrs);
-
     setOrientation(VERTICAL);
-
     Utils.inject(context, this);
+
+    Screens.Message screen = AppFlow.getScreen(context);
+    message = conversations.get(screen.conversationIndex).items.get(screen.messageId);
   }
 
   @Override protected void onFinishInflate() {
@@ -64,7 +62,7 @@ public class MessageView extends LinearLayout {
   @OnClick(R.id.user) void userClicked() {
     int position = friendList.indexOf(message.from);
     if (position != -1) {
-      flow.goTo(new App.Friend(position));
+      AppFlow.get(getContext()).goTo(new Screens.Friend(position));
     }
   }
 }

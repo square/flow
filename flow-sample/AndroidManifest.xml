@@ -22,10 +22,13 @@
 
   <uses-sdk
       android:minSdkVersion="14"
-      android:targetSdkVersion="18"/>
+      android:targetSdkVersion="18"
+      />
 
   <application
+      android:allowBackup="true"
       android:icon="@drawable/flow_icon"
+      android:name=".DemoApp"
       >
     <activity
         android:label="Flow"

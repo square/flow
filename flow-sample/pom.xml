@@ -66,6 +66,12 @@
       <version>${dagger.version}</version>
       <optional>true</optional>
     </dependency>
+
+    <dependency>
+      <groupId>com.google.code.findbugs</groupId>
+      <artifactId>jsr305</artifactId>
+      <version>${findbugs.version}</version>
+    </dependency>
   </dependencies>
 
   <build>

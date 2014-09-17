@@ -20,4 +20,10 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-  />
+    >
+  <TextView
+      android:id="@+id/friend_info"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      />
+</com.example.flow.view.FriendView>

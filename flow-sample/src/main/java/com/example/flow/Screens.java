@@ -16,34 +16,21 @@
 
 package com.example.flow;
 
-import com.example.flow.model.User;
-import com.example.flow.view.ConversationListView;
-import com.example.flow.view.ConversationView;
-import com.example.flow.view.FriendListView;
-import com.example.flow.view.FriendView;
-import com.example.flow.view.MessageView;
+import com.example.flow.appflow.Screen;
 import flow.HasParent;
 import flow.Layout;
-import dagger.Module;
-import dagger.Provides;
 
-public @interface App {
+public final class Screens {
   @Layout(R.layout.conversation_list_view) //
-  @Module(injects = ConversationListView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class ConversationList {
+  public static class ConversationList extends Screen {
   }
 
   @Layout(R.layout.conversation_view) //
-  @Module(injects = ConversationView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class Conversation implements HasParent<ConversationList> {
+  public static class Conversation extends Screen implements HasParent<ConversationList> {
     public final int conversationIndex;
 
     public Conversation(int conversationIndex) {
       this.conversationIndex = conversationIndex;
-    }
-
-    @Provides com.example.flow.model.Conversation provideConversation() {
-      return SampleData.CONVERSATIONS.get(conversationIndex);
     }
 
     @Override public ConversationList getParent() {
@@ -52,8 +39,7 @@ public @interface App {
   }
 
   @Layout(R.layout.message_view) //
-  @Module(injects = MessageView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class Message implements HasParent<Conversation> {
+  public static class Message extends Screen implements HasParent<Conversation> {
     public final int conversationIndex;
     public final int messageId;
 
@@ -62,38 +48,31 @@ public @interface App {
       this.messageId = messageId;
     }
 
-    @Provides com.example.flow.model.Conversation.Item provideMessage() {
-      return SampleData.CONVERSATIONS.get(conversationIndex).items.get(messageId);
-    }
-
     @Override public Conversation getParent() {
       return new Conversation(conversationIndex);
     }
   }
 
   @Layout(R.layout.friend_list_view) //
-  @Module(injects = FriendListView.class, addsTo = MainActivity.ActivityModule.class)
-  public static class FriendList implements HasParent<ConversationList> {
+  public static class FriendList extends Screen implements HasParent<ConversationList> {
     @Override public ConversationList getParent() {
       return new ConversationList();
     }
   }
 
   @Layout(R.layout.friend_view) //
-  @Module(injects = FriendView.class)
-  public static class Friend implements HasParent<FriendList> {
+  public static class Friend extends Screen implements HasParent<FriendList> {
     public final int index;
 
     public Friend(int index) {
       this.index = index;
     }
 
-    @Provides User provideFriend() {
-      return SampleData.FRIENDS.get(index);
-    }
-
     @Override public FriendList getParent() {
       return new FriendList();
     }
+  }
+
+  private Screens() {
   }
 }
