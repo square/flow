@@ -19,7 +19,7 @@ package com.example.flow.view;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.TextView;
-import com.example.flow.Utils;
+import com.example.flow.util.Utils;
 import com.example.flow.model.User;
 import javax.inject.Inject;
 
