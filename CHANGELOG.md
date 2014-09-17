@@ -1,12 +1,14 @@
 Change Log
 ==========
 
-Version 0.8 *TBD*
+Version 0.8 *(2014-09-17)*
 ------------------
   * API break: The Listener now gets a Callback, which it *must* call when it has completed a
     transition.
   * Flow now supports reentry.  While a Listener is executing, calls to Flow which modify the
     backstack are enqueued.
+  * Beefed up sample app, including demonstration of providing view persistence via 
+    the back stack
 
 Version 0.7 *(2014-05-16)*
 ----------------------------
