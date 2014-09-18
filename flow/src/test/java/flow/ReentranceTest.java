@@ -5,6 +5,7 @@ import java.util.List;
 import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 
+import static flow.Flow.Direction.REPLACE;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ReentranceTest {
@@ -34,6 +35,7 @@ public class ReentranceTest {
   @Test public void reentrantGoThenBack() {
     Flow.Listener listener = new Flow.Listener() {
       boolean loading = true;
+
       @Override public void go(Backstack nextStack, Flow.Direction dir, Flow.Callback onComplete) {
         lastStack = nextStack;
         Object next = nextStack.current().getScreen();
@@ -64,10 +66,8 @@ public class ReentranceTest {
         lastStack = nextStack;
         Object next = nextStack.current().getScreen();
         if (next instanceof Detail) {
-          ReentranceTest.this.flow.forward(Backstack.emptyBuilder()
-              .push(new Detail())
-              .push(new Loading())
-              .build());
+          ReentranceTest.this.flow.resetTo(
+              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(), REPLACE);
         } else if (next instanceof Loading) {
           ReentranceTest.this.flow.goTo(new Error());
         }
@@ -123,23 +123,31 @@ public class ReentranceTest {
   }
 
   static class Catalog extends TestScreen {
-    Catalog() { super("home"); }
+    Catalog() {
+      super("home");
+    }
   }
 
   static class Detail extends TestScreen {
-    Detail() { super("detail"); }
+    Detail() {
+      super("detail");
+    }
   }
 
   static class Loading extends TestScreen {
-    Loading() { super("loading"); }
+    Loading() {
+      super("loading");
+    }
   }
 
   static class Error extends TestScreen {
-    Error() { super("error"); }
+    Error() {
+      super("error");
+    }
   }
 
   private void verifyBackstack(Backstack backstack, Object... screens) {
-    List<Object> actualScreens = new ArrayList<Object>(backstack.size());
+    List<Object> actualScreens = new ArrayList<>(backstack.size());
     for (Backstack.Entry entry : backstack) {
       actualScreens.add(entry.getScreen());
     }

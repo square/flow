@@ -21,12 +21,12 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import butterknife.ButterKnife;
-import butterknife.InjectView;
 import com.example.flow.appflow.AppFlow;
 import com.example.flow.appflow.FlowBundler;
 import com.example.flow.appflow.Screen;
-import com.example.flow.screenswitcher.FrameScreenSwitcherView;
+import com.example.flow.screenswitcher.CanShowScreen;
+import com.example.flow.screenswitcher.HandlesBack;
+import com.example.flow.screenswitcher.HandlesUp;
 import com.google.gson.Gson;
 import flow.Backstack;
 import flow.Flow;
@@ -43,10 +43,29 @@ public class MainActivity extends Activity implements Flow.Listener {
       new FlowBundler(new Screens.ConversationList(), MainActivity.this,
           new GsonParcer<>(new Gson()));
 
-  @InjectView(R.id.container) FrameScreenSwitcherView container;
+  private CanShowScreen container;
+  private HandlesBack containerAsBackTarget;
+  private HandlesUp containerAsUpTarget;
 
   private AppFlow appFlow;
 
+  /**
+   * Pay attention to the {@link #setContentView} call here. It's creating a responsive layout
+   * for us.
+   * <p>
+   * Notice that the app has two root_layout files. The main one, in {@code res/layout} is used by
+   * mobile devices and by tablets in portrait orientation. It holds a generic {@link
+   * com.example.flow.screenswitcher.FrameScreenSwitcherView}.
+   * <p>
+   * The interesting one, loaded by tablets in landscape mode, is {@code res/layout-sw600dp-land}.
+   * It loads a {@link com.example.flow.view.TabletMasterDetailRoot}, with a master list on the
+   * left and a detail view on the right.
+   * <p>
+   * But this master activity knows nothing about those two view types. It only requires that
+   * the view loaded by {@code root_layout.xml} implements the {@link CanShowScreen} interface,
+   * to render whatever is appropriate for the screens received from {@link Flow} via
+   * {@link #go}.
+   */
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
@@ -55,8 +74,11 @@ public class MainActivity extends Activity implements Flow.Listener {
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
 
-    setContentView(R.layout.activity_main);
-    ButterKnife.inject(this);
+    setContentView(R.layout.root_layout);
+
+    container = (CanShowScreen) findViewById(R.id.container);
+    containerAsBackTarget = (HandlesBack) container;
+    containerAsUpTarget = (HandlesUp) container;
 
     AppFlow.loadInitialScreen(this);
   }
@@ -90,18 +112,23 @@ public class MainActivity extends Activity implements Flow.Listener {
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      return container.onUpPressed();
+      return containerAsUpTarget.onUpPressed();
     } else {
       return super.onOptionsItemSelected(item);
     }
   }
 
   @Override public void onBackPressed() {
-    if (!container.onBackPressed()) {
+    if (!containerAsBackTarget.onBackPressed()) {
       super.onBackPressed();
     }
   }
 
+  /**
+   * Called by {@link Flow} when it's time to show a new screen. Updates the action
+   * bar and passes the screen to the {@link #container} we loaded from {@code root_layout.xml}
+   * via {@link CanShowScreen#showScreen}.
+   */
   @Override public void go(Backstack nextBackstack, Flow.Direction direction,
       Flow.Callback callback) {
     Screen screen = (Screen) nextBackstack.current().getScreen();

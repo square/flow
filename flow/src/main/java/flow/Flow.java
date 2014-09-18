@@ -70,10 +70,10 @@ public final class Flow {
   }
 
   /**
-   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found, the
-   * entire backstack is replaced with the screen.
+   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found,
+   * the entire backstack is replaced with the screen.
    */
-  public void resetTo(final Object screen) {
+  public void resetBackTo(final Object screen) {
     move(new Transition() {
       @Override public void execute() {
         Backstack.Builder builder = backstack.buildUpon();
@@ -82,7 +82,7 @@ public final class Flow {
         // some arguably bad behavior on the part of clients, but it's still probably the right thing
         // to do.
         Object lastPopped = null;
-        for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
+        for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext(); ) {
           Backstack.Entry entry = it.next();
 
           if (entry.getScreen().equals(screen)) {
@@ -108,26 +108,47 @@ public final class Flow {
         }
       }
     });
-
   }
 
   /** Replaces the current backstack with the up stack of the screen. */
-  public void replaceTo(final Object screen) {
+  public void resetToUpStackOf(final Object screen, final Direction direction) {
     move(new Transition() {
       @Override public void execute() {
         Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(screen));
-        go(newBackstack, Direction.REPLACE);
+        go(newBackstack, direction);
+      }
+    });
+  }
+
+  /**
+   * Replaces the backstack with one containing only the given screen, reported to the
+   * listener with the given direction.
+   */
+  public void resetTo(Object screen, Direction direction) {
+    resetTo(Backstack.single(screen), direction);
+  }
+
+  /**
+   * Replaces the backstack with given one, reported to the listener with the given direction.
+   */
+  public void resetTo(final Backstack newBackstack, final Direction direction) {
+    move(new Transition() {
+      @Override public void execute() {
+        // TODO(rjrjr,loganj): Should this be using preserveEquivalentPrefix? Or should go?
+        go(newBackstack, direction);
       }
     });
   }
 
   /**
    * Go up one screen.
+   *
    * @return false if going up is not possible.
    */
   public boolean goUp() {
     boolean canGoUp = false;
-    if (backstack.current().getScreen() instanceof HasParent || (transition != null && !transition.finished)) {
+    if (backstack.current().getScreen() instanceof HasParent || //
+        (transition != null && !transition.finished)) {
       canGoUp = true;
     }
     move(new Transition() {
@@ -135,7 +156,8 @@ public final class Flow {
         Object current = backstack.current().getScreen();
         if (current instanceof HasParent<?>) {
           Object parent = ((HasParent) current).getParent();
-          Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
+          Backstack newBackstack =
+              preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
           go(newBackstack, Direction.BACKWARD);
         } else {
           // We are not calling the listener, so we must complete this noop transition ourselves.
@@ -148,6 +170,7 @@ public final class Flow {
 
   /**
    * Go back one screen.
+   *
    * @return false if going back is not possible.
    */
   public boolean goBack() {
@@ -169,24 +192,6 @@ public final class Flow {
     return canGoBack;
   }
 
-  /** Goes forward to a new backstack. */
-  public void forward(final Backstack newBackstack) {
-    move(new Transition() {
-      @Override public void execute() {
-        go(newBackstack, Direction.FORWARD);
-      }
-    });
-  }
-
-  /** Goes backward to a new backstack. */
-  public void backward(final Backstack newBackstack) {
-    move(new Transition() {
-      @Override public void execute() {
-        go(newBackstack, Direction.BACKWARD);
-      }
-    });
-  }
-
   private void move(Transition transition) {
     if (this.transition == null || this.transition.finished) {
       this.transition = transition;
@@ -200,7 +205,7 @@ public final class Flow {
     Iterator<Backstack.Entry> oldIt = current.reverseIterator();
     Iterator<Backstack.Entry> newIt = proposed.reverseIterator();
 
-    Backstack.Builder preserving =  Backstack.emptyBuilder();
+    Backstack.Builder preserving = Backstack.emptyBuilder();
 
     while (newIt.hasNext()) {
       Backstack.Entry newEntry = newIt.next();
