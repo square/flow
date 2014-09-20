@@ -5,6 +5,8 @@ import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 import flow.Flow;
 
+import static flow.Flow.Direction.REPLACE;
+
 public final class AppFlow {
   private static final String APP_FLOW_SERVICE = "app_flow";
 
@@ -27,8 +29,7 @@ public final class AppFlow {
 
   public static void loadInitialScreen(Context context) {
     Flow flow = get(context);
-    Object screen = get(context).getBackstack().current().getScreen();
-    flow.resetTo(screen);
+    flow.resetTo(flow.getBackstack(), REPLACE);
   }
 
   public static boolean isAppFlowSystemService(String name) {

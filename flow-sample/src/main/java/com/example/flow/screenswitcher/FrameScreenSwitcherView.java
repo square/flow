@@ -14,7 +14,7 @@ import flow.Flow;
 /** A FrameLayout that can show screens for an {@link AppFlow}. */
 public class FrameScreenSwitcherView extends FrameLayout
     implements HandlesBack, HandlesUp, ScreenSwitcherView {
-  private final ScreenSwitcher container;
+  private final ScreenSwitcher screenSwitcher;
   private final UpAndBackHandler upAndBackHandler;
 
   private boolean disabled;
@@ -32,7 +32,7 @@ public class FrameScreenSwitcherView extends FrameLayout
   protected FrameScreenSwitcherView(Context context, AttributeSet attrs,
       ScreenSwitcher.Factory switcherFactory) {
     super(context, attrs);
-    container = switcherFactory.createScreenSwitcher(this);
+    screenSwitcher = switcherFactory.createScreenSwitcher(this);
     upAndBackHandler = new UpAndBackHandler(AppFlow.get(context));
   }
 
@@ -51,7 +51,7 @@ public class FrameScreenSwitcherView extends FrameLayout
   @Override public void showScreen(Screen screen, Flow.Direction direction,
       final Flow.Callback callback) {
     disabled = true;
-    container.showScreen(screen, direction, new Flow.Callback() {
+    screenSwitcher.showScreen(screen, direction, new Flow.Callback() {
       @Override public void onComplete() {
         callback.onComplete();
         disabled = false;

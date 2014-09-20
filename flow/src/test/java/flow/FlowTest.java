@@ -127,13 +127,13 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  @Test public void replaceBuildsBackStackFromUpLinks() {
+  @Test public void resetToUpStackBuildsBackStackFromUpLinks() {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList("Able", "Baker", "Charlie", "Delta"))
         .build();
     Flow flow = new Flow(backstack, new FlowListener());
 
-    flow.replaceTo(new Tres());
+    flow.resetToUpStackOf(new Tres(), Flow.Direction.FORWARD);
     assertThat(lastStack.current().getScreen()).isInstanceOf(Tres.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.REPLACE);
 
@@ -156,7 +156,7 @@ public class FlowTest {
 
     assertThat(backstack.size()).isEqualTo(4);
 
-    flow.resetTo("Charlie");
+    flow.resetBackTo("Charlie");
     assertThat(lastStack.current().getScreen()).isEqualTo("Charlie");
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
@@ -179,7 +179,7 @@ public class FlowTest {
     Flow flow = new Flow(backstack, new FlowListener());
     assertThat(backstack.size()).isEqualTo(2);
 
-    flow.resetTo("Charlie");
+    flow.resetBackTo("Charlie");
     assertThat(lastStack.current().getScreen()).isEqualTo("Charlie");
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.FORWARD);
@@ -203,7 +203,7 @@ public class FlowTest {
     Flow flow = new Flow(backstack, new FlowListener());
     assertThat(backstack.size()).isEqualTo(2);
 
-    flow.resetTo(new TestScreen("Able"));
+    flow.resetBackTo(new TestScreen("Able"));
     assertThat(lastStack.current().getScreen()).isEqualTo(new TestScreen("Able"));
     assertThat(lastStack.current().getScreen() == able).isTrue();
     assertThat(lastStack.current().getScreen()).isSameAs(able);
@@ -211,7 +211,7 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
 
-  @Test public void replaceKeepsOriginals() {
+  @Test public void resetToUpStackKeepsOriginals() {
     TestScreen able = new Able();
     TestScreen baker = new Baker();
     TestScreen charlie = new Charlie();
@@ -223,7 +223,7 @@ public class FlowTest {
     assertThat(backstack.size()).isEqualTo(4);
 
     TestScreen foxtrot = new Foxtrot();
-    flow.replaceTo(foxtrot);
+    flow.resetToUpStackOf(foxtrot, Flow.Direction.FORWARD);
     assertThat(lastStack.size()).isEqualTo(4);
     assertThat(lastStack.current().getScreen()).isSameAs(foxtrot);
     flow.goBack();
@@ -292,7 +292,7 @@ public class FlowTest {
 
     assertThat(backstack.size()).isEqualTo(4);
 
-    flow.resetTo(new Picky("Charlie"));
+    flow.resetBackTo(new Picky("Charlie"));
     assertThat(lastStack.current().getScreen()).isEqualTo(new Picky("Charlie"));
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
@@ -308,14 +308,14 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  @Test public void replaceWithNonUppy() {
+  @Test public void resetToUpStackWithNonUppy() {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
     Flow flow = new Flow(backstack, new FlowListener());
 
-    flow.replaceTo("Echo");
+    flow.resetToUpStackOf("Echo", Flow.Direction.FORWARD);
     Backstack newBack = flow.getBackstack();
     assertThat(newBack.size()).isEqualTo(1);
     assertThat(newBack.current().getScreen()).isEqualTo("Echo");
