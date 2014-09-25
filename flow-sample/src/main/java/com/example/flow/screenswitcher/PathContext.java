@@ -70,7 +70,7 @@ public class PathContext extends ContextWrapper {
         context = basePath.contexts.get(element.getName());
         contexts.put(element.getName(), context);
       } else {
-        context = factory.createContext(element, context);
+        context = factory.setUpContext(element, context);
         contexts.put(element.getName(), context);
         break;
       }
@@ -78,7 +78,7 @@ public class PathContext extends ContextWrapper {
     // Now we continue walking our new path, creating contexts as we go.
     while (pathIterator.hasNext()) {
       Screen element = pathIterator.next();
-      context = factory.createContext(element, context);
+      context = factory.setUpContext(element, context);
       contexts.put(element.getName(), context);
     }
     // Finally, we can construct our new PathContext
@@ -93,7 +93,7 @@ public class PathContext extends ContextWrapper {
       String aScreen = aPath.next().getName();
       String bScreen = bPath.next().getName();
       if (!aScreen.equals(bScreen)) {
-        factory.destroyContext(contexts.get(aScreen));
+        factory.tearDownContext(contexts.get(aScreen));
         break;
       }
     }

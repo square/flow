@@ -17,6 +17,7 @@
 package com.example.flow.appflow;
 
 import android.content.Context;
+import android.content.ContextWrapper;
 import javax.annotation.Nullable;
 
 public final class AppFlowContextFactory implements ScreenContextFactory {
@@ -30,16 +31,16 @@ public final class AppFlowContextFactory implements ScreenContextFactory {
     this.delegate = delegate;
   }
 
-  @Override public Context createContext(Screen screen, Context parentContext) {
+  @Override public Context setUpContext(Screen screen, Context parentContext) {
     if (delegate != null) {
-      parentContext = delegate.createContext(screen, parentContext);
+      parentContext = delegate.setUpContext(screen, parentContext);
     }
-    return AppFlow.setScreen(parentContext, screen);
+    return AppFlow.extendForScreen(parentContext, screen);
   }
 
-  @Override public void destroyContext(Context context) {
+  @Override public void tearDownContext(Context context) {
     if (delegate != null) {
-      delegate.destroyContext(context);
+      delegate.tearDownContext(context);
     }
   }
 }

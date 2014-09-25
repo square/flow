@@ -51,7 +51,7 @@ public final class AppFlow {
     return APP_FLOW_SERVICE.equals(name);
   }
 
-  static Context setScreen(Context context, Object screen) {
+  static Context extendForScreen(Context context, Object screen) {
     return new LocalScreenWrapper(context, screen);
   }
 
