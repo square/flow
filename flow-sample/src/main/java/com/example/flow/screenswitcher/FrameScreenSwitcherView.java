@@ -23,7 +23,6 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.example.flow.R;
 import com.example.flow.appflow.AppFlow;
-import com.example.flow.appflow.AppFlowContextFactory;
 import com.example.flow.appflow.Screen;
 import flow.Flow;
 
@@ -38,7 +37,7 @@ public class FrameScreenSwitcherView extends FrameLayout
   @SuppressWarnings("UnusedDeclaration") // Used by layout inflation, of course!
   public FrameScreenSwitcherView(Context context, AttributeSet attrs) {
     this(context, attrs,
-        new SimpleSwitcher.Factory(R.id.screen_switcher_tag, new AppFlowContextFactory()));
+        new SimpleSwitcher.Factory(R.id.screen_switcher_tag, AppFlow.contextFactory()));
   }
 
   /**

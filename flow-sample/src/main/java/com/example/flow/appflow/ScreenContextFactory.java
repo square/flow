@@ -19,7 +19,16 @@ package com.example.flow.appflow;
 import android.content.Context;
 
 public interface ScreenContextFactory {
-  Context createContext(Screen screen, Context parentContext);
+  /**
+   * Set up any services defined by this screen, and make them accessible via the context.
+   * Typically this means returning a new context that wraps the given one.
+   */
+  Context setUpContext(Screen screen, Context parentContext);
 
-  void destroyContext(Context context);
+  /**
+   * Tear down any services previously started by {@link #setUpContext(Screen, Context)}. Note that
+   * the Context instance given here may be a wrapper around an instance that this factory
+   * created.
+   */
+  void tearDownContext(Context context);
 }
