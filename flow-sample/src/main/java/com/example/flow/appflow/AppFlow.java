@@ -20,8 +20,18 @@ import android.content.Context;
 import android.content.ContextWrapper;
 import android.view.LayoutInflater;
 import flow.Flow;
+import javax.annotation.Nullable;
 
 public final class AppFlow {
+
+  public static ScreenContextFactory contextFactory() {
+    return new ContextFactory();
+  }
+
+  public static ScreenContextFactory contextFactory(ScreenContextFactory delegate) {
+    return new ContextFactory(delegate);
+  }
+
   private static final String APP_FLOW_SERVICE = "app_flow";
 
   private final Flow flow;
@@ -51,10 +61,6 @@ public final class AppFlow {
     return APP_FLOW_SERVICE.equals(name);
   }
 
-  static Context extendForScreen(Context context, Object screen) {
-    return new LocalScreenWrapper(context, screen);
-  }
-
   private static final class LocalScreenWrapper extends ContextWrapper {
     static final String LOCAL_WRAPPER_SERVICE = "flow_local_screen_context_wrapper";
     private LayoutInflater inflater;
@@ -82,6 +88,31 @@ public final class AppFlow {
         return inflater;
       }
       return super.getSystemService(name);
+    }
+  }
+
+  private static final class ContextFactory implements ScreenContextFactory {
+    @Nullable private final ScreenContextFactory delegate;
+
+    public ContextFactory() {
+      delegate = null;
+    }
+
+    public ContextFactory(ScreenContextFactory delegate) {
+      this.delegate = delegate;
+    }
+
+    @Override public Context setUpContext(Screen screen, Context parentContext) {
+      if (delegate != null) {
+        parentContext = delegate.setUpContext(screen, parentContext);
+      }
+      return new LocalScreenWrapper(parentContext, screen);
+    }
+
+    @Override public void tearDownContext(Context context) {
+      if (delegate != null) {
+        delegate.tearDownContext(context);
+      }
     }
   }
 }
