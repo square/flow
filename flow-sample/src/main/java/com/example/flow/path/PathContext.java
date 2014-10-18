@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package com.example.flow.screenswitcher;
+package com.example.flow.path;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import com.example.flow.appflow.Screen;
-import com.example.flow.appflow.ScreenContextFactory;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -29,66 +27,66 @@ import java.util.Map;
 import static com.example.flow.util.Preconditions.checkArgument;
 import static com.example.flow.util.Preconditions.checkNotNull;
 
-public class PathContext extends ContextWrapper {
+public final class PathContext extends ContextWrapper {
   private static final String SERVICE_NAME = "PATH_CONTEXT";
-  private static final List<Screen> EMPTY_PATH = Collections.emptyList();
   private static final Map<String, Context> EMPTY_CONTEXT_MAP = Collections.emptyMap();
-  private final List<Screen> path;
+  private final Path path;
   private final Map<String, Context> contexts;
 
-  PathContext(Context leafContext, List<Screen> path, Map<String, Context> contexts) {
-    super(leafContext);
-    checkArgument(leafContext != null, "Leaf context may not be null.");
-    checkArgument(path.size() == contexts.size(), "Path and context map are not the same size");
-    if (!path.isEmpty()) {
-      Screen leafScreen = path.get(path.size() - 1);
-      checkArgument(leafContext == contexts.get(leafScreen.getName()),
-          "Base context is not path's leaf context.");
+  PathContext(Context baseContext, Path path, Map<String, Context> contexts) {
+    super(baseContext);
+    checkArgument(baseContext != null, "Leaf context may not be null.");
+    checkArgument(path.elements().size() == contexts.size() - 1, "Path and context map are not the same size");
+    if (!path.isRoot()) {
+      Path leafPath = path.elements().get(path.elements().size() - 1);
+      checkArgument(baseContext == contexts.get(leafPath.getName()),
+          "For a non-root Path, baseContext must be Path leaf's context.");
     }
     this.path = path;
     this.contexts = contexts;
   }
 
-  public static PathContext empty(Context baseContext) {
-    return new PathContext(baseContext, EMPTY_PATH, EMPTY_CONTEXT_MAP);
+  public static PathContext root(Context baseContext) {
+    return new PathContext(baseContext, Path.ROOT, EMPTY_CONTEXT_MAP);
   }
 
-  public static PathContext create(PathContext basePath, Screen screen,
-      ScreenContextFactory factory) {
-    List<Screen> path = screen.getPath();
+  public static PathContext create(PathContext preserve, Path path,
+      PathContextFactory factory) {
+    if (path == Path.ROOT) throw new IllegalArgumentException("Path is empty.");
+    List<Path> elements = path.elements();
     Map<String, Context> contexts = new LinkedHashMap<>();
-    if (path.isEmpty()) throw new IllegalArgumentException("Screen has empty path");
-    Context context = basePath.getBaseContext();
-    // We walk down the path, reusing cached contexts for the elements we encounter.  As soon as
-    // we encounter a screen that's not in the cache, we stop.
-    Iterator<Screen> pathIterator = path.iterator();
-    Iterator<Screen> basePathIterator = basePath.path.iterator();
+    // We walk down the elements, reusing existing contexts for the elements we encounter.  As soon
+    // as we encounter an element that doesn't already have a context, we stop.
+    // Note: we will always have at least one shared element, the root.
+    Context baseContext = null;
+    Iterator<Path> pathIterator = elements.iterator();
+    Iterator<Path> basePathIterator = preserve.path.elements().iterator();
     while (pathIterator.hasNext() && basePathIterator.hasNext()) {
-      Screen element = pathIterator.next();
-      Screen basePathElement = basePathIterator.next();
+      Path element = pathIterator.next();
+      Path basePathElement = basePathIterator.next();
       if (basePathElement.getName().equals(element.getName())) {
-        context = basePath.contexts.get(element.getName());
-        contexts.put(element.getName(), context);
+        baseContext = preserve.contexts.get(element.getName());
+        contexts.put(element.getName(), baseContext);
       } else {
-        context = factory.setUpContext(element, context);
-        contexts.put(element.getName(), context);
+        baseContext = factory.setUpContext(element, baseContext);
+        contexts.put(element.getName(), baseContext);
         break;
       }
     }
     // Now we continue walking our new path, creating contexts as we go.
     while (pathIterator.hasNext()) {
-      Screen element = pathIterator.next();
-      context = factory.setUpContext(element, context);
-      contexts.put(element.getName(), context);
+      Path element = pathIterator.next();
+      baseContext = factory.setUpContext(element, baseContext);
+      contexts.put(element.getName(), baseContext);
     }
     // Finally, we can construct our new PathContext
-    return new PathContext(context, path, contexts);
+    return new PathContext(baseContext, path, contexts);
   }
 
   /** Finds the tail of this path which is not in the given path, and destroys it. */
-  public void destroyNotIn(PathContext path, ScreenContextFactory factory) {
-    Iterator<Screen> aPath = this.path.iterator();
-    Iterator<Screen> bPath = path.path.iterator();
+  public void destroyNotIn(PathContext path, PathContextFactory factory) {
+    Iterator<Path> aPath = this.path.elements().iterator();
+    Iterator<Path> bPath = path.path.elements().iterator();
     while (aPath.hasNext() && bPath.hasNext()) {
       String aScreen = aPath.next().getName();
       String bScreen = bPath.next().getName();

@@ -18,6 +18,8 @@ package flow;
 import java.util.Arrays;
 import org.junit.Test;
 
+import static flow.Flow.Traversal;
+import static flow.Flow.TraversalCallback;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class FlowTest {
@@ -39,17 +41,17 @@ public class FlowTest {
   Backstack lastStack;
   Flow.Direction lastDirection;
 
-  class FlowListener implements Flow.Listener {
-    @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback callback) {
-      lastStack = nextBackstack;
-      lastDirection = direction;
-      callback.onComplete();
+  class FlowDispatcher implements Flow.Dispatcher {
+    @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+      lastStack = traversal.destination;
+      lastDirection = traversal.direction;
+      callback.onTraversalCompleted();
     }
   }
 
   @Test public void oneTwoThree() {
     Backstack backstack = Backstack.single(new Uno());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     flow.goTo(new Dos());
     assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
@@ -73,12 +75,12 @@ public class FlowTest {
   @Test public void backstackChangesAfterListenerCall() {
     final Backstack firstBackstack = Backstack.single(new Uno());
 
-    class Ourrobouros implements Flow.Listener {
+    class Ourrobouros implements Flow.Dispatcher {
       Flow flow = new Flow(firstBackstack ,this);
 
-      @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback onComplete) {
+      @Override public void dispatch(Traversal traversal, TraversalCallback onComplete) {
         assertThat(firstBackstack).isSameAs(flow.getBackstack());
-        onComplete.onComplete();
+        onComplete.onTraversalCompleted();
       }
     }
 
@@ -88,7 +90,7 @@ public class FlowTest {
 
   @Test public void noUpNoUps() {
     Backstack backstack = Backstack.single(new Uno());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(flow.goUp()).isFalse();
     assertThat(lastStack).isNull();
     assertThat(lastDirection).isNull();
@@ -96,7 +98,7 @@ public class FlowTest {
 
   @Test public void upAndDown() {
     Backstack backstack = Backstack.single(new Tres());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     assertThat(flow.goBack()).isFalse();
 
@@ -116,7 +118,7 @@ public class FlowTest {
         Backstack.emptyBuilder().addAll(Arrays.<Object>asList("Able", "Baker", "Charlie")).build();
     assertThat(backstack.size()).isEqualTo(3);
 
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     assertThat(flow.goBack()).isTrue();
     assertThat(lastStack.current().getScreen()).isEqualTo("Baker");
@@ -131,7 +133,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList("Able", "Baker", "Charlie", "Delta"))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     flow.replaceTo(new Tres());
     assertThat(lastStack.current().getScreen()).isInstanceOf(Tres.class);
@@ -152,7 +154,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList("Able", "Baker", "Charlie", "Delta"))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     assertThat(backstack.size()).isEqualTo(4);
 
@@ -176,7 +178,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList("Able", "Baker"))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(2);
 
     flow.resetTo("Charlie");
@@ -200,7 +202,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(2);
 
     flow.resetTo(new TestScreen("Able"));
@@ -219,7 +221,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker, charlie, delta))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(4);
 
     TestScreen foxtrot = new Foxtrot();
@@ -247,7 +249,7 @@ public class FlowTest {
     Backstack backstack = Backstack.emptyBuilder()
         .addAll(Arrays.<Object>asList(able, baker, charlie, delta, foxtrot))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(5);
 
     flow.goUp();
@@ -288,7 +290,7 @@ public class FlowTest {
         .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     assertThat(backstack.size()).isEqualTo(4);
 
@@ -313,7 +315,7 @@ public class FlowTest {
         .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
 
     flow.replaceTo("Echo");
     Backstack newBack = flow.getBackstack();
@@ -328,7 +330,7 @@ public class FlowTest {
     Backstack backstack = Backstack.fromUpChain(new Tres());
     assertThat(backstack.size()).isEqualTo(3);
 
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack, new FlowDispatcher());
     assertThat(flow.getBackstack().current().getScreen()).isInstanceOf(Tres.class);
 
     assertThat(flow.goBack()).isTrue();

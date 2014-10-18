@@ -23,34 +23,34 @@ import android.view.Menu;
 import android.view.MenuItem;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.example.flow.appflow.AppFlow;
-import com.example.flow.appflow.FlowBundler;
-import com.example.flow.appflow.Screen;
-import com.example.flow.screenswitcher.FrameScreenSwitcherView;
+import com.example.flow.path.Path;
+import com.example.flow.pathview.FramePathContainerView;
+import com.example.flow.util.FlowBundler;
 import com.google.gson.Gson;
-import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static flow.Flow.Traversal;
+import static flow.Flow.TraversalCallback;
 
-public class MainActivity extends Activity implements Flow.Listener {
+public class MainActivity extends Activity implements Flow.Dispatcher {
   /**
-   * Persists the {@link Flow} in the bundle. Initialized with the home screen,
-   * {@link Screens.ConversationList}.
+   * Persists the {@link Flow} in the bundle. Initialized with the home path,
+   * {@link Paths.ConversationList}.
    */
   private final FlowBundler flowBundler =
-      new FlowBundler(new Screens.ConversationList(), MainActivity.this,
+      new FlowBundler(new Paths.ConversationList(), MainActivity.this,
           new GsonParcer<>(new Gson()));
 
-  @InjectView(R.id.container) FrameScreenSwitcherView container;
+  @InjectView(R.id.container) FramePathContainerView container;
 
-  private AppFlow appFlow;
+  private Flow flow;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    appFlow = flowBundler.onCreate(savedInstanceState);
+    flow = flowBundler.onCreate(savedInstanceState);
 
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
@@ -58,11 +58,11 @@ public class MainActivity extends Activity implements Flow.Listener {
     setContentView(R.layout.activity_main);
     ButterKnife.inject(this);
 
-    AppFlow.loadInitialScreen(this);
+    Flow.loadInitialScreen(this);
   }
 
   @Override public Object getSystemService(String name) {
-    if (AppFlow.isAppFlowSystemService(name)) return appFlow;
+    if (Flow.isFlowSystemService(name)) return flow;
     return super.getSystemService(name);
   }
 
@@ -76,12 +76,12 @@ public class MainActivity extends Activity implements Flow.Listener {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            AppFlow.get(MainActivity.this).goTo(new Screens.FriendList());
+            Flow.get(MainActivity.this).goTo(new Paths.FriendList());
             return true;
           }
         });
 
-    Object screen = AppFlow.get(this).getBackstack().current().getScreen();
+    Object screen = Flow.get(this).getBackstack().current().getScreen();
     boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
@@ -102,15 +102,14 @@ public class MainActivity extends Activity implements Flow.Listener {
     }
   }
 
-  @Override public void go(Backstack nextBackstack, Flow.Direction direction,
-      Flow.Callback callback) {
-    Screen screen = (Screen) nextBackstack.current().getScreen();
-    container.showScreen(screen, direction, callback);
+  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+    Path path = (Path) traversal.destination.current().getScreen();
+    container.showScreen(path, traversal.direction, callback);
 
-    setTitle(screen.getClass().getSimpleName());
+    setTitle(path.getClass().getSimpleName());
 
     ActionBar actionBar = getActionBar();
-    boolean hasUp = screen instanceof HasParent;
+    boolean hasUp = path instanceof HasParent;
     actionBar.setDisplayHomeAsUpEnabled(hasUp);
     actionBar.setHomeButtonEnabled(hasUp);
 

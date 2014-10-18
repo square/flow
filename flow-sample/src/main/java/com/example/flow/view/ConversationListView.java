@@ -22,10 +22,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.Paths;
 import com.example.flow.model.Conversation;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -41,7 +41,7 @@ public class ConversationListView extends ListView {
     setAdapter(adapter);
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        AppFlow.get(getContext()).goTo(new Screens.Conversation(position));
+        Flow.get(getContext()).goTo(new Paths.Conversation(position));
       }
     });
   }

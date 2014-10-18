@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.flow.appflow;
+package com.example.flow.util;
 
 import android.os.Bundle;
 import flow.Backstack;
@@ -30,18 +30,18 @@ public class FlowBundler {
   private static final String FLOW_KEY = "flow_key";
 
   private final Object defaultScreen;
-  private final Flow.Listener listener;
+  private final Flow.Dispatcher dispatcher;
   private final Parcer<Object> parcer;
 
   private Flow flow;
 
-  public FlowBundler(Object defaultScreen, Flow.Listener listener, Parcer<Object> parcer) {
-    this.listener = listener;
+  public FlowBundler(Object defaultScreen, Flow.Dispatcher dispatcher, Parcer<Object> parcer) {
+    this.dispatcher = dispatcher;
     this.defaultScreen = defaultScreen;
     this.parcer = parcer;
   }
 
-  public AppFlow onCreate(Bundle savedInstanceState) {
+  public Flow onCreate(Bundle savedInstanceState) {
     checkArgument(flow == null, "Flow already created.");
     Backstack backstack;
     if (savedInstanceState != null && savedInstanceState.containsKey(FLOW_KEY)) {
@@ -49,18 +49,14 @@ public class FlowBundler {
     } else {
       backstack = Backstack.fromUpChain(defaultScreen);
     }
-    flow = new Flow(backstack, listener);
-    return new AppFlow(flow);
+    this.flow = new Flow(backstack, dispatcher);
+    return flow;
   }
 
   public void onSaveInstanceState(Bundle outState) {
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
     outState.putParcelable(FLOW_KEY, backstack.getParcelable(parcer));
-  }
-
-  public final Flow getFlow() {
-    return flow;
   }
 
   /**

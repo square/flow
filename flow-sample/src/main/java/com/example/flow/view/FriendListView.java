@@ -22,10 +22,10 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.Paths;
 import com.example.flow.model.User;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -45,7 +45,7 @@ public class FriendListView extends ListView {
     setAdapter(adapter);
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        AppFlow.get(getContext()).goTo(new Screens.Friend(position));
+        Flow.get(getContext()).goTo(new Paths.Friend(position));
       }
     });
   }

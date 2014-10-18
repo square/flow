@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.flow.screenswitcher;
+package com.example.flow.pathview;
 
 import android.view.View;
 import flow.Flow;

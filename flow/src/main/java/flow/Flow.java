@@ -16,42 +16,72 @@
 
 package flow;
 
+import android.content.Context;
+import com.sun.istack.internal.Nullable;
 import java.util.Iterator;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
+  private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
+
+  public static Flow get(Context context) {
+    return (Flow) context.getSystemService(FLOW_SERVICE);
+  }
+
+  public static void loadInitialScreen(Context context) {
+    Flow flow = get(context);
+    Object screen = get(context).getBackstack().current().getScreen();
+    flow.resetTo(screen);
+  }
+
+  public static boolean isFlowSystemService(String name) {
+    return FLOW_SERVICE.equals(name);
+  }
+
   public enum Direction {
     FORWARD, BACKWARD, REPLACE
   }
 
   /** Supplied by Flow to the Listener, which is responsible for calling onComplete(). */
-  public interface Callback {
+  public interface TraversalCallback {
     /**
      * Must be called exactly once to indicate that the corresponding transition has completed.
      *
      * If not called, the backstack will not be updated and further calls to Flow will not execute.
      * Calling more than once will result in an exception.
      */
-    void onComplete();
+    void onTraversalCompleted();
   }
 
-  public interface Listener {
+  public static final class Traversal {
+    @Nullable public final Backstack origin;
+    public final Backstack destination;
+    public final Direction direction;
+
+    private Traversal(@Nullable Backstack from, Backstack to, Direction direction) {
+      this.origin = from;
+      this.destination = to;
+      this.direction = direction;
+    }
+  }
+
+  public interface Dispatcher {
     /**
-     * Notifies the listener that the backstack is about to change. Note that the backstack of
+     * Called when the backstack is about to change.  Note that the backstack
      * is not actually changed until the callback is triggered.  That is, {@code nextBackstack} is
      * where the Flow is going next, and {@link Flow#getBackstack()} is where it's coming from.
      *
      * @param callback Must be called to indicate completion.
      */
-    void go(Backstack nextBackstack, Direction direction, Callback callback);
+    void dispatch(Traversal traversal, TraversalCallback callback);
   }
 
-  private final Listener listener;
+  private final Dispatcher dispatcher;
   private Backstack backstack;
   private Transition transition;
 
-  public Flow(Backstack backstack, Listener listener) {
-    this.listener = listener;
+  public Flow(Backstack backstack, Dispatcher dispatcher) {
+    this.dispatcher = dispatcher;
     this.backstack = backstack;
   }
 
@@ -139,7 +169,7 @@ public final class Flow {
           go(newBackstack, Direction.BACKWARD);
         } else {
           // We are not calling the listener, so we must complete this noop transition ourselves.
-          onComplete();
+          onTraversalCompleted();
         }
       }
     });
@@ -156,7 +186,7 @@ public final class Flow {
       @Override public void execute() {
         if (backstack.size() == 1) {
           // We are not calling the listener, so we must complete this noop transition ourselves.
-          onComplete();
+          onTraversalCompleted();
         } else {
           Backstack.Builder builder = backstack.buildUpon();
           builder.pop();
@@ -223,7 +253,7 @@ public final class Flow {
     return preserving.build();
   }
 
-  private abstract class Transition implements Callback {
+  private abstract class Transition implements TraversalCallback {
     boolean finished;
     Transition next;
     Backstack nextBackstack;
@@ -236,7 +266,7 @@ public final class Flow {
       }
     }
 
-    @Override public void onComplete() {
+    @Override public void onTraversalCompleted() {
       if (finished) {
         throw new IllegalStateException("onComplete already called for this transition");
       }
@@ -252,7 +282,7 @@ public final class Flow {
 
     protected void go(Backstack nextBackstack, Direction direction) {
       this.nextBackstack = nextBackstack;
-      listener.go(nextBackstack, direction, this);
+      dispatcher.dispatch(new Traversal(getBackstack(), nextBackstack, direction), this);
     }
 
     protected abstract void execute();

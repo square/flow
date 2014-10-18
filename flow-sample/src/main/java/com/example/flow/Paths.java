@@ -16,17 +16,17 @@
 
 package com.example.flow;
 
-import com.example.flow.appflow.Screen;
+import com.example.flow.path.Path;
 import flow.HasParent;
 import flow.Layout;
 
-public final class Screens {
+public final class Paths {
   @Layout(R.layout.conversation_list_view) //
-  public static class ConversationList extends Screen {
+  public static class ConversationList extends Path {
   }
 
   @Layout(R.layout.conversation_view) //
-  public static class Conversation extends Screen implements HasParent<ConversationList> {
+  public static class Conversation extends Path implements HasParent<ConversationList> {
     public final int conversationIndex;
 
     public Conversation(int conversationIndex) {
@@ -39,7 +39,7 @@ public final class Screens {
   }
 
   @Layout(R.layout.message_view) //
-  public static class Message extends Screen implements HasParent<Conversation> {
+  public static class Message extends Path implements HasParent<Conversation> {
     public final int conversationIndex;
     public final int messageId;
 
@@ -54,14 +54,14 @@ public final class Screens {
   }
 
   @Layout(R.layout.friend_list_view) //
-  public static class FriendList extends Screen implements HasParent<ConversationList> {
+  public static class FriendList extends Path implements HasParent<ConversationList> {
     @Override public ConversationList getParent() {
       return new ConversationList();
     }
   }
 
   @Layout(R.layout.friend_view) //
-  public static class Friend extends Screen implements HasParent<FriendList> {
+  public static class Friend extends Path implements HasParent<FriendList> {
     public final int index;
 
     public Friend(int index) {
@@ -73,6 +73,6 @@ public final class Screens {
     }
   }
 
-  private Screens() {
+  private Paths() {
   }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.flow.screenswitcher;
+package com.example.flow.pathview;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -25,8 +25,11 @@ import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.flow.appflow.Screen;
-import com.example.flow.appflow.ScreenContextFactory;
+import com.example.flow.path.Path;
+import com.example.flow.path.PathContext;
+import com.example.flow.path.PathContextFactory;
+import com.example.flow.path.PathContainer;
+import com.example.flow.path.PathContainerView;
 import com.example.flow.util.Utils;
 import flow.Flow;
 
@@ -34,38 +37,38 @@ import static flow.Flow.Direction.REPLACE;
 
 /**
  * Provides basic right-to-left transitions. Saves and restores view state.
- * Uses {@link PathContext} to allow customized sub-containers.
+ * Uses {@link com.example.flow.path.PathContext} to allow customized sub-containers.
  * <p>
  * TODO(rjrjr) Wouldn't it be nice if the sample app DEMONSTRATED just what the
  * hell a subcontainer is?
  */
-public class SimpleSwitcher extends ScreenSwitcher {
-  public static final class Factory extends ScreenSwitcher.Factory {
-    public Factory(int tagKey, ScreenContextFactory contextFactory) {
+public class SimplePathContainer extends PathContainer {
+  public static final class Factory extends PathContainer.Factory {
+    public Factory(int tagKey, PathContextFactory contextFactory) {
       super(tagKey, contextFactory);
     }
 
-    @Override public ScreenSwitcher createScreenSwitcher(ScreenSwitcherView view) {
-      return new SimpleSwitcher(view, tagKey, contextFactory);
+    @Override public PathContainer createPathController(PathContainerView view) {
+      return new SimplePathContainer(view, tagKey, contextFactory);
     }
   }
 
-  private final ScreenContextFactory contextFactory;
+  private final PathContextFactory contextFactory;
 
-  SimpleSwitcher(ScreenSwitcherView view, int tagKey, ScreenContextFactory contextFactory) {
+  SimplePathContainer(PathContainerView view, int tagKey, PathContextFactory contextFactory) {
     super(view, tagKey);
     this.contextFactory = contextFactory;
   }
 
-  @Override protected void transition(final ViewGroup container, Screen from, Screen to,
-      final Flow.Direction direction, final Flow.Callback callback) {
+  @Override protected void transition(final ViewGroup container, Path from, Path to,
+      final Flow.Direction direction, final Flow.TraversalCallback callback) {
     final Tag tag = ensureTag(container);
     final PathContext context;
     final PathContext oldPath;
     if (container.getChildCount() > 0) {
       oldPath = PathContext.get(container.getChildAt(0).getContext());
     } else {
-      oldPath = PathContext.empty(container.getContext());
+      oldPath = PathContext.root(container.getContext());
     }
 
     ViewGroup view;
@@ -77,30 +80,30 @@ public class SimpleSwitcher extends ScreenSwitcher {
 
     View fromView = null;
     tag.setNextScreen(to);
-    if (tag.fromScreen != null) {
+    if (tag.fromPath != null) {
       fromView = container.getChildAt(0);
       SparseArray<Parcelable> state = new SparseArray<>();
       fromView.saveHierarchyState(state);
-      tag.fromScreen.setViewState(state);
+      tag.fromPath.setViewState(state);
     }
 
     if (fromView == null || direction == REPLACE) {
       container.removeAllViews();
       container.addView(view);
-      tag.toScreen.restoreHierarchyState(container.getChildAt(0));
+      tag.toPath.restoreHierarchyState(container.getChildAt(0));
       oldPath.destroyNotIn(context, contextFactory);
-      callback.onComplete();
+      callback.onTraversalCompleted();
     } else {
       container.addView(view);
       final View finalFromView = fromView;
       Utils.waitForMeasure(view, new Utils.OnMeasuredCallback() {
         @Override public void onMeasured(View view, int width, int height) {
-          runAnimation(container, finalFromView, view, direction, new Flow.Callback() {
-            @Override public void onComplete() {
+          runAnimation(container, finalFromView, view, direction, new Flow.TraversalCallback() {
+            @Override public void onTraversalCompleted() {
               container.removeView(finalFromView);
-              tag.toScreen.restoreHierarchyState(container.getChildAt(0));
+              tag.toPath.restoreHierarchyState(container.getChildAt(0));
               oldPath.destroyNotIn(context, contextFactory);
-              callback.onComplete();
+              callback.onTraversalCompleted();
             }
           });
         }
@@ -109,12 +112,12 @@ public class SimpleSwitcher extends ScreenSwitcher {
   }
 
   private void runAnimation(final ViewGroup container, final View from, final View to,
-      Flow.Direction direction, final Flow.Callback callback) {
+      Flow.Direction direction, final Flow.TraversalCallback callback) {
     Animator animator = createSegue(from, to, direction);
     animator.addListener(new AnimatorListenerAdapter() {
       @Override public void onAnimationEnd(Animator animation) {
         container.removeView(from);
-        callback.onComplete();
+        callback.onTraversalCompleted();
       }
     });
     animator.start();

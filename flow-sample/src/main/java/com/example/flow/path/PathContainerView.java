@@ -14,21 +14,18 @@
  * limitations under the License.
  */
 
-package com.example.flow.appflow;
+package com.example.flow.path;
 
 import android.content.Context;
+import android.view.ViewGroup;
+import flow.Flow;
 
-public interface ScreenContextFactory {
-  /**
-   * Set up any services defined by this screen, and make them accessible via the context.
-   * Typically this means returning a new context that wraps the given one.
-   */
-  Context setUpContext(Screen screen, Context parentContext);
+public interface PathContainerView {
+  ViewGroup getCurrentChild();
 
-  /**
-   * Tear down any services previously started by {@link #setUpContext(Screen, Context)}. Note that
-   * the Context instance given here may be a wrapper around an instance that this factory
-   * created.
-   */
-  void tearDownContext(Context context);
+  ViewGroup getContainerView();
+
+  Context getContext();
+
+  void showScreen(Path path, Flow.Direction direction, Flow.TraversalCallback callback);
 }

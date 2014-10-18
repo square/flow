@@ -23,12 +23,13 @@ import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
 import butterknife.OnClick;
+import com.example.flow.Paths;
 import com.example.flow.R;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.path.Path;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -46,7 +47,7 @@ public class MessageView extends LinearLayout {
     setOrientation(VERTICAL);
     Utils.inject(context, this);
 
-    Screens.Message screen = AppFlow.getScreen(context);
+    Paths.Message screen = Path.getPath(context);
     message = conversations.get(screen.conversationIndex).items.get(screen.messageId);
   }
 
@@ -62,7 +63,7 @@ public class MessageView extends LinearLayout {
   @OnClick(R.id.user) void userClicked() {
     int position = friendList.indexOf(message.from);
     if (position != -1) {
-      AppFlow.get(getContext()).goTo(new Screens.Friend(position));
+      Flow.get(getContext()).goTo(new Paths.Friend(position));
     }
   }
 }

@@ -22,10 +22,11 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.Paths;
+import com.example.flow.path.Path;
 import com.example.flow.model.Conversation;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
@@ -36,7 +37,7 @@ public class ConversationView extends ListView {
     super(context, attrs);
     Utils.inject(context, this);
 
-    Screens.Conversation screen = AppFlow.getScreen(context);
+    Paths.Conversation screen = Path.getPath(context);
     setConversation(conversationList.get(screen.conversationIndex));
   }
 
@@ -47,7 +48,7 @@ public class ConversationView extends ListView {
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         int messageIndex = conversationList.indexOf(conversation);
-        AppFlow.get(getContext()).goTo(new Screens.Message(messageIndex, position));
+        Flow.get(getContext()).goTo(new Paths.Message(messageIndex, position));
       }
     });
   }
