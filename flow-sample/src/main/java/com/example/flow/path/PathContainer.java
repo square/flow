@@ -80,7 +80,7 @@ public abstract class PathContainer {
       Tag tag = (Tag) view.getContainerView().getTag(tagKey);
       oldChildPath = checkNotNull(tag.toPath, "Container view has child %s with no screen",
           oldChild.toString());
-      if (oldChildPath.getName().equals(path.getName())) {
+      if (oldChildPath.equals(path)) {
         callback.onTraversalCompleted();
         return;
       }

@@ -22,17 +22,12 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
-import com.example.flow.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
 public abstract class Path {
-  static final Path ROOT = new Path() {
-    @Override public String getName() {
-      return "ROOT";
-    }
-  };
+  static final Path ROOT = new Path() {};
   private SparseArray<Parcelable> viewState;
   private List<Path> elements;
 
@@ -52,18 +47,6 @@ public abstract class Path {
     // If this blows up, it's on the caller.  We hide the cast as a convenience.
     //noinspection unchecked
     return (T) wrapper.localScreen;
-  }
-
-  @Override public boolean equals(Object o) {
-    return o != null && o instanceof Path && this.getName().equals(((Path) o).getName());
-  }
-
-  @Override public int hashCode() {
-    return getName().hashCode();
-  }
-
-  public String getName() {
-    return ObjectUtils.getClass(this).getName();
   }
 
   protected SparseArray<Parcelable> getViewState() {

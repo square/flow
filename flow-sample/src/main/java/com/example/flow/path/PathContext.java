@@ -29,17 +29,17 @@ import static com.example.flow.util.Preconditions.checkNotNull;
 
 public final class PathContext extends ContextWrapper {
   private static final String SERVICE_NAME = "PATH_CONTEXT";
-  private static final Map<String, Context> EMPTY_CONTEXT_MAP = Collections.emptyMap();
+  private static final Map<Path, Context> EMPTY_CONTEXT_MAP = Collections.emptyMap();
   private final Path path;
-  private final Map<String, Context> contexts;
+  private final Map<Path, Context> contexts;
 
-  PathContext(Context baseContext, Path path, Map<String, Context> contexts) {
+  PathContext(Context baseContext, Path path, Map<Path, Context> contexts) {
     super(baseContext);
     checkArgument(baseContext != null, "Leaf context may not be null.");
     checkArgument(path.elements().size() == contexts.size() - 1, "Path and context map are not the same size");
     if (!path.isRoot()) {
       Path leafPath = path.elements().get(path.elements().size() - 1);
-      checkArgument(baseContext == contexts.get(leafPath.getName()),
+      checkArgument(baseContext == contexts.get(leafPath),
           "For a non-root Path, baseContext must be Path leaf's context.");
     }
     this.path = path;
@@ -54,7 +54,7 @@ public final class PathContext extends ContextWrapper {
       PathContextFactory factory) {
     if (path == Path.ROOT) throw new IllegalArgumentException("Path is empty.");
     List<Path> elements = path.elements();
-    Map<String, Context> contexts = new LinkedHashMap<>();
+    Map<Path, Context> contexts = new LinkedHashMap<>();
     // We walk down the elements, reusing existing contexts for the elements we encounter.  As soon
     // as we encounter an element that doesn't already have a context, we stop.
     // Note: we will always have at least one shared element, the root.
@@ -64,12 +64,12 @@ public final class PathContext extends ContextWrapper {
     while (pathIterator.hasNext() && basePathIterator.hasNext()) {
       Path element = pathIterator.next();
       Path basePathElement = basePathIterator.next();
-      if (basePathElement.getName().equals(element.getName())) {
-        baseContext = preserve.contexts.get(element.getName());
-        contexts.put(element.getName(), baseContext);
+      if (basePathElement.equals(element)) {
+        baseContext = preserve.contexts.get(element);
+        contexts.put(element, baseContext);
       } else {
         baseContext = factory.setUpContext(element, baseContext);
-        contexts.put(element.getName(), baseContext);
+        contexts.put(element, baseContext);
         break;
       }
     }
@@ -77,7 +77,7 @@ public final class PathContext extends ContextWrapper {
     while (pathIterator.hasNext()) {
       Path element = pathIterator.next();
       baseContext = factory.setUpContext(element, baseContext);
-      contexts.put(element.getName(), baseContext);
+      contexts.put(element, baseContext);
     }
     // Finally, we can construct our new PathContext
     return new PathContext(baseContext, path, contexts);
@@ -85,13 +85,13 @@ public final class PathContext extends ContextWrapper {
 
   /** Finds the tail of this path which is not in the given path, and destroys it. */
   public void destroyNotIn(PathContext path, PathContextFactory factory) {
-    Iterator<Path> aPath = this.path.elements().iterator();
-    Iterator<Path> bPath = path.path.elements().iterator();
-    while (aPath.hasNext() && bPath.hasNext()) {
-      String aScreen = aPath.next().getName();
-      String bScreen = bPath.next().getName();
-      if (!aScreen.equals(bScreen)) {
-        factory.tearDownContext(contexts.get(aScreen));
+    Iterator<Path> aElements = this.path.elements().iterator();
+    Iterator<Path> bElements = path.path.elements().iterator();
+    while (aElements.hasNext() && bElements.hasNext()) {
+      Path aElement = aElements.next();
+      Path bElement = bElements.next();
+      if (!aElement.equals(bElement)) {
+        factory.tearDownContext(contexts.get(aElement));
         break;
       }
     }
