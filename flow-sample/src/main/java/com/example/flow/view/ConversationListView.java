@@ -22,14 +22,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.Paths;
 import com.example.flow.model.Conversation;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
-public class ConversationListView extends ListView {
+public class ConversationListView extends ListView implements IsMasterView {
   @Inject List<Conversation> conversations;
 
   public ConversationListView(Context context, AttributeSet attrs) {
@@ -41,14 +41,21 @@ public class ConversationListView extends ListView {
     setAdapter(adapter);
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        AppFlow.get(getContext()).goTo(new Screens.Conversation(position));
+        Flow.get(getContext()).goTo(new Paths.Conversation(position));
       }
     });
   }
 
+  @Override public void updateSelection() {
+    Paths.ConversationPath path =
+        (Paths.ConversationPath) Flow.get(getContext()).getBackstack().current();
+    setItemChecked(path.conversationIndex, true);
+    invalidate();
+  }
+
   private static class Adapter extends ArrayAdapter<Conversation> {
     public Adapter(Context context, List<Conversation> objects) {
-      super(context, android.R.layout.simple_list_item_1, objects);
+      super(context, android.R.layout.simple_list_item_activated_1, objects);
     }
   }
 }

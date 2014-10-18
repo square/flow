@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.flow.util;
+package flow;
 
 public final class ObjectUtils {
   private ObjectUtils() {

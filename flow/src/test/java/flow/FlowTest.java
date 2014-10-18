@@ -16,69 +16,98 @@
 package flow;
 
 import java.util.Arrays;
+import java.util.List;
 import org.junit.Test;
 
+import static flow.Flow.Traversal;
+import static flow.Flow.TraversalCallback;
+import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class FlowTest {
-  static class Uno {
+  static class Uno extends Path {
   }
 
-  static class Dos implements HasParent<Uno> {
+  static class Dos extends Path implements HasParent {
     @Override public Uno getParent() {
       return new Uno();
     }
   }
 
-  static class Tres implements HasParent<Dos> {
+  static class Tres extends Path implements HasParent {
     @Override public Dos getParent() {
       return new Dos();
     }
   }
 
+  final TestPath able = new TestPath("Able");
+  final TestPath baker = new TestPath("Baker");
+  final TestPath charlie = new TestPath("Charlie");
+  final TestPath delta = new TestPath("Delta");
+
   Backstack lastStack;
   Flow.Direction lastDirection;
 
-  class FlowListener implements Flow.Listener {
-    @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback callback) {
-      lastStack = nextBackstack;
-      lastDirection = direction;
-      callback.onComplete();
+  class FlowDispatcher implements Flow.Dispatcher {
+    @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+      lastStack = traversal.destination;
+      lastDirection = traversal.direction;
+      callback.onTraversalCompleted();
     }
   }
 
   @Test public void oneTwoThree() {
     Backstack backstack = Backstack.single(new Uno());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     flow.goTo(new Dos());
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastStack.current()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
 
     flow.goTo(new Tres());
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Tres.class);
+    assertThat(lastStack.current()).isInstanceOf(Tres.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastStack.current()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Uno.class);
+    assertThat(lastStack.current()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
   }
 
+  @Test public void builderCanPushPeekAndPopPaths() {
+    Backstack.Builder builder = Backstack.emptyBuilder();
+
+    List<TestPath> paths = asList(able, baker, charlie);
+    for (Path path : paths) {
+      builder.push(path);
+    }
+
+    for (int i = paths.size() - 1; i >= 0; i--) {
+      Path path = paths.get(i);
+      assertThat(builder.peek()).isSameAs(path);
+      assertThat(builder.pop()).isSameAs(path);
+    }
+  }
+
   @Test public void backstackChangesAfterListenerCall() {
     final Backstack firstBackstack = Backstack.single(new Uno());
 
-    class Ourrobouros implements Flow.Listener {
-      Flow flow = new Flow(firstBackstack ,this);
+    class Ourrobouros implements Flow.Dispatcher {
+      Flow flow = new Flow(firstBackstack);
 
-      @Override public void go(Backstack nextBackstack, Flow.Direction direction, Flow.Callback onComplete) {
+      {
+        flow.setDispatcher(this);
+      }
+
+      @Override public void dispatch(Traversal traversal, TraversalCallback onComplete) {
         assertThat(firstBackstack).isSameAs(flow.getBackstack());
-        onComplete.onComplete();
+        onComplete.onTraversalCompleted();
       }
     }
 
@@ -88,7 +117,11 @@ public class FlowTest {
 
   @Test public void noUpNoUps() {
     Backstack backstack = Backstack.single(new Uno());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
+    lastStack = null;
+    lastDirection = null;
+
     assertThat(flow.goUp()).isFalse();
     assertThat(lastStack).isNull();
     assertThat(lastDirection).isNull();
@@ -96,16 +129,17 @@ public class FlowTest {
 
   @Test public void upAndDown() {
     Backstack backstack = Backstack.single(new Tres());
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     assertThat(flow.goBack()).isFalse();
 
     assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastStack.current()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Uno.class);
+    assertThat(lastStack.current()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goUp()).isFalse();
@@ -113,155 +147,155 @@ public class FlowTest {
 
   @Test public void backStackAddAllIsPushy() {
     Backstack backstack =
-        Backstack.emptyBuilder().addAll(Arrays.<Object>asList("Able", "Baker", "Charlie")).build();
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker, charlie)).build();
     assertThat(backstack.size()).isEqualTo(3);
 
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Baker");
+    assertThat(lastStack.current()).isEqualTo(baker);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Able");
+    assertThat(lastStack.current()).isEqualTo(able);
 
     assertThat(flow.goBack()).isFalse();
   }
 
   @Test public void replaceBuildsBackStackFromUpLinks() {
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList("Able", "Baker", "Charlie", "Delta"))
-        .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Backstack backstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker, charlie, delta)).build();
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     flow.replaceTo(new Tres());
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Tres.class);
+    assertThat(lastStack.current()).isInstanceOf(Tres.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.REPLACE);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastStack.current()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Uno.class);
+    assertThat(lastStack.current()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
   }
 
   @Test public void resetGoesBack() {
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList("Able", "Baker", "Charlie", "Delta"))
-        .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Backstack backstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker, charlie, delta)).build();
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     assertThat(backstack.size()).isEqualTo(4);
 
-    flow.resetTo("Charlie");
-    assertThat(lastStack.current().getScreen()).isEqualTo("Charlie");
+    flow.resetTo(charlie);
+    assertThat(lastStack.current()).isEqualTo(charlie);
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Baker");
+    assertThat(lastStack.current()).isEqualTo(baker);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Able");
+    assertThat(lastStack.current()).isEqualTo(able);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
   }
 
   @Test public void resetToMissingScreenPushes() {
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList("Able", "Baker"))
-        .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Backstack backstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker)).build();
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(2);
 
-    flow.resetTo("Charlie");
-    assertThat(lastStack.current().getScreen()).isEqualTo("Charlie");
+    flow.resetTo(charlie);
+    assertThat(lastStack.current()).isEqualTo(charlie);
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.FORWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Baker");
+    assertThat(lastStack.current()).isEqualTo(baker);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo("Able");
+    assertThat(lastStack.current()).isEqualTo(able);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
     assertThat(flow.goBack()).isFalse();
   }
 
   @Test public void resetKeepsOriginal() {
-    TestScreen able = new TestScreen("Able");
-    TestScreen baker = new TestScreen("Baker");
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(able, baker))
-        .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Backstack backstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker)).build();
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(2);
 
-    flow.resetTo(new TestScreen("Able"));
-    assertThat(lastStack.current().getScreen()).isEqualTo(new TestScreen("Able"));
-    assertThat(lastStack.current().getScreen() == able).isTrue();
-    assertThat(lastStack.current().getScreen()).isSameAs(able);
+    flow.resetTo(new TestPath("Able"));
+    assertThat(lastStack.current()).isEqualTo(new TestPath("Able"));
+    assertThat(lastStack.current() == able).isTrue();
+    assertThat(lastStack.current()).isSameAs(able);
     assertThat(lastStack.size()).isEqualTo(1);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
 
   @Test public void replaceKeepsOriginals() {
-    TestScreen able = new Able();
-    TestScreen baker = new Baker();
-    TestScreen charlie = new Charlie();
-    TestScreen delta = new TestScreen("Delta");
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(able, baker, charlie, delta))
-        .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    TestPath able = new Grandpa();
+    TestPath baker = new Daddy();
+    TestPath charlie = new Baby();
+    TestPath delta = new TestPath("Delta");
+    Backstack backstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Path>asList(able, baker, charlie, delta)).build();
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(4);
 
-    TestScreen foxtrot = new Foxtrot();
+    TestPath foxtrot = new Foxtrot();
     flow.replaceTo(foxtrot);
     assertThat(lastStack.size()).isEqualTo(4);
-    assertThat(lastStack.current().getScreen()).isSameAs(foxtrot);
+    assertThat(lastStack.current()).isSameAs(foxtrot);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Echo());
+    assertThat(lastStack.current()).isEqualTo(new Echo());
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.current().getScreen()).isSameAs(baker);
+    assertThat(lastStack.current()).isSameAs(baker);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.current().getScreen()).isSameAs(able);
+    assertThat(lastStack.current()).isSameAs(able);
   }
 
   @Test public void goUpKeepsOriginals() {
-    TestScreen able = new Able();
-    TestScreen baker = new Baker();
-    TestScreen charlie = new Charlie();
-    TestScreen delta = new TestScreen("Delta");
-    TestScreen foxtrot = new Foxtrot();
+    TestPath able = new Grandpa();
+    TestPath baker = new Daddy();
+    TestPath charlie = new Baby();
+    TestPath delta = new TestPath("Delta");
+    TestPath foxtrot = new Foxtrot();
 
     Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(able, baker, charlie, delta, foxtrot))
+        .addAll(Arrays.<Path>asList(able, baker, charlie, delta, foxtrot))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
     assertThat(backstack.size()).isEqualTo(5);
 
     flow.goUp();
     assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Echo());
+    assertThat(lastStack.current()).isEqualTo(new Echo());
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.current().getScreen()).isSameAs(baker);
+    assertThat(lastStack.current()).isSameAs(baker);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.current().getScreen()).isSameAs(able);
+    assertThat(lastStack.current()).isSameAs(able);
   }
 
-  static class Picky {
+  static class Picky extends Path {
     final String value;
 
     Picky(String value) {
@@ -285,24 +319,25 @@ public class FlowTest {
 
   @Test public void resetCallsEquals() {
     Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
+        .addAll(Arrays.<Path>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
     assertThat(backstack.size()).isEqualTo(4);
 
     flow.resetTo(new Picky("Charlie"));
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Picky("Charlie"));
+    assertThat(lastStack.current()).isEqualTo(new Picky("Charlie"));
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Picky("Baker"));
+    assertThat(lastStack.current()).isEqualTo(new Picky("Baker"));
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isEqualTo(new Picky("Able"));
+    assertThat(lastStack.current()).isEqualTo(new Picky("Able"));
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
@@ -310,15 +345,16 @@ public class FlowTest {
 
   @Test public void replaceWithNonUppy() {
     Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
+        .addAll(Arrays.<Path>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
-    Flow flow = new Flow(backstack, new FlowListener());
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
 
-    flow.replaceTo("Echo");
+    flow.replaceTo(new TestPath("Echo"));
     Backstack newBack = flow.getBackstack();
     assertThat(newBack.size()).isEqualTo(1);
-    assertThat(newBack.current().getScreen()).isEqualTo("Echo");
+    assertThat(newBack.current()).isEqualTo(new TestPath("Echo"));
   }
 
   /**
@@ -328,60 +364,63 @@ public class FlowTest {
     Backstack backstack = Backstack.fromUpChain(new Tres());
     assertThat(backstack.size()).isEqualTo(3);
 
-    Flow flow = new Flow(backstack, new FlowListener());
-    assertThat(flow.getBackstack().current().getScreen()).isInstanceOf(Tres.class);
+    Flow flow = new Flow(backstack);
+    flow.setDispatcher(new FlowDispatcher());
+    assertThat(flow.getBackstack().current()).isInstanceOf(Tres.class);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Dos.class);
+    assertThat(lastStack.current()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current().getScreen()).isInstanceOf(Uno.class);
+    assertThat(lastStack.current()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
   }
 
-  static class Able extends TestScreen {
-    Able() {
-      super("Able");
+  static class Grandpa extends TestPath {
+    Grandpa() {
+      super("Grandpa");
     }
   }
 
-  static class Baker extends TestScreen implements HasParent<TestScreen> {
-    Baker() {
-      super("Baker");
+  static class Daddy extends TestPath implements HasParent {
+    Daddy() {
+      super("Daddy");
     }
 
-    @Override public TestScreen getParent() {
-      return new Able();
-    }
-  }
-
-  static class Charlie extends TestScreen implements HasParent<TestScreen> {
-    Charlie() {
-      super("Charlie");
-    }
-    @Override public TestScreen getParent() {
-      return new Baker();
+    @Override public TestPath getParent() {
+      return new Grandpa();
     }
   }
 
+  static class Baby extends TestPath implements HasParent {
+    Baby() {
+      super("Baby");
+    }
 
-  static class Echo extends TestScreen implements HasParent<TestScreen> {
+    @Override public TestPath getParent() {
+      return new Daddy();
+    }
+  }
+
+  static class Echo extends TestPath implements HasParent {
     Echo() {
       super("Echo");
     }
-    @Override public TestScreen getParent() {
-      return new Baker();
+
+    @Override public TestPath getParent() {
+      return new Daddy();
     }
   }
 
-  static class Foxtrot extends TestScreen implements HasParent<TestScreen> {
+  static class Foxtrot extends TestPath implements HasParent {
     Foxtrot() {
       super("Foxtrot");
     }
-    @Override public TestScreen getParent() {
+
+    @Override public TestPath getParent() {
       return new Echo();
     }
   }

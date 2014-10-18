@@ -22,14 +22,14 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import com.example.flow.Paths;
 import com.example.flow.model.User;
 import com.example.flow.util.Utils;
+import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
-public class FriendListView extends ListView {
+public class FriendListView extends ListView implements IsMasterView {
   @Inject List<User> friends;
 
   public FriendListView(Context context, AttributeSet attrs) {
@@ -37,6 +37,8 @@ public class FriendListView extends ListView {
     Utils.inject(context, this);
 
     setFriends(friends);
+
+    setChoiceMode(ListView.CHOICE_MODE_SINGLE);
   }
 
   public void setFriends(List<User> friends) {
@@ -45,14 +47,20 @@ public class FriendListView extends ListView {
     setAdapter(adapter);
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        AppFlow.get(getContext()).goTo(new Screens.Friend(position));
+        Flow.get(getContext()).goTo(new Paths.Friend(position));
       }
     });
   }
 
+  @Override public void updateSelection() {
+    Paths.FriendPath screen = (Paths.FriendPath) Flow.get(getContext()).getBackstack().current();
+    setItemChecked(screen.index, true);
+    invalidate();
+  }
+
   private static class Adapter extends ArrayAdapter<User> {
     public Adapter(Context context, List<User> objects) {
-      super(context, android.R.layout.simple_list_item_1, objects);
+      super(context, android.R.layout.simple_list_item_activated_1, objects);
     }
   }
 }

@@ -16,42 +16,73 @@
 
 package flow;
 
+import android.content.Context;
+import android.view.View;
 import java.util.Iterator;
+
+import static flow.Preconditions.checkNotNull;
+import static java.lang.String.format;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
+  private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
+
+  public static Flow get(View view) {
+    return get(view.getContext());
+  }
+
+  public static Flow get(Context context) {
+    return (Flow) context.getSystemService(FLOW_SERVICE);
+  }
+
+  public static boolean isFlowSystemService(String name) {
+    return FLOW_SERVICE.equals(name);
+  }
+
   public enum Direction {
     FORWARD, BACKWARD, REPLACE
   }
 
   /** Supplied by Flow to the Listener, which is responsible for calling onComplete(). */
-  public interface Callback {
+  public interface TraversalCallback {
     /**
      * Must be called exactly once to indicate that the corresponding transition has completed.
      *
      * If not called, the backstack will not be updated and further calls to Flow will not execute.
      * Calling more than once will result in an exception.
      */
-    void onComplete();
+    void onTraversalCompleted();
   }
 
-  public interface Listener {
+  public static final class Traversal {
+    /** May be null if this is a traversal into the start state. */
+    public final Backstack origin;
+    public final Backstack destination;
+    public final Direction direction;
+
+    private Traversal(Backstack from, Backstack to, Direction direction) {
+      this.origin = from;
+      this.destination = to;
+      this.direction = direction;
+    }
+  }
+
+  public interface Dispatcher {
     /**
-     * Notifies the listener that the backstack is about to change. Note that the backstack of
-     * is not actually changed until the callback is triggered.  That is, {@code nextBackstack} is
-     * where the Flow is going next, and {@link Flow#getBackstack()} is where it's coming from.
+     * Called when the backstack is about to change.  Note that Flow does not consider the
+     * Traversal to be finished, and will not actually update the backstack, until the callback is
+     * triggered. Traversals cannot be canceled.
      *
-     * @param callback Must be called to indicate completion.
+     * @param callback Must be called to indicate completion of the traversal.
      */
-    void go(Backstack nextBackstack, Direction direction, Callback callback);
+    void dispatch(Traversal traversal, TraversalCallback callback);
   }
 
-  private final Listener listener;
   private Backstack backstack;
-  private Transition transition;
+  private Dispatcher dispatcher;
+  private PendingTraversal pendingTraversal;
 
-  public Flow(Backstack backstack, Listener listener) {
-    this.listener = listener;
+  public Flow(Backstack backstack) {
     this.backstack = backstack;
   }
 
@@ -59,36 +90,79 @@ public final class Flow {
     return backstack;
   }
 
+  /**
+   * Set the dispatcher, may receive an immediate call to {@link Dispatcher#dispatch}. If a {@link
+   * Traversal Traversal} is currently in progress with a previous Dispatcher, that Traversal will
+   * not be affected.
+   */
+  public void setDispatcher(Dispatcher dispatcher) {
+    this.dispatcher = checkNotNull(dispatcher, "dispatcher");
+
+    if (pendingTraversal == null || //
+        (pendingTraversal.state == TraversalState.DISPATCHED && pendingTraversal.next == null)) {
+      // Nothing is happening;
+      // OR, there is an outstanding callback and nothing will happen after it;
+      // So enqueue a bootstrap traversal.
+      move(new PendingTraversal() {
+        @Override protected void doExecute() {
+          go(backstack, Direction.REPLACE);
+        }
+      });
+      return;
+    }
+
+    if (pendingTraversal.state == TraversalState.ENQUEUED) {
+      // A traversal was enqueued while we had no dispatcher, run it now.
+      pendingTraversal.execute();
+      return;
+    }
+
+    if (pendingTraversal.state != TraversalState.DISPATCHED) {
+      throw new AssertionError(
+          format("Hanging traversal in unexpected state " + pendingTraversal.state));
+    }
+  }
+
+  /**
+   * Remove the dispatcher. A noop if the given dispatcher is not the current one.
+   * <p>
+   * No further {@link Traversal Traversals}, including Traversals currently enqueued, will execute
+   * until a new dispatcher is set.
+   */
+  public void removeDispatcher(Dispatcher dispatcher) {
+    // This mechanism protects against out of order calls to this method and setDispatcher
+    // (e.g. if an outgoing activity is paused after an incoming one resumes).
+    if (this.dispatcher == checkNotNull(dispatcher, "dispatcher")) this.dispatcher = null;
+  }
+
   /** Push the screen onto the backstack. */
-  public void goTo(final Object screen) {
-    move(new Transition() {
-      @Override public void execute() {
-        Backstack newBackstack = backstack.buildUpon().push(screen).build();
+  public void goTo(final Path path) {
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
+        Backstack newBackstack = backstack.buildUpon().push(path).build();
         go(newBackstack, Direction.FORWARD);
       }
     });
   }
 
   /**
-   * Reset to the specified screen. Pops until the screen is found.  If the screen is not found, the
-   * entire backstack is replaced with the screen.
+   * Reset to the specified screen. Pops until the screen is found. If the screen is not found,
+   * the entire backstack is replaced with the screen.
    */
-  public void resetTo(final Object screen) {
-    move(new Transition() {
-      @Override public void execute() {
+  public void resetTo(final Path path) {
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
         Backstack.Builder builder = backstack.buildUpon();
         int count = 0;
-        // Take care to leave the original screen instance on the stack, if we find it.  This enables
-        // some arguably bad behavior on the part of clients, but it's still probably the right thing
-        // to do.
-        Object lastPopped = null;
-        for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
-          Backstack.Entry entry = it.next();
+        // Take care to leave the original screen instance on the stack, if we find it.
+        Path lastPopped = null;
+        for (Iterator<Path> it = backstack.reverseIterator(); it.hasNext(); ) {
+          Path entry = it.next();
 
-          if (entry.getScreen().equals(screen)) {
+          if (entry.equals(path)) {
             // Clear up to the target screen.
             for (int i = 0; i < backstack.size() - count; i++) {
-              lastPopped = builder.pop().getScreen();
+              lastPopped = builder.pop();
             }
             break;
           } else {
@@ -102,20 +176,19 @@ public final class Flow {
           newBackstack = builder.build();
           go(newBackstack, Direction.BACKWARD);
         } else {
-          builder.push(screen);
+          builder.push(path);
           newBackstack = builder.build();
           go(newBackstack, Direction.FORWARD);
         }
       }
     });
-
   }
 
   /** Replaces the current backstack with the up stack of the screen. */
-  public void replaceTo(final Object screen) {
-    move(new Transition() {
-      @Override public void execute() {
-        Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(screen));
+  public void replaceTo(final Path path) {
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
+        Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(path));
         go(newBackstack, Direction.REPLACE);
       }
     });
@@ -123,23 +196,26 @@ public final class Flow {
 
   /**
    * Go up one screen.
+   *
    * @return false if going up is not possible.
    */
   public boolean goUp() {
     boolean canGoUp = false;
-    if (backstack.current().getScreen() instanceof HasParent || (transition != null && !transition.finished)) {
+    if (backstack.current() instanceof HasParent || (pendingTraversal != null
+        && pendingTraversal.state != TraversalState.FINISHED)) {
       canGoUp = true;
     }
-    move(new Transition() {
-      @Override public void execute() {
-        Object current = backstack.current().getScreen();
-        if (current instanceof HasParent<?>) {
-          Object parent = ((HasParent) current).getParent();
-          Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
+    move(new PendingTraversal() {
+      @Override public void doExecute() {
+        Path current = backstack.current();
+        if (current instanceof HasParent) {
+          Path parent = ((HasParent) current).getParent();
+          Backstack newBackstack =
+              preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
           go(newBackstack, Direction.BACKWARD);
         } else {
           // We are not calling the listener, so we must complete this noop transition ourselves.
-          onComplete();
+          onTraversalCompleted();
         }
       }
     });
@@ -148,15 +224,17 @@ public final class Flow {
 
   /**
    * Go back one screen.
+   *
    * @return false if going back is not possible.
    */
   public boolean goBack() {
-    boolean canGoBack = backstack.size() > 1 || (transition != null && !transition.finished);
-    move(new Transition() {
-      @Override public void execute() {
+    boolean canGoBack = backstack.size() > 1 || (pendingTraversal != null
+        && pendingTraversal.state != TraversalState.FINISHED);
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
         if (backstack.size() == 1) {
           // We are not calling the listener, so we must complete this noop transition ourselves.
-          onComplete();
+          onTraversalCompleted();
         } else {
           Backstack.Builder builder = backstack.buildUpon();
           builder.pop();
@@ -171,8 +249,8 @@ public final class Flow {
 
   /** Goes forward to a new backstack. */
   public void forward(final Backstack newBackstack) {
-    move(new Transition() {
-      @Override public void execute() {
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
         go(newBackstack, Direction.FORWARD);
       }
     });
@@ -180,81 +258,115 @@ public final class Flow {
 
   /** Goes backward to a new backstack. */
   public void backward(final Backstack newBackstack) {
-    move(new Transition() {
-      @Override public void execute() {
+    move(new PendingTraversal() {
+      @Override protected void doExecute() {
         go(newBackstack, Direction.BACKWARD);
       }
     });
   }
 
-  private void move(Transition transition) {
-    if (this.transition == null || this.transition.finished) {
-      this.transition = transition;
-      transition.execute();
+  private void move(PendingTraversal pendingTraversal) {
+    if (this.pendingTraversal == null) {
+      this.pendingTraversal = pendingTraversal;
+
+      // If there is no dispatcher wait until one shows up before executing.
+      if (dispatcher != null) pendingTraversal.execute();
     } else {
-      this.transition.enqueue(transition);
+      this.pendingTraversal.enqueue(pendingTraversal);
     }
   }
 
   private static Backstack preserveEquivalentPrefix(Backstack current, Backstack proposed) {
-    Iterator<Backstack.Entry> oldIt = current.reverseIterator();
-    Iterator<Backstack.Entry> newIt = proposed.reverseIterator();
+    Iterator<Path> oldIt = current.reverseIterator();
+    Iterator<Path> newIt = proposed.reverseIterator();
 
-    Backstack.Builder preserving =  Backstack.emptyBuilder();
+    Backstack.Builder preserving = Backstack.emptyBuilder();
 
     while (newIt.hasNext()) {
-      Backstack.Entry newEntry = newIt.next();
+      Path newEntry = newIt.next();
       if (!oldIt.hasNext()) {
-        preserving.push(newEntry.getScreen());
+        preserving.push(newEntry);
         break;
       }
-      Backstack.Entry oldEntry = oldIt.next();
-      if (oldEntry.getScreen().equals(newEntry.getScreen())) {
-        preserving.push(oldEntry.getScreen());
+      Path oldEntry = oldIt.next();
+      if (oldEntry.equals(newEntry)) {
+        preserving.push(oldEntry);
       } else {
-        preserving.push(newEntry.getScreen());
+        preserving.push(newEntry);
         break;
       }
     }
 
     while (newIt.hasNext()) {
-      preserving.push(newIt.next().getScreen());
+      preserving.push(newIt.next());
     }
     return preserving.build();
   }
 
-  private abstract class Transition implements Callback {
-    boolean finished;
-    Transition next;
+  private enum TraversalState {
+    /** {@link PendingTraversal#execute} has not been called. */
+    ENQUEUED,
+    /**
+     * {@link PendingTraversal#execute} was called, waiting for {@link
+     * PendingTraversal#onTraversalCompleted}.
+     */
+    DISPATCHED,
+    /**
+     * {@link PendingTraversal#onTraversalCompleted} was called.
+     */
+    FINISHED
+  }
+
+  private abstract class PendingTraversal implements TraversalCallback {
+
+    TraversalState state = TraversalState.ENQUEUED;
+    PendingTraversal next;
     Backstack nextBackstack;
 
-    void enqueue(Transition transition) {
+    void enqueue(PendingTraversal pendingTraversal) {
       if (this.next == null) {
-        this.next = transition;
+        this.next = pendingTraversal;
       } else {
-        this.next.enqueue(transition);
+        this.next.enqueue(pendingTraversal);
       }
     }
 
-    @Override public void onComplete() {
-      if (finished) {
-        throw new IllegalStateException("onComplete already called for this transition");
+    @Override public void onTraversalCompleted() {
+      if (state != TraversalState.DISPATCHED) {
+        throw new IllegalStateException(
+            state == TraversalState.FINISHED ? "onComplete already called for this transition"
+                : "transition not yet dispatched!");
       }
+      // Is not set by noop transitions.
       if (nextBackstack != null) {
         backstack = nextBackstack;
       }
-      finished = true;
-      if (next != null) {
-        transition = next;
-        transition.execute();
+      state = TraversalState.FINISHED;
+      pendingTraversal = next;
+      if (dispatcher != null && pendingTraversal != null) {
+        pendingTraversal.execute();
       }
     }
 
     protected void go(Backstack nextBackstack, Direction direction) {
-      this.nextBackstack = nextBackstack;
-      listener.go(nextBackstack, direction, this);
+      this.nextBackstack = checkNotNull(nextBackstack, "nextBackstack");
+      if (dispatcher == null) {
+        throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
+      }
+      dispatcher.dispatch(new Traversal(getBackstack(), nextBackstack, direction), this);
     }
 
-    protected abstract void execute();
+    final void execute() {
+      if (state != TraversalState.ENQUEUED) throw new AssertionError("unexpected state " + state);
+      if (dispatcher == null) throw new AssertionError("Caller must ensure that dispatcher is set");
+
+      state = TraversalState.DISPATCHED;
+      doExecute();
+    }
+
+    /**
+     * Must be synchronous and end with a call to {@link #go} or {@link #onTraversalCompleted()}.
+     */
+    abstract void doExecute();
   }
 }

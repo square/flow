@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Square Inc.
+ * Copyright 2013 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,9 +14,15 @@
  * limitations under the License.
  */
 
-package com.example.flow.screenswitcher;
+package flow;
 
-/** Like {@link HandlesBack}, but for the action bar's up button. */
-public interface HandlesUp {
-  boolean onUpPressed();
+import android.os.Parcelable;
+
+/**
+ * Generic interface to wrap and unwrap objects as instances of {@link Parcelable}. This is used
+ * with {@link Backstack} to provide a pluggable way of saving the applications screens.
+ */
+public interface Parceler {
+  Parcelable wrap(Path instance);
+  Path unwrap(Parcelable parcelable);
 }

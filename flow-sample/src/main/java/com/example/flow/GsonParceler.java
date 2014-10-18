@@ -21,19 +21,20 @@ import android.os.Parcelable;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import flow.Parcer;
+import flow.Parceler;
+import flow.Path;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-public class GsonParcer<T> implements Parcer<T> {
+public class GsonParceler implements Parceler {
   private final Gson gson;
 
-  public GsonParcer(Gson gson) {
+  public GsonParceler(Gson gson) {
     this.gson = gson;
   }
 
-  @Override public Parcelable wrap(T instance) {
+  @Override public Parcelable wrap(Path instance) {
     try {
       String json = encode(instance);
       return new Wrapper(json);
@@ -42,7 +43,7 @@ public class GsonParcer<T> implements Parcer<T> {
     }
   }
 
-  @Override public T unwrap(Parcelable parcelable) {
+  @Override public Path unwrap(Parcelable parcelable) {
     Wrapper wrapper = (Wrapper) parcelable;
     try {
       return decode(wrapper.json);
@@ -51,7 +52,7 @@ public class GsonParcer<T> implements Parcer<T> {
     }
   }
 
-  private String encode(T instance) throws IOException {
+  private String encode(Path instance) throws IOException {
     StringWriter stringWriter = new StringWriter();
     JsonWriter writer = new JsonWriter(stringWriter);
 
@@ -69,7 +70,7 @@ public class GsonParcer<T> implements Parcer<T> {
     }
   }
 
-  private T decode(String json) throws IOException {
+  private Path decode(String json) throws IOException {
     JsonReader reader = new JsonReader(new StringReader(json));
 
     try {

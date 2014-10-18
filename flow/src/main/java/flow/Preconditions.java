@@ -12,7 +12,7 @@
  * the License.
  */
 
-package com.example.flow.util;
+package flow;
 
 public final class Preconditions {
   private Preconditions() {

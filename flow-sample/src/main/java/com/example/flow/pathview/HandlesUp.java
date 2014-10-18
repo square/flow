@@ -14,15 +14,9 @@
  * limitations under the License.
  */
 
-package com.example.flow.screenswitcher;
+package com.example.flow.pathview;
 
-import android.content.Context;
-import android.view.ViewGroup;
-
-public interface ScreenSwitcherView extends CanShowScreen {
-  ViewGroup getCurrentChild();
-
-  ViewGroup getContainerView();
-
-  Context getContext();
+/** Like {@link HandlesBack}, but for the action bar's up button. */
+public interface HandlesUp {
+  boolean onUpPressed();
 }

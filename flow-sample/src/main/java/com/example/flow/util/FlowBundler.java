@@ -14,53 +14,43 @@
  * limitations under the License.
  */
 
-package com.example.flow.appflow;
+package com.example.flow.util;
 
 import android.os.Bundle;
 import flow.Backstack;
 import flow.Flow;
-import flow.Parcer;
-
-import static com.example.flow.util.Preconditions.checkArgument;
+import flow.Parceler;
+import javax.annotation.Nullable;
 
 /**
  * Handles Bundle persistence of a Flow.
  */
-public class FlowBundler {
+public abstract class FlowBundler {
   private static final String FLOW_KEY = "flow_key";
 
-  private final Object defaultScreen;
-  private final Flow.Listener listener;
-  private final Parcer<Object> parcer;
+  private final Parceler parceler;
 
   private Flow flow;
 
-  public FlowBundler(Object defaultScreen, Flow.Listener listener, Parcer<Object> parcer) {
-    this.listener = listener;
-    this.defaultScreen = defaultScreen;
-    this.parcer = parcer;
+  protected FlowBundler(Parceler parceler) {
+    this.parceler = parceler;
   }
 
-  public AppFlow onCreate(Bundle savedInstanceState) {
-    checkArgument(flow == null, "Flow already created.");
-    Backstack backstack;
+  public Flow onCreate(@Nullable Bundle savedInstanceState) {
+    if (flow != null) return flow;
+
+    Backstack restoredBackstack = null;
     if (savedInstanceState != null && savedInstanceState.containsKey(FLOW_KEY)) {
-      backstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parcer);
-    } else {
-      backstack = Backstack.fromUpChain(defaultScreen);
+      restoredBackstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parceler);
     }
-    flow = new Flow(backstack, listener);
-    return new AppFlow(flow);
+    flow = new Flow(getColdStartBackstack(restoredBackstack));
+    return flow;
   }
 
   public void onSaveInstanceState(Bundle outState) {
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
-    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parcer));
-  }
-
-  public final Flow getFlow() {
-    return flow;
+    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
   }
 
   /**
@@ -71,8 +61,15 @@ public class FlowBundler {
    *
    * @return the stack to archive, or null to archive nothing
    */
-  protected Backstack getBackstackToSave(Backstack backstack) {
+  @Nullable protected Backstack getBackstackToSave(Backstack backstack) {
     return backstack;
   }
-}
 
+  /**
+   * Returns the backstack to initialize the new flow.
+   *
+   * @param restoredBackstack the backstack recovered from the bundle passed to {@link #onCreate},
+   * or null if there was no bundle or no backstack was found
+   */
+  protected abstract Backstack getColdStartBackstack(@Nullable Backstack restoredBackstack);
+}
