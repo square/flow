@@ -17,7 +17,6 @@
 package flow;
 
 import android.content.Context;
-import com.sun.istack.internal.Nullable;
 import java.util.Iterator;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
@@ -54,11 +53,12 @@ public final class Flow {
   }
 
   public static final class Traversal {
-    @Nullable public final Backstack origin;
+    /** May be null if this is a traversal into the start state. */
+    public final Backstack origin;
     public final Backstack destination;
     public final Direction direction;
 
-    private Traversal(@Nullable Backstack from, Backstack to, Direction direction) {
+    private Traversal(Backstack from, Backstack to, Direction direction) {
       this.origin = from;
       this.destination = to;
       this.direction = direction;
@@ -67,18 +67,17 @@ public final class Flow {
 
   public interface Dispatcher {
     /**
-     * Called when the backstack is about to change.  Note that the backstack
-     * is not actually changed until the callback is triggered.  That is, {@code nextBackstack} is
-     * where the Flow is going next, and {@link Flow#getBackstack()} is where it's coming from.
+     * Called when the backstack is about to change.  Note that Flow does not consider the Traversal
+     * to be finished, and will not actually update the backstack, until the callback is triggered.
      *
-     * @param callback Must be called to indicate completion.
+     * @param callback Must be called to indicate completion of the traversal.
      */
     void dispatch(Traversal traversal, TraversalCallback callback);
   }
 
   private final Dispatcher dispatcher;
   private Backstack backstack;
-  private Transition transition;
+  private PendingTraversal pendingTraversal;
 
   public Flow(Backstack backstack, Dispatcher dispatcher) {
     this.dispatcher = dispatcher;
@@ -91,7 +90,7 @@ public final class Flow {
 
   /** Push the screen onto the backstack. */
   public void goTo(final Object screen) {
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         Backstack newBackstack = backstack.buildUpon().push(screen).build();
         go(newBackstack, Direction.FORWARD);
@@ -104,7 +103,7 @@ public final class Flow {
    * entire backstack is replaced with the screen.
    */
   public void resetTo(final Object screen) {
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         Backstack.Builder builder = backstack.buildUpon();
         int count = 0;
@@ -143,7 +142,7 @@ public final class Flow {
 
   /** Replaces the current backstack with the up stack of the screen. */
   public void replaceTo(final Object screen) {
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(screen));
         go(newBackstack, Direction.REPLACE);
@@ -157,10 +156,11 @@ public final class Flow {
    */
   public boolean goUp() {
     boolean canGoUp = false;
-    if (backstack.current().getScreen() instanceof HasParent || (transition != null && !transition.finished)) {
+    if (backstack.current().getScreen() instanceof HasParent || (pendingTraversal
+        != null && !pendingTraversal.finished)) {
       canGoUp = true;
     }
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         Object current = backstack.current().getScreen();
         if (current instanceof HasParent<?>) {
@@ -181,8 +181,8 @@ public final class Flow {
    * @return false if going back is not possible.
    */
   public boolean goBack() {
-    boolean canGoBack = backstack.size() > 1 || (transition != null && !transition.finished);
-    move(new Transition() {
+    boolean canGoBack = backstack.size() > 1 || (pendingTraversal != null && !pendingTraversal.finished);
+    move(new PendingTraversal() {
       @Override public void execute() {
         if (backstack.size() == 1) {
           // We are not calling the listener, so we must complete this noop transition ourselves.
@@ -201,7 +201,7 @@ public final class Flow {
 
   /** Goes forward to a new backstack. */
   public void forward(final Backstack newBackstack) {
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         go(newBackstack, Direction.FORWARD);
       }
@@ -210,19 +210,19 @@ public final class Flow {
 
   /** Goes backward to a new backstack. */
   public void backward(final Backstack newBackstack) {
-    move(new Transition() {
+    move(new PendingTraversal() {
       @Override public void execute() {
         go(newBackstack, Direction.BACKWARD);
       }
     });
   }
 
-  private void move(Transition transition) {
-    if (this.transition == null || this.transition.finished) {
-      this.transition = transition;
-      transition.execute();
+  private void move(PendingTraversal pendingTraversal) {
+    if (this.pendingTraversal == null || this.pendingTraversal.finished) {
+      this.pendingTraversal = pendingTraversal;
+      pendingTraversal.execute();
     } else {
-      this.transition.enqueue(transition);
+      this.pendingTraversal.enqueue(pendingTraversal);
     }
   }
 
@@ -253,16 +253,16 @@ public final class Flow {
     return preserving.build();
   }
 
-  private abstract class Transition implements TraversalCallback {
+  private abstract class PendingTraversal implements TraversalCallback {
     boolean finished;
-    Transition next;
+    PendingTraversal next;
     Backstack nextBackstack;
 
-    void enqueue(Transition transition) {
+    void enqueue(PendingTraversal pendingTraversal) {
       if (this.next == null) {
-        this.next = transition;
+        this.next = pendingTraversal;
       } else {
-        this.next.enqueue(transition);
+        this.next.enqueue(pendingTraversal);
       }
     }
 
@@ -275,8 +275,8 @@ public final class Flow {
       }
       finished = true;
       if (next != null) {
-        transition = next;
-        transition.execute();
+        pendingTraversal = next;
+        pendingTraversal.execute();
       }
     }
 
