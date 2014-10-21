@@ -27,7 +27,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dagger.Module;
 import dagger.Provides;
-import flow.Parcer;
+import flow.Parceler;
 import java.util.List;
 import javax.inject.Singleton;
 
@@ -53,7 +53,7 @@ public class DaggerConfig {
     return new GsonBuilder().create();
   }
 
-  @Provides @Singleton Parcer<Object> provideParcer(Gson gson) {
-    return new GsonParcer<>(gson);
+  @Provides @Singleton Parceler<Object> provideParcer(Gson gson) {
+    return new GsonParceler<>(gson);
   }
 }

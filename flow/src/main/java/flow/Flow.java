@@ -29,7 +29,7 @@ public final class Flow {
 
   public static void loadInitialScreen(Context context) {
     Flow flow = get(context);
-    Object screen = get(context).getBackstack().current().getScreen();
+    Object screen = get(context).getBackstack().current().getPath();
     flow.resetTo(screen);
   }
 
@@ -114,10 +114,10 @@ public final class Flow {
         for (Iterator<Backstack.Entry> it = backstack.reverseIterator(); it.hasNext();) {
           Backstack.Entry entry = it.next();
 
-          if (entry.getScreen().equals(screen)) {
+          if (entry.getPath().equals(screen)) {
             // Clear up to the target screen.
             for (int i = 0; i < backstack.size() - count; i++) {
-              lastPopped = builder.pop().getScreen();
+              lastPopped = builder.pop().getPath();
             }
             break;
           } else {
@@ -156,13 +156,13 @@ public final class Flow {
    */
   public boolean goUp() {
     boolean canGoUp = false;
-    if (backstack.current().getScreen() instanceof HasParent || (pendingTraversal
+    if (backstack.current().getPath() instanceof HasParent || (pendingTraversal
         != null && !pendingTraversal.finished)) {
       canGoUp = true;
     }
     move(new PendingTraversal() {
       @Override public void execute() {
-        Object current = backstack.current().getScreen();
+        Object current = backstack.current().getPath();
         if (current instanceof HasParent<?>) {
           Object parent = ((HasParent) current).getParent();
           Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
@@ -235,20 +235,20 @@ public final class Flow {
     while (newIt.hasNext()) {
       Backstack.Entry newEntry = newIt.next();
       if (!oldIt.hasNext()) {
-        preserving.push(newEntry.getScreen());
+        preserving.push(newEntry.getPath());
         break;
       }
       Backstack.Entry oldEntry = oldIt.next();
-      if (oldEntry.getScreen().equals(newEntry.getScreen())) {
-        preserving.push(oldEntry.getScreen());
+      if (oldEntry.getPath().equals(newEntry.getPath())) {
+        preserving.push(oldEntry.getPath());
       } else {
-        preserving.push(newEntry.getScreen());
+        preserving.push(newEntry.getPath());
         break;
       }
     }
 
     while (newIt.hasNext()) {
-      preserving.push(newIt.next().getScreen());
+      preserving.push(newIt.next().getPath());
     }
     return preserving.build();
   }

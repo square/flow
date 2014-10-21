@@ -22,10 +22,10 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.example.flow.R;
-import com.example.flow.path.Path;
-import com.example.flow.path.PathContainer;
-import com.example.flow.path.PathContainerView;
 import flow.Flow;
+import flow.Path;
+import flow.PathContainer;
+import flow.PathContainerView;
 
 /** A FrameLayout that can show screens for a {@link flow.Flow}. */
 public class FramePathContainerView extends FrameLayout
@@ -42,7 +42,7 @@ public class FramePathContainerView extends FrameLayout
   }
 
   /**
-   * Allows subclasses to use custom {@link com.example.flow.path.PathContainer} implementations. Allows the use
+   * Allows subclasses to use custom {@link flow.PathContainer} implementations. Allows the use
    * of more sophisticated transition schemes, and customized context wrappers.
    */
   protected FramePathContainerView(Context context, AttributeSet attrs,
@@ -64,10 +64,10 @@ public class FramePathContainerView extends FrameLayout
     super.onFinishInflate();
   }
 
-  @Override public void showScreen(Path path, Flow.Direction direction,
+  @Override public void executeTraversal(Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     disabled = true;
-    container.showPath(path, direction, new Flow.TraversalCallback() {
+    container.executeTraversal(traversal, new Flow.TraversalCallback() {
       @Override public void onTraversalCompleted() {
         callback.onTraversalCompleted();
         disabled = false;

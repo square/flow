@@ -23,7 +23,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import com.example.flow.Paths;
-import com.example.flow.path.Path;
+import flow.Path;
 import com.example.flow.model.Conversation;
 import com.example.flow.util.Utils;
 import flow.Flow;

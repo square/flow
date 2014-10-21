@@ -35,7 +35,7 @@ public class ReentranceTest {
     Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
       @Override public void dispatch(Traversal navigation, TraversalCallback callback) {
         lastStack = navigation.destination;
-        Object next = navigation.destination.current().getScreen();
+        Object next = navigation.destination.current().getPath();
         if (next instanceof Detail) {
           flow.goTo(new Loading());
         } else if (next instanceof Loading) {
@@ -54,7 +54,7 @@ public class ReentranceTest {
       boolean loading = true;
       @Override public void dispatch(Traversal navigation, TraversalCallback onComplete) {
         lastStack = navigation.destination;
-        Object next = navigation.destination.current().getScreen();
+        Object next = navigation.destination.current().getPath();
         if (loading) {
           if (next instanceof Detail) {
             flow.goTo(new Loading());
@@ -80,7 +80,7 @@ public class ReentranceTest {
     Flow flow = new Flow(Backstack.single(new Catalog()), new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
-        Object next = traversal.destination.current().getScreen();
+        Object next = traversal.destination.current().getPath();
         if (next instanceof Detail) {
           ReentranceTest.this.flow.forward(Backstack.emptyBuilder()
               .push(new Detail())
@@ -102,7 +102,7 @@ public class ReentranceTest {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         lastCallback = callback;
-        Object next = traversal.destination.current().getScreen();
+        Object next = traversal.destination.current().getPath();
         if (next instanceof Detail) {
           flow.goTo(new Loading());
         } else if (next instanceof Loading) {
@@ -158,7 +158,7 @@ public class ReentranceTest {
   private void verifyBackstack(Backstack backstack, Object... screens) {
     List<Object> actualScreens = new ArrayList<Object>(backstack.size());
     for (Backstack.Entry entry : backstack) {
-      actualScreens.add(entry.getScreen());
+      actualScreens.add(entry.getPath());
     }
     assertThat(actualScreens).containsExactly(screens);
   }

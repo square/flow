@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package com.example.flow.path;
+package flow;
 
 import android.content.Context;
 import android.content.ContextWrapper;
-import android.os.Parcelable;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
-import android.view.View;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nullable;
 
 public abstract class Path {
   static final Path ROOT = new Path() {};
-  private SparseArray<Parcelable> viewState;
-  private List<Path> elements;
+  transient private List<Path> elements;
 
   public static PathContextFactory contextFactory() {
     return new ContextFactory();
@@ -47,20 +42,6 @@ public abstract class Path {
     // If this blows up, it's on the caller.  We hide the cast as a convenience.
     //noinspection unchecked
     return (T) wrapper.localScreen;
-  }
-
-  protected SparseArray<Parcelable> getViewState() {
-    return viewState;
-  }
-
-  public void setViewState(SparseArray<Parcelable> viewState) {
-    this.viewState = viewState;
-  }
-
-  public void restoreHierarchyState(View view) {
-    if (getViewState() != null) {
-      view.restoreHierarchyState(getViewState());
-    }
   }
 
   protected void build(Builder builder) {
@@ -130,7 +111,8 @@ public abstract class Path {
   }
 
   private static final class ContextFactory implements PathContextFactory {
-    @Nullable private final PathContextFactory delegate;
+    // May be null.
+    private final PathContextFactory delegate;
 
     public ContextFactory() {
       delegate = null;

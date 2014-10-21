@@ -25,7 +25,7 @@ import butterknife.InjectView;
 import butterknife.OnClick;
 import com.example.flow.Paths;
 import com.example.flow.R;
-import com.example.flow.path.Path;
+import flow.Path;
 import com.example.flow.model.Conversation;
 import com.example.flow.model.User;
 import com.example.flow.util.Utils;

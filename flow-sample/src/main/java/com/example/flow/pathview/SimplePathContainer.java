@@ -20,24 +20,23 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.animation.AnimatorSet;
 import android.animation.ObjectAnimator;
-import android.os.Parcelable;
-import android.util.SparseArray;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.flow.path.Path;
-import com.example.flow.path.PathContext;
-import com.example.flow.path.PathContextFactory;
-import com.example.flow.path.PathContainer;
-import com.example.flow.path.PathContainerView;
-import com.example.flow.util.Utils;
+import flow.Backstack;
 import flow.Flow;
+import flow.Path;
+import flow.PathContainer;
+import flow.PathContainerView;
+import flow.PathContext;
+import flow.PathContextFactory;
+import com.example.flow.util.Utils;
 
 import static flow.Flow.Direction.REPLACE;
 
 /**
  * Provides basic right-to-left transitions. Saves and restores view state.
- * Uses {@link com.example.flow.path.PathContext} to allow customized sub-containers.
+ * Uses {@link flow.PathContext} to allow customized sub-containers.
  * <p>
  * TODO(rjrjr) Wouldn't it be nice if the sample app DEMONSTRATED just what the
  * hell a subcontainer is?
@@ -60,48 +59,48 @@ public class SimplePathContainer extends PathContainer {
     this.contextFactory = contextFactory;
   }
 
-  @Override protected void transition(final ViewGroup container, Path from, Path to,
+  @Override protected void performTraversal(final ViewGroup containerView, Backstack.Entry fromEntry, Backstack.Entry toEntry,
       final Flow.Direction direction, final Flow.TraversalCallback callback) {
-    final Tag tag = ensureTag(container);
+    final Tag tag = ensureTag(containerView);
     final PathContext context;
     final PathContext oldPath;
-    if (container.getChildCount() > 0) {
-      oldPath = PathContext.get(container.getChildAt(0).getContext());
+    if (containerView.getChildCount() > 0) {
+      oldPath = PathContext.get(containerView.getChildAt(0).getContext());
     } else {
-      oldPath = PathContext.root(container.getContext());
+      oldPath = PathContext.root(containerView.getContext());
     }
+
+    Path to = (Path) toEntry.getPath();
 
     ViewGroup view;
     context = PathContext.create(oldPath, to, contextFactory);
     int layout = getLayout(to);
     view = (ViewGroup) LayoutInflater.from(context)
         .cloneInContext(context)
-        .inflate(layout, container, false);
+        .inflate(layout, containerView, false);
 
     View fromView = null;
-    tag.setNextScreen(to);
-    if (tag.fromPath != null) {
-      fromView = container.getChildAt(0);
-      SparseArray<Parcelable> state = new SparseArray<>();
-      fromView.saveHierarchyState(state);
-      tag.fromPath.setViewState(state);
+    tag.setNextEntry(toEntry);
+    if (tag.fromEntry != null) {
+      fromView = containerView.getChildAt(0);
+      fromEntry.saveViewState(fromView);
     }
 
     if (fromView == null || direction == REPLACE) {
-      container.removeAllViews();
-      container.addView(view);
-      tag.toPath.restoreHierarchyState(container.getChildAt(0));
+      containerView.removeAllViews();
+      containerView.addView(view);
+      tag.toEntry.restoreViewState(containerView.getChildAt(0));
       oldPath.destroyNotIn(context, contextFactory);
       callback.onTraversalCompleted();
     } else {
-      container.addView(view);
+      containerView.addView(view);
       final View finalFromView = fromView;
       Utils.waitForMeasure(view, new Utils.OnMeasuredCallback() {
         @Override public void onMeasured(View view, int width, int height) {
-          runAnimation(container, finalFromView, view, direction, new Flow.TraversalCallback() {
+          runAnimation(containerView, finalFromView, view, direction, new Flow.TraversalCallback() {
             @Override public void onTraversalCompleted() {
-              container.removeView(finalFromView);
-              tag.toPath.restoreHierarchyState(container.getChildAt(0));
+              containerView.removeView(finalFromView);
+              tag.toEntry.restoreViewState(containerView.getChildAt(0));
               oldPath.destroyNotIn(context, contextFactory);
               callback.onTraversalCompleted();
             }

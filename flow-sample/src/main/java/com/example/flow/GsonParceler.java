@@ -21,15 +21,15 @@ import android.os.Parcelable;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import flow.Parcer;
+import flow.Parceler;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-public class GsonParcer<T> implements Parcer<T> {
+public class GsonParceler<T> implements Parceler<T> {
   private final Gson gson;
 
-  public GsonParcer(Gson gson) {
+  public GsonParceler(Gson gson) {
     this.gson = gson;
   }
 

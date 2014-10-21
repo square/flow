@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.example.flow.path;
+package flow;
 
 import android.content.Context;
 import android.content.ContextWrapper;
@@ -24,9 +24,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.example.flow.util.Preconditions.checkArgument;
-import static com.example.flow.util.Preconditions.checkNotNull;
-
 public final class PathContext extends ContextWrapper {
   private static final String SERVICE_NAME = "PATH_CONTEXT";
   private static final Map<Path, Context> EMPTY_CONTEXT_MAP = Collections.emptyMap();
@@ -35,11 +32,13 @@ public final class PathContext extends ContextWrapper {
 
   PathContext(Context baseContext, Path path, Map<Path, Context> contexts) {
     super(baseContext);
-    checkArgument(baseContext != null, "Leaf context may not be null.");
-    checkArgument(path.elements().size() == contexts.size() - 1, "Path and context map are not the same size");
+    Preconditions.checkArgument(baseContext != null, "Leaf context may not be null.");
+    Preconditions.checkArgument(path.elements().size() == contexts.size(),
+        "Path and context map are not the same size, path has %d elements and there are %d contexts",
+        path.elements().size(), contexts.size());
     if (!path.isRoot()) {
       Path leafPath = path.elements().get(path.elements().size() - 1);
-      checkArgument(baseContext == contexts.get(leafPath),
+      Preconditions.checkArgument(baseContext == contexts.get(leafPath),
           "For a non-root Path, baseContext must be Path leaf's context.");
     }
     this.path = path;
@@ -47,7 +46,7 @@ public final class PathContext extends ContextWrapper {
   }
 
   public static PathContext root(Context baseContext) {
-    return new PathContext(baseContext, Path.ROOT, EMPTY_CONTEXT_MAP);
+    return new PathContext(baseContext, Path.ROOT, Collections.singletonMap(Path.ROOT, baseContext));
   }
 
   public static PathContext create(PathContext preserve, Path path,
@@ -99,7 +98,7 @@ public final class PathContext extends ContextWrapper {
 
   @SuppressWarnings("ResourceType")
   public static PathContext get(Context context) {
-    return checkNotNull((PathContext) context.getSystemService(SERVICE_NAME),
+    return Preconditions.checkNotNull((PathContext) context.getSystemService(SERVICE_NAME),
         "Expected to find a PathContext but did not.");
   }
 

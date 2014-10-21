@@ -23,7 +23,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
-import com.example.flow.path.Path;
+import flow.Path;
 import com.example.flow.pathview.FramePathContainerView;
 import com.example.flow.util.FlowBundler;
 import com.google.gson.Gson;
@@ -41,7 +41,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
    */
   private final FlowBundler flowBundler =
       new FlowBundler(new Paths.ConversationList(), MainActivity.this,
-          new GsonParcer<>(new Gson()));
+          new GsonParceler<>(new Gson()));
 
   @InjectView(R.id.container) FramePathContainerView container;
 
@@ -81,7 +81,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
           }
         });
 
-    Object screen = Flow.get(this).getBackstack().current().getScreen();
+    Object screen = Flow.get(this).getBackstack().current().getPath();
     boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
@@ -103,8 +103,8 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   }
 
   @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
-    Path path = (Path) traversal.destination.current().getScreen();
-    container.showScreen(path, traversal.direction, callback);
+    Path path = (Path) traversal.destination.current().getPath();
+    container.executeTraversal(traversal, callback);
 
     setTitle(path.getClass().getSimpleName());
 

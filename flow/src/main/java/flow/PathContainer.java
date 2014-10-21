@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package com.example.flow.path;
+package flow;
 
 import android.view.View;
 import android.view.ViewGroup;
-import com.example.flow.util.ObjectUtils;
-import flow.Flow;
-import flow.Layout;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
-import static com.example.flow.util.Preconditions.checkNotNull;
 
 /**
  * Handles swapping paths within a container view, as well as flow mechanics, allowing supported
@@ -49,15 +44,15 @@ public abstract class PathContainer {
 
   /**
    * Set on the container view to make screen information available during a transition.
-   * TODO(rjrjr) Does this really belong here or down in {@link com.example.flow.pathview.SimplePathContainer}?
+   * TODO(rjrjr) Does this really belong here or down in SimplePathContainer?
    */
   protected static final class Tag {
-    public Path fromPath;
-    public Path toPath;
+    public Backstack.Entry fromEntry;
+    public Backstack.Entry toEntry;
 
-    public void setNextScreen(Path path) {
-      this.fromPath = this.toPath;
-      this.toPath = path;
+    public void setNextEntry(Backstack.Entry entry) {
+      this.fromEntry = this.toEntry;
+      this.toEntry = entry;
     }
   }
 
@@ -71,28 +66,29 @@ public abstract class PathContainer {
     this.tagKey = tagKey;
   }
 
-  public void showPath(Path path, Flow.Direction direction, final Flow.TraversalCallback callback) {
+  public final void executeTraversal(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
-    Path oldChildPath = null;
+    Backstack.Entry entry = traversal.destination.current();
+    Backstack.Entry oldEntry = null;
 
     // See if we already have the direct child we want, and if so delegate the transition.
     if (oldChild != null) {
       Tag tag = (Tag) view.getContainerView().getTag(tagKey);
-      oldChildPath = checkNotNull(tag.toPath, "Container view has child %s with no screen",
-          oldChild.toString());
-      if (oldChildPath.equals(path)) {
+      oldEntry = Preconditions.checkNotNull(tag.toEntry,
+          "Container view has child %s with no screen", oldChild.toString());
+      if (oldEntry.equals(entry)) {
         callback.onTraversalCompleted();
         return;
       }
     }
 
-    transition(view.getContainerView(), oldChildPath, path, direction, callback);
+    performTraversal(view.getContainerView(), oldEntry, entry, traversal.direction, callback);
   }
 
-  protected abstract void transition(ViewGroup container, Path from, Path to,
+  protected abstract void performTraversal(ViewGroup container, Backstack.Entry from, Backstack.Entry to,
       Flow.Direction direction, Flow.TraversalCallback callback);
 
-  protected Tag ensureTag(ViewGroup container) {
+  protected final Tag ensureTag(ViewGroup container) {
     Tag tag = (Tag) container.getTag(tagKey);
     if (tag == null) {
       tag = new Tag();
@@ -106,8 +102,8 @@ public abstract class PathContainer {
     Integer layoutResId = SCREEN_LAYOUT_CACHE.get(screenType);
     if (layoutResId == null) {
       Layout layout = screenType.getAnnotation(Layout.class);
-      checkNotNull(layout, "@%s annotation not found on class %s", Layout.class.getSimpleName(),
-          screenType.getName());
+      Preconditions.checkNotNull(layout, "@%s annotation not found on class %s",
+          Layout.class.getSimpleName(), screenType.getName());
       layoutResId = layout.value();
       SCREEN_LAYOUT_CACHE.put(screenType, layoutResId);
     }

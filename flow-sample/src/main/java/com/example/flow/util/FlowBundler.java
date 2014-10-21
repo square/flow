@@ -19,9 +19,9 @@ package com.example.flow.util;
 import android.os.Bundle;
 import flow.Backstack;
 import flow.Flow;
-import flow.Parcer;
+import flow.Parceler;
 
-import static com.example.flow.util.Preconditions.checkArgument;
+import static flow.Preconditions.checkArgument;
 
 /**
  * Handles Bundle persistence of a Flow.
@@ -31,21 +31,21 @@ public class FlowBundler {
 
   private final Object defaultScreen;
   private final Flow.Dispatcher dispatcher;
-  private final Parcer<Object> parcer;
+  private final Parceler<Object> parceler;
 
   private Flow flow;
 
-  public FlowBundler(Object defaultScreen, Flow.Dispatcher dispatcher, Parcer<Object> parcer) {
+  public FlowBundler(Object defaultScreen, Flow.Dispatcher dispatcher, Parceler<Object> parceler) {
     this.dispatcher = dispatcher;
     this.defaultScreen = defaultScreen;
-    this.parcer = parcer;
+    this.parceler = parceler;
   }
 
   public Flow onCreate(Bundle savedInstanceState) {
     checkArgument(flow == null, "Flow already created.");
     Backstack backstack;
     if (savedInstanceState != null && savedInstanceState.containsKey(FLOW_KEY)) {
-      backstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parcer);
+      backstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parceler);
     } else {
       backstack = Backstack.fromUpChain(defaultScreen);
     }
@@ -56,7 +56,7 @@ public class FlowBundler {
   public void onSaveInstanceState(Bundle outState) {
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
-    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parcer));
+    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
   }
 
   /**

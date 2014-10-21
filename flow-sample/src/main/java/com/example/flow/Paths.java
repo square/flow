@@ -16,7 +16,7 @@
 
 package com.example.flow;
 
-import com.example.flow.path.Path;
+import flow.Path;
 import flow.HasParent;
 import flow.Layout;
 

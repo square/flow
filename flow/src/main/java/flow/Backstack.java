@@ -16,8 +16,10 @@
 
 package flow;
 
-import android.os.Parcel;
+import android.os.Bundle;
 import android.os.Parcelable;
+import android.util.SparseArray;
+import android.view.View;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -25,20 +27,43 @@ import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.List;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time. For persisting the supplied
- * {@link Parcer} needs to be able to handle all screen types.
+ * {@link Parceler} needs to be able to handle all screen types.
  */
 public final class Backstack implements Iterable<Backstack.Entry> {
   private final long highestId;
   private final Deque<Entry> backstack;
 
-  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parcer}. */
-  public static Backstack from(Parcelable parcelable, Parcer<Object> parcer) {
-    ParcelableBackstack backstack = (ParcelableBackstack) parcelable;
-    return backstack.getBackstack(parcer);
+  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parceler}. */
+  public static Backstack from(Parcelable parcelable, Parceler<Object> parceler) {
+    Bundle bundle = (Bundle) parcelable; // TODO: assert/throw
+    ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
+    Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
+    for (Bundle entryBundle : entryBundles) {
+      Object path = parceler.unwrap(entryBundle.getParcelable("PATH"));
+      Entry entry = new Entry(path);
+      entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
+      entries.add(entry);
+    }
+    return new Backstack(0, entries);
+  }
+
+  /** Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}. */
+  public Parcelable getParcelable(Parceler<Object> parceler) {
+    Bundle backstackBundle = new Bundle();
+
+    ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
+
+    for (Entry entry : backstack) {
+      Bundle entryBundle = new Bundle();
+      entryBundle.putParcelable("PATH", parceler.wrap(entry.path));
+      entryBundle.putSparseParcelableArray("VIEW_STATE", entry.viewState);
+      entryBundles.add(entryBundle);
+    }
+    backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
+    return backstackBundle;
   }
 
   public static Builder emptyBuilder() {
@@ -63,10 +88,6 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return new ReadIterator<Entry>(backstack.descendingIterator());
   }
 
-  /** Get a {@link Parcelable} of this backstack using the supplied {@link Parcer}. */
-  public Parcelable getParcelable(Parcer<Object> parcer) {
-    return new ParcelableBackstack.Memory(this, parcer);
-  }
 
   public int size() {
     return backstack.size();
@@ -101,24 +122,40 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   public static final class Entry {
-    private final long id;
-    private final Object screen;
+    public final Object path;
+    SparseArray<Parcelable> viewState;
 
-    private Entry(long id, Object screen) {
-      this.id = id;
-      this.screen = screen;
+    private Entry(Object path) {
+      this.path = path;
     }
 
-    public long getId() {
-      return id;
+    public Object getPath() {
+      return path;
     }
 
-    public Object getScreen() {
-      return screen;
+    public void saveViewState(View view) {
+      SparseArray<Parcelable> state = new SparseArray<>();
+      view.saveHierarchyState(state);
+      viewState = state;
     }
 
-    @Override public String toString() {
-      return "{" + id + ", " + screen + "}";
+    public void restoreViewState(View view) {
+      if (viewState != null) {
+        view.restoreHierarchyState(viewState);
+      }
+    }
+
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Entry entry = (Entry) o;
+      return (path.equals(entry.path));
+    }
+
+    @Override
+    public int hashCode() {
+      return path.hashCode();
     }
   }
 
@@ -132,14 +169,14 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     }
 
     public Builder push(Object screen) {
-      backstack.push(new Entry(++highestId, screen));
+      backstack.push(new Entry(screen));
 
       return this;
     }
 
     public Builder addAll(Collection<Object> c) {
       for (Object screen : c) {
-        backstack.push(new Entry(++highestId, screen));
+        backstack.push(new Entry(screen));
       }
 
       return this;
@@ -186,116 +223,5 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     @Override public void remove() {
       throw new UnsupportedOperationException();
     }
-  }
-
-  private interface ParcelableBackstack extends Parcelable {
-    Backstack getBackstack(Parcer<Object> parcer);
-
-    @SuppressWarnings("UnusedDeclaration")
-    Parcelable.Creator<ParcelableBackstack> CREATOR =
-        new Parcelable.Creator<ParcelableBackstack>() {
-          @Override public ParcelableBackstack createFromParcel(Parcel in) {
-            List<ParcelableEntry> entries = new ArrayList<ParcelableEntry>();
-            long highestId = in.readLong();
-            in.readTypedList(entries, ParcelableEntry.CREATOR);
-            return new Parcelled(highestId, entries);
-          }
-
-          @Override public ParcelableBackstack[] newArray(int size) {
-            return new Parcelled[size];
-          }
-        };
-
-    static class Memory implements ParcelableBackstack {
-      private final Backstack backstack;
-      private final Parcer<Object> parcer;
-
-      Memory(Backstack backstack, Parcer<Object> parcer) {
-        this.backstack = backstack;
-        this.parcer = parcer;
-      }
-
-      @Override public Backstack getBackstack(Parcer<Object> parcer) {
-        return backstack;
-      }
-
-      @Override public int describeContents() {
-        return 0;
-      }
-
-      @Override public void writeToParcel(Parcel out, int flags) {
-        List<ParcelableEntry> entries = new ArrayList<ParcelableEntry>();
-        for (Entry entry : backstack) {
-          entries.add(new ParcelableEntry(entry.id, parcer.wrap(entry.getScreen())));
-        }
-
-        out.writeLong(backstack.highestId);
-        out.writeTypedList(entries);
-      }
-    }
-
-    static class Parcelled implements ParcelableBackstack {
-      private final long highestId;
-      private final List<ParcelableEntry> entries;
-
-      Parcelled(long highestId, List<ParcelableEntry> entries) {
-        this.highestId = highestId;
-        this.entries = entries;
-      }
-
-      @Override public Backstack getBackstack(Parcer<Object> parcer) {
-        List<Entry> backstack = new ArrayList<Entry>();
-        for (ParcelableEntry entry : entries) {
-          backstack.add(entry.toRealEntry(parcer));
-        }
-
-        return new Builder(highestId, backstack).build();
-      }
-
-      @Override public int describeContents() {
-        return 0;
-      }
-
-      @Override public void writeToParcel(Parcel out, int flags) {
-        out.writeLong(highestId);
-        out.writeTypedList(entries);
-      }
-    }
-  }
-
-  private static class ParcelableEntry implements Parcelable {
-    private final long id;
-    private final Parcelable parcelable;
-
-    ParcelableEntry(long id, Parcelable parcelable) {
-      this.id = id;
-      this.parcelable = parcelable;
-    }
-
-    public Entry toRealEntry(Parcer<Object> parcer) {
-      return new Entry(id, parcer.unwrap(parcelable));
-    }
-
-    @Override public int describeContents() {
-      return 0;
-    }
-
-    @Override public void writeToParcel(Parcel out, int flags) {
-      out.writeLong(id);
-      out.writeParcelable(parcelable, flags);
-    }
-
-    public static final Parcelable.Creator<ParcelableEntry> CREATOR =
-        new Parcelable.Creator<ParcelableEntry>() {
-          @Override public ParcelableEntry createFromParcel(Parcel in) {
-            long id = in.readLong();
-            Parcelable parcelable = in.readParcelable(getClass().getClassLoader());
-            return new ParcelableEntry(id, parcelable);
-          }
-
-          @Override public ParcelableEntry[] newArray(int size) {
-            return new ParcelableEntry[size];
-          }
-        };
   }
 }
