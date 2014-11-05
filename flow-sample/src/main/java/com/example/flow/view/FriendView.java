@@ -41,7 +41,7 @@ public class FriendView extends FrameLayout {
     super(context, attrs);
     Utils.inject(context, this);
 
-    Paths.Friend screen = Path.getPath(context);
+    Paths.Friend screen = Path.get(context);
     friend = friends.get(screen.index);
   }
 

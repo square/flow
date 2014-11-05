@@ -29,7 +29,7 @@ import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
-public class FriendListView extends ListView {
+public class FriendListView extends ListView implements IsMasterView {
   @Inject List<User> friends;
 
   public FriendListView(Context context, AttributeSet attrs) {
@@ -37,6 +37,8 @@ public class FriendListView extends ListView {
     Utils.inject(context, this);
 
     setFriends(friends);
+
+    setChoiceMode(ListView.CHOICE_MODE_SINGLE);
   }
 
   public void setFriends(List<User> friends) {
@@ -50,9 +52,15 @@ public class FriendListView extends ListView {
     });
   }
 
+  @Override public void updateSelection() {
+    Paths.FriendPath screen = (Paths.FriendPath) Flow.get(getContext()).getBackstack().current();
+    setItemChecked(screen.index, true);
+    invalidate();
+  }
+
   private static class Adapter extends ArrayAdapter<User> {
     public Adapter(Context context, List<User> objects) {
-      super(context, android.R.layout.simple_list_item_1, objects);
+      super(context, android.R.layout.simple_list_item_activated_1, objects);
     }
   }
 }

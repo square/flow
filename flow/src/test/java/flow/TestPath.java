@@ -16,10 +16,10 @@
 
 package flow;
 
-class TestScreen {
+class TestPath extends Path {
   final String name;
 
-  TestScreen(String name) {
+  TestPath(String name) {
     this.name = name;
   }
 
@@ -27,7 +27,7 @@ class TestScreen {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    TestScreen screen = (TestScreen) o;
+    TestPath screen = (TestPath) o;
     return name.equals(screen.name);
   }
 

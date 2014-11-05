@@ -23,8 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Path {
-  static final Path ROOT = new Path() {};
-  transient private List<Path> elements;
+  static final Path ROOT = new Path() {
+  };
+  private transient List<Path> elements;
 
   public static PathContextFactory contextFactory() {
     return new ContextFactory();
@@ -34,7 +35,7 @@ public abstract class Path {
     return new ContextFactory(delegate);
   }
 
-  public static <T extends Path> T getPath(Context context) {
+  public static <T extends Path> T get(Context context) {
     LocalPathWrapper wrapper = LocalPathWrapper.get(context);
     if (wrapper == null) {
       throw new IllegalArgumentException("Supplied context has no Path");

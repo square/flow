@@ -29,29 +29,27 @@ import java.util.Iterator;
 import java.util.LinkedList;
 
 /**
- * Describes the history of a {@link Flow} at a specific point in time. For persisting the supplied
- * {@link Parceler} needs to be able to handle all screen types.
+ * Describes the history of a {@link Flow} at a specific point in time.
  */
-public final class Backstack implements Iterable<Backstack.Entry> {
-  private final long highestId;
+public final class Backstack implements Iterable<Path> {
   private final Deque<Entry> backstack;
 
   /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parceler}. */
-  public static Backstack from(Parcelable parcelable, Parceler<Object> parceler) {
-    Bundle bundle = (Bundle) parcelable; // TODO: assert/throw
+  public static Backstack from(Parcelable parcelable, Parceler parceler) {
+    Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object path = parceler.unwrap(entryBundle.getParcelable("PATH"));
+      Path path = parceler.unwrap(entryBundle.getParcelable("PATH"));
       Entry entry = new Entry(path);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
     }
-    return new Backstack(0, entries);
+    return new Backstack(entries);
   }
 
   /** Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}. */
-  public Parcelable getParcelable(Parceler<Object> parceler) {
+  public Parcelable getParcelable(Parceler parceler) {
     Bundle backstackBundle = new Bundle();
 
     ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
@@ -67,25 +65,24 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   public static Builder emptyBuilder() {
-    return new Builder(-1, Collections.<Entry>emptyList());
+    return new Builder(Collections.<Entry>emptyList());
   }
 
-  /** Create a backstack that contains a single screen. */
-  public static Backstack single(Object screen) {
-    return emptyBuilder().push(screen).build();
+  /** Create a backstack that contains a single path. */
+  public static Backstack single(Path path) {
+    return emptyBuilder().push(path).build();
   }
 
-  private Backstack(long highestId, Deque<Entry> backstack) {
-    this.highestId = highestId;
+  private Backstack(Deque<Entry> backstack) {
     this.backstack = backstack;
   }
 
-  @Override public Iterator<Entry> iterator() {
-    return new ReadIterator<Entry>(backstack.iterator());
+  @Override public Iterator<Path> iterator() {
+    return new ReadIterator(backstack.iterator());
   }
 
-  public Iterator<Entry> reverseIterator() {
-    return new ReadIterator<Entry>(backstack.descendingIterator());
+  public Iterator<Path> reverseIterator() {
+    return new ReadIterator(backstack.descendingIterator());
   }
 
 
@@ -93,24 +90,28 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return backstack.size();
   }
 
-  public Entry current() {
+  public Path current() {
+    return currentEntry().getPath();
+  }
+
+  Entry currentEntry() {
     return backstack.peek();
   }
 
   /** Get a builder to modify a copy of this backstack. */
   public Builder buildUpon() {
-    return new Builder(highestId, backstack);
+    return new Builder(backstack);
   }
 
   @Override public String toString() {
     return backstack.toString();
   }
 
-  public static Backstack fromUpChain(Object screen) {
-    LinkedList<Object> newBackstack = new LinkedList<Object>();
+  public static Backstack fromUpChain(Path path) {
+    LinkedList<Path> newBackstack = new LinkedList<>();
 
-    Object current = screen;
-    while (current instanceof HasParent<?>) {
+    Path current = path;
+    while (current instanceof HasParent) {
       newBackstack.addFirst(current);
       current = ((HasParent) current).getParent();
     }
@@ -121,15 +122,15 @@ public final class Backstack implements Iterable<Backstack.Entry> {
     return builder.build();
   }
 
-  public static final class Entry {
-    public final Object path;
+  static final class Entry {
+    public final Path path;
     SparseArray<Parcelable> viewState;
 
-    private Entry(Object path) {
+    private Entry(Path path) {
       this.path = path;
     }
 
-    public Object getPath() {
+    public Path getPath() {
       return path;
     }
 
@@ -160,40 +161,33 @@ public final class Backstack implements Iterable<Backstack.Entry> {
   }
 
   public static final class Builder {
-    private long highestId;
     private final Deque<Entry> backstack;
 
-    private Builder(long highestId, Collection<Entry> backstack) {
-      this.highestId = highestId;
-      this.backstack = new ArrayDeque<Entry>(backstack);
+    private Builder(Collection<Entry> backstack) {
+      this.backstack = new ArrayDeque<>(backstack);
     }
 
-    public Builder push(Object screen) {
-      backstack.push(new Entry(screen));
+    public Builder push(Path path) {
+      Entry entry = new Entry(path);
+      backstack.push(entry);
 
       return this;
     }
 
-    public Builder addAll(Collection<Object> c) {
-      for (Object screen : c) {
-        backstack.push(new Entry(screen));
+    public Builder addAll(Collection<Path> c) {
+      for (Path path : c) {
+        backstack.push(new Entry(path));
       }
 
       return this;
     }
 
-    public Entry peek() {
-      return backstack.peek();
+    public Path peek() {
+      return backstack.peek().getPath();
     }
 
-    public Entry pop() {
-      return backstack.pop();
-    }
-
-    public Builder clear() {
-      backstack.clear();
-
-      return this;
+    public Path pop() {
+      return backstack.pop().getPath();
     }
 
     public Backstack build() {
@@ -201,14 +195,14 @@ public final class Backstack implements Iterable<Backstack.Entry> {
         throw new IllegalStateException("Backstack may not be empty");
       }
 
-      return new Backstack(highestId, backstack);
+      return new Backstack(backstack);
     }
   }
 
-  private static class ReadIterator<T> implements Iterator<T> {
-    private final Iterator<T> iterator;
+  private static class ReadIterator implements Iterator<Path> {
+    private final Iterator<Entry> iterator;
 
-    public ReadIterator(Iterator<T> iterator) {
+    public ReadIterator(Iterator<Entry> iterator) {
       this.iterator = iterator;
     }
 
@@ -216,8 +210,8 @@ public final class Backstack implements Iterable<Backstack.Entry> {
       return iterator.hasNext();
     }
 
-    @Override public T next() {
-      return iterator.next();
+    @Override public Path next() {
+      return iterator.next().getPath();
     }
 
     @Override public void remove() {

@@ -20,36 +20,30 @@ import android.os.Bundle;
 import flow.Backstack;
 import flow.Flow;
 import flow.Parceler;
-
-import static flow.Preconditions.checkArgument;
+import javax.annotation.Nullable;
 
 /**
  * Handles Bundle persistence of a Flow.
  */
-public class FlowBundler {
+public abstract class FlowBundler {
   private static final String FLOW_KEY = "flow_key";
 
-  private final Object defaultScreen;
-  private final Flow.Dispatcher dispatcher;
-  private final Parceler<Object> parceler;
+  private final Parceler parceler;
 
   private Flow flow;
 
-  public FlowBundler(Object defaultScreen, Flow.Dispatcher dispatcher, Parceler<Object> parceler) {
-    this.dispatcher = dispatcher;
-    this.defaultScreen = defaultScreen;
+  protected FlowBundler(Parceler parceler) {
     this.parceler = parceler;
   }
 
-  public Flow onCreate(Bundle savedInstanceState) {
-    checkArgument(flow == null, "Flow already created.");
-    Backstack backstack;
+  public Flow onCreate(@Nullable Bundle savedInstanceState) {
+    if (flow != null) return flow;
+
+    Backstack restoredBackstack = null;
     if (savedInstanceState != null && savedInstanceState.containsKey(FLOW_KEY)) {
-      backstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parceler);
-    } else {
-      backstack = Backstack.fromUpChain(defaultScreen);
+      restoredBackstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parceler);
     }
-    this.flow = new Flow(backstack, dispatcher);
+    flow = new Flow(getColdStartBackstack(restoredBackstack));
     return flow;
   }
 
@@ -67,8 +61,15 @@ public class FlowBundler {
    *
    * @return the stack to archive, or null to archive nothing
    */
-  protected Backstack getBackstackToSave(Backstack backstack) {
+  @Nullable protected Backstack getBackstackToSave(Backstack backstack) {
     return backstack;
   }
-}
 
+  /**
+   * Returns the backstack to initialize the new flow.
+   *
+   * @param restoredBackstack the backstack recovered from the bundle passed to {@link #onCreate},
+   * or null if there was no bundle or no backstack was found
+   */
+  protected abstract Backstack getColdStartBackstack(@Nullable Backstack restoredBackstack);
+}

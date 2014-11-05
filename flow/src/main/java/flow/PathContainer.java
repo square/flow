@@ -24,10 +24,6 @@ import java.util.Map;
 /**
  * Handles swapping paths within a container view, as well as flow mechanics, allowing supported
  * container views to be largely declarative.
- *
- * This takes care of saving the swapped out view state into its screen, so that the view state can
- * be restored when coming back in the flow. That backstack view state will also be preserved when
- * the activity is saved (e.g. on rotation or when pressing home).
  */
 public abstract class PathContainer {
   public abstract static class Factory {
@@ -39,73 +35,92 @@ public abstract class PathContainer {
       this.contextFactory = contextFactory;
     }
 
-    public abstract PathContainer createPathController(PathContainerView view);
+    public abstract PathContainer createPathContainer(PathContainerView view);
   }
 
   /**
-   * Set on the container view to make screen information available during a transition.
-   * TODO(rjrjr) Does this really belong here or down in SimplePathContainer?
+   * Provides information about the current or most recent Traversal handled by the container.
    */
-  protected static final class Tag {
-    public Backstack.Entry fromEntry;
-    public Backstack.Entry toEntry;
+  protected static final class TraversalState {
+    private Backstack.Entry fromEntry;
+    private Backstack.Entry toEntry;
 
     public void setNextEntry(Backstack.Entry entry) {
       this.fromEntry = this.toEntry;
       this.toEntry = entry;
     }
+
+    public Path fromPath() {
+      return fromEntry == null ? null : fromEntry.getPath();
+    }
+
+    public Path toPath() {
+      return toEntry.getPath();
+    }
+
+    public void saveViewState(View view) {
+      fromEntry.saveViewState(view);
+    }
+
+    public void restoreViewState(View view) {
+      toEntry.restoreViewState(view);
+    }
   }
 
-  private static final Map<Class, Integer> SCREEN_LAYOUT_CACHE = new LinkedHashMap<>();
+  private static final Map<Class, Integer> PATH_LAYOUT_CACHE = new LinkedHashMap<>();
 
   private final PathContainerView view;
-  protected final int tagKey;
+  private final int tagKey;
 
   protected PathContainer(PathContainerView view, int tagKey) {
     this.view = view;
     this.tagKey = tagKey;
   }
 
-  public final void executeTraversal(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
+  public final void executeTraversal(Flow.Traversal traversal,
+      final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
-    Backstack.Entry entry = traversal.destination.current();
-    Backstack.Entry oldEntry = null;
+    Backstack.Entry entry = traversal.destination.currentEntry();
+    Backstack.Entry oldEntry;
+    ViewGroup containerView = view.getContainerView();
+    TraversalState traversalState = ensureTag(containerView);
 
-    // See if we already have the direct child we want, and if so delegate the transition.
+    // See if we already have the direct child we want, and if so short circuit the traversal.
     if (oldChild != null) {
-      Tag tag = (Tag) view.getContainerView().getTag(tagKey);
-      oldEntry = Preconditions.checkNotNull(tag.toEntry,
-          "Container view has child %s with no screen", oldChild.toString());
+      oldEntry = Preconditions.checkNotNull(traversalState.toEntry,
+          "Container view has child %s with no path", oldChild.toString());
       if (oldEntry.equals(entry)) {
         callback.onTraversalCompleted();
         return;
       }
     }
 
-    performTraversal(view.getContainerView(), oldEntry, entry, traversal.direction, callback);
+    traversalState.setNextEntry(entry);
+
+    performTraversal(containerView, traversalState, traversal.direction, callback);
   }
 
-  protected abstract void performTraversal(ViewGroup container, Backstack.Entry from, Backstack.Entry to,
+  protected abstract void performTraversal(ViewGroup container, TraversalState traversalState,
       Flow.Direction direction, Flow.TraversalCallback callback);
 
-  protected final Tag ensureTag(ViewGroup container) {
-    Tag tag = (Tag) container.getTag(tagKey);
-    if (tag == null) {
-      tag = new Tag();
-      container.setTag(tagKey, tag);
+  private TraversalState ensureTag(ViewGroup container) {
+    TraversalState traversalState = (TraversalState) container.getTag(tagKey);
+    if (traversalState == null) {
+      traversalState = new TraversalState();
+      container.setTag(tagKey, traversalState);
     }
-    return tag;
+    return traversalState;
   }
 
-  protected static int getLayout(Object screen) {
-    Class<Object> screenType = ObjectUtils.getClass(screen);
-    Integer layoutResId = SCREEN_LAYOUT_CACHE.get(screenType);
+  protected int getLayout(Path path) {
+    Class<Object> pathType = ObjectUtils.getClass(path);
+    Integer layoutResId = PATH_LAYOUT_CACHE.get(pathType);
     if (layoutResId == null) {
-      Layout layout = screenType.getAnnotation(Layout.class);
+      Layout layout = pathType.getAnnotation(Layout.class);
       Preconditions.checkNotNull(layout, "@%s annotation not found on class %s",
-          Layout.class.getSimpleName(), screenType.getName());
+          Layout.class.getSimpleName(), pathType.getName());
       layoutResId = layout.value();
-      SCREEN_LAYOUT_CACHE.put(screenType, layoutResId);
+      PATH_LAYOUT_CACHE.put(pathType, layoutResId);
     }
     return layoutResId;
   }

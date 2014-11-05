@@ -48,7 +48,7 @@ public class FramePathContainerView extends FrameLayout
   protected FramePathContainerView(Context context, AttributeSet attrs,
       PathContainer.Factory switcherFactory) {
     super(context, attrs);
-    container = switcherFactory.createPathController(this);
+    container = switcherFactory.createPathContainer(this);
     upAndBackHandler = new UpAndBackHandler(Flow.get(context));
   }
 

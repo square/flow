@@ -29,7 +29,7 @@ import flow.Flow;
 import java.util.List;
 import javax.inject.Inject;
 
-public class ConversationListView extends ListView {
+public class ConversationListView extends ListView implements IsMasterView {
   @Inject List<Conversation> conversations;
 
   public ConversationListView(Context context, AttributeSet attrs) {
@@ -46,9 +46,16 @@ public class ConversationListView extends ListView {
     });
   }
 
+  @Override public void updateSelection() {
+    Paths.ConversationPath path =
+        (Paths.ConversationPath) Flow.get(getContext()).getBackstack().current();
+    setItemChecked(path.conversationIndex, true);
+    invalidate();
+  }
+
   private static class Adapter extends ArrayAdapter<Conversation> {
     public Adapter(Context context, List<Conversation> objects) {
-      super(context, android.R.layout.simple_list_item_1, objects);
+      super(context, android.R.layout.simple_list_item_activated_1, objects);
     }
   }
 }

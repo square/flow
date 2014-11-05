@@ -22,7 +22,7 @@ import android.os.Parcelable;
  * Generic interface to wrap and unwrap objects as instances of {@link Parcelable}. This is used
  * with {@link Backstack} to provide a pluggable way of saving the applications screens.
  */
-public interface Parceler<T> {
-  Parcelable wrap(T instance);
-  T unwrap(Parcelable parcelable);
+public interface Parceler {
+  Parcelable wrap(Path instance);
+  Path unwrap(Parcelable parcelable);
 }
