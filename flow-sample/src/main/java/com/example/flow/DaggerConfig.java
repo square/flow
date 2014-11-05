@@ -53,7 +53,7 @@ public class DaggerConfig {
     return new GsonBuilder().create();
   }
 
-  @Provides @Singleton Parceler<Object> provideParcer(Gson gson) {
-    return new GsonParceler<>(gson);
+  @Provides @Singleton Parceler provideParcer(Gson gson) {
+    return new GsonParceler(gson);
   }
 }

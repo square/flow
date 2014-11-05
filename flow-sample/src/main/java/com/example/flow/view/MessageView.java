@@ -47,7 +47,7 @@ public class MessageView extends LinearLayout {
     setOrientation(VERTICAL);
     Utils.inject(context, this);
 
-    Paths.Message screen = Path.getPath(context);
+    Paths.Message screen = Path.get(context);
     message = conversations.get(screen.conversationIndex).items.get(screen.messageId);
   }
 

@@ -23,14 +23,13 @@ import android.animation.ObjectAnimator;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import flow.Backstack;
+import com.example.flow.util.Utils;
 import flow.Flow;
 import flow.Path;
 import flow.PathContainer;
 import flow.PathContainerView;
 import flow.PathContext;
 import flow.PathContextFactory;
-import com.example.flow.util.Utils;
 
 import static flow.Flow.Direction.REPLACE;
 
@@ -47,7 +46,7 @@ public class SimplePathContainer extends PathContainer {
       super(tagKey, contextFactory);
     }
 
-    @Override public PathContainer createPathController(PathContainerView view) {
+    @Override public PathContainer createPathContainer(PathContainerView view) {
       return new SimplePathContainer(view, tagKey, contextFactory);
     }
   }
@@ -59,9 +58,10 @@ public class SimplePathContainer extends PathContainer {
     this.contextFactory = contextFactory;
   }
 
-  @Override protected void performTraversal(final ViewGroup containerView, Backstack.Entry fromEntry, Backstack.Entry toEntry,
-      final Flow.Direction direction, final Flow.TraversalCallback callback) {
-    final Tag tag = ensureTag(containerView);
+  @Override protected void performTraversal(final ViewGroup containerView,
+      final TraversalState traversalState, final Flow.Direction direction,
+      final Flow.TraversalCallback callback) {
+
     final PathContext context;
     final PathContext oldPath;
     if (containerView.getChildCount() > 0) {
@@ -70,7 +70,7 @@ public class SimplePathContainer extends PathContainer {
       oldPath = PathContext.root(containerView.getContext());
     }
 
-    Path to = (Path) toEntry.getPath();
+    Path to = traversalState.toPath();
 
     ViewGroup view;
     context = PathContext.create(oldPath, to, contextFactory);
@@ -80,16 +80,15 @@ public class SimplePathContainer extends PathContainer {
         .inflate(layout, containerView, false);
 
     View fromView = null;
-    tag.setNextEntry(toEntry);
-    if (tag.fromEntry != null) {
+    if (traversalState.fromPath() != null) {
       fromView = containerView.getChildAt(0);
-      fromEntry.saveViewState(fromView);
+      traversalState.saveViewState(fromView);
     }
+    traversalState.restoreViewState(view);
 
     if (fromView == null || direction == REPLACE) {
       containerView.removeAllViews();
       containerView.addView(view);
-      tag.toEntry.restoreViewState(containerView.getChildAt(0));
       oldPath.destroyNotIn(context, contextFactory);
       callback.onTraversalCompleted();
     } else {
@@ -100,7 +99,6 @@ public class SimplePathContainer extends PathContainer {
           runAnimation(containerView, finalFromView, view, direction, new Flow.TraversalCallback() {
             @Override public void onTraversalCompleted() {
               containerView.removeView(finalFromView);
-              tag.toEntry.restoreViewState(containerView.getChildAt(0));
               oldPath.destroyNotIn(context, contextFactory);
               callback.onTraversalCompleted();
             }
