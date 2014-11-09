@@ -18,41 +18,47 @@ package flow;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 
+import static flow.Flow.Traversal;
+import static flow.Flow.TraversalCallback;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class ReentranceTest {
 
   Flow flow;
   Backstack lastStack;
-  Flow.Callback lastCallback;
+  TraversalCallback lastCallback;
 
   @Test public void reentrantGo() {
-    Flow.Listener listener = new Flow.Listener() {
-      @Override public void go(Backstack nextStack, Flow.Direction dir, Flow.Callback callback) {
-        lastStack = nextStack;
-        Object next = nextStack.current().getScreen();
+    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal navigation, TraversalCallback callback) {
+        lastStack = navigation.destination;
+        Object next = navigation.destination.current();
         if (next instanceof Detail) {
           flow.goTo(new Loading());
         } else if (next instanceof Loading) {
           flow.goTo(new Error());
         }
-        callback.onComplete();
+        callback.onTraversalCompleted();
       }
     };
-    flow = new Flow(Backstack.single(new Catalog()), listener);
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(dispatcher);
     flow.goTo(new Detail());
     verifyBackstack(lastStack, new Error(), new Loading(), new Detail(), new Catalog());
   }
 
   @Test public void reentrantGoThenBack() {
-    Flow.Listener listener = new Flow.Listener() {
+    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
       boolean loading = true;
-      @Override public void go(Backstack nextStack, Flow.Direction dir, Flow.Callback onComplete) {
-        lastStack = nextStack;
-        Object next = nextStack.current().getScreen();
+
+      @Override public void dispatch(Traversal navigation, TraversalCallback onComplete) {
+        lastStack = navigation.destination;
+        Object next = navigation.destination.current();
         if (loading) {
           if (next instanceof Detail) {
             flow.goTo(new Loading());
@@ -67,27 +73,28 @@ public class ReentranceTest {
             ReentranceTest.this.flow.goBack();
           }
         }
+        onComplete.onTraversalCompleted();
       }
     };
-    flow = new Flow(Backstack.single(new Catalog()), listener);
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(dispatcher);
     flow.goTo(new Detail());
     verifyBackstack(lastStack, new Detail(), new Catalog());
   }
 
   @Test public void reentrantForwardThenGo() {
-    Flow flow = new Flow(Backstack.single(new Catalog()), new Flow.Listener() {
-      @Override public void go(Backstack nextStack, Flow.Direction dir, Flow.Callback callback) {
-        lastStack = nextStack;
-        Object next = nextStack.current().getScreen();
+    Flow flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastStack = traversal.destination;
+        Object next = traversal.destination.current();
         if (next instanceof Detail) {
-          ReentranceTest.this.flow.forward(Backstack.emptyBuilder()
-              .push(new Detail())
-              .push(new Loading())
-              .build());
+          ReentranceTest.this.flow.forward(
+              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build());
         } else if (next instanceof Loading) {
           ReentranceTest.this.flow.goTo(new Error());
         }
-        callback.onComplete();
+        callback.onTraversalCompleted();
       }
     });
     this.flow = flow;
@@ -96,11 +103,11 @@ public class ReentranceTest {
   }
 
   @Test public void reentranceWaitsForCallback() {
-    Flow.Listener listener = new Flow.Listener() {
-      @Override public void go(Backstack nextStack, Flow.Direction dir, Flow.Callback callback) {
-        lastStack = nextStack;
+    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastStack = traversal.destination;
         lastCallback = callback;
-        Object next = nextStack.current().getScreen();
+        Object next = traversal.destination.current();
         if (next instanceof Detail) {
           flow.goTo(new Loading());
         } else if (next instanceof Loading) {
@@ -108,56 +115,207 @@ public class ReentranceTest {
         }
       }
     };
-    flow = new Flow(Backstack.single(new Catalog()), listener);
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(dispatcher);
+    lastCallback.onTraversalCompleted();
+
     flow.goTo(new Detail());
     verifyBackstack(flow.getBackstack(), new Catalog());
-    lastCallback.onComplete();
+    lastCallback.onTraversalCompleted();
     verifyBackstack(flow.getBackstack(), new Detail(), new Catalog());
-    lastCallback.onComplete();
+    lastCallback.onTraversalCompleted();
     verifyBackstack(flow.getBackstack(), new Loading(), new Detail(), new Catalog());
-    lastCallback.onComplete();
+    lastCallback.onTraversalCompleted();
     verifyBackstack(flow.getBackstack(), new Error(), new Loading(), new Detail(), new Catalog());
   }
 
   @Test public void onCompleteThrowsIfCalledTwice() {
-    flow = new Flow(Backstack.single(new Catalog()), new Flow.Listener() {
-      @Override public void go(Backstack nextBackstack, Flow.Direction direction,
-          Flow.Callback callback) {
-        lastStack = nextBackstack;
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastStack = traversal.destination;
         lastCallback = callback;
       }
     });
 
-    flow.goTo(new Detail());
-    lastCallback.onComplete();
+    lastCallback.onTraversalCompleted();
     try {
-      lastCallback.onComplete();
+      lastCallback.onTraversalCompleted();
     } catch (IllegalStateException e) {
       return;
     }
     Assertions.fail("Second call to onComplete() should have thrown.");
   }
 
-  static class Catalog extends TestScreen {
-    Catalog() { super("home"); }
+  @Test public void bootstrapTraversal() {
+    flow = new Flow(Backstack.single(new Catalog()));
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastStack = traversal.destination;
+        callback.onTraversalCompleted();
+      }
+    });
+
+    verifyBackstack(lastStack, new Catalog());
   }
 
-  static class Detail extends TestScreen {
-    Detail() { super("detail"); }
+  @Test public void pendingTraversalReplacesBootstrap() {
+    final AtomicInteger dispatchCount = new AtomicInteger(0);
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.goTo(new Detail());
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        dispatchCount.incrementAndGet();
+        lastStack = traversal.destination;
+        callback.onTraversalCompleted();
+      }
+    });
+
+    verifyBackstack(lastStack, new Detail(), new Catalog());
+    assertThat(dispatchCount.intValue()).isEqualTo(1);
   }
 
-  static class Loading extends TestScreen {
-    Loading() { super("loading"); }
+  @Test public void allPendingTraversalsFire() {
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.goTo(new Loading());
+    flow.goTo(new Detail());
+    flow.goTo(new Error());
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastCallback = callback;
+      }
+    });
+
+    lastCallback.onTraversalCompleted();
+    verifyBackstack(flow.getBackstack(), new Loading(), new Catalog());
+
+    lastCallback.onTraversalCompleted();
+    verifyBackstack(flow.getBackstack(), new Detail(), new Loading(), new Catalog());
   }
 
-  static class Error extends TestScreen {
-    Error() { super("error"); }
+  @Test public void clearingDispatcherMidTraversalPauses() {
+    flow = new Flow(Backstack.single(new Catalog()));
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        flow.goTo(new Loading());
+        flow.removeDispatcher(this);
+        callback.onTraversalCompleted();
+      }
+    });
+
+    verifyBackstack(flow.getBackstack(), new Catalog());
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        callback.onTraversalCompleted();
+      }
+    });
+
+    verifyBackstack(flow.getBackstack(), new Loading(), new Catalog());
+  }
+
+  @Test public void dispatcherSetInMidFlightWaitsForBootstrap() {
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastCallback = callback;
+      }
+    });
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastStack = traversal.destination;
+        callback.onTraversalCompleted();
+      }
+    });
+
+    assertThat(lastStack).isNull();
+    lastCallback.onTraversalCompleted();
+    verifyBackstack(lastStack, new Catalog());
+  }
+
+  @Test public void dispatcherSetInMidFlightWithBigQueueNeedsNoBootstrap() {
+    final AtomicInteger secondDispatcherCount = new AtomicInteger(0);
+    flow = new Flow(Backstack.single(new Catalog()));
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        flow.goTo(new Detail());
+        lastCallback = callback;
+      }
+    });
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        secondDispatcherCount.incrementAndGet();
+        lastStack = traversal.destination;
+        callback.onTraversalCompleted();
+      }
+    });
+
+    assertThat(lastStack).isNull();
+    lastCallback.onTraversalCompleted();
+    verifyBackstack(lastStack, new Detail(), new Catalog());
+    assertThat(secondDispatcherCount.get()).isEqualTo(1);
+  }
+
+  @Test public void traversalsQueuedAfterDispatcherRemovedBootstrapTheNextOne() {
+    final AtomicInteger secondDispatcherCount = new AtomicInteger(0);
+    flow = new Flow(Backstack.single(new Catalog()));
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        lastCallback = callback;
+        flow.removeDispatcher(this);
+        flow.goTo(new Loading());
+      }
+    });
+
+    verifyBackstack(flow.getBackstack(), new Catalog());
+
+    flow.setDispatcher(new Flow.Dispatcher() {
+      @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+        secondDispatcherCount.incrementAndGet();
+        callback.onTraversalCompleted();
+      }
+    });
+
+    assertThat(secondDispatcherCount.get()).isZero();
+    lastCallback.onTraversalCompleted();
+
+    assertThat(secondDispatcherCount.get()).isEqualTo(1);
+    verifyBackstack(flow.getBackstack(), new Loading(), new Catalog());
+  }
+
+  static class Catalog extends TestPath {
+    Catalog() {
+      super("catalog");
+    }
+  }
+
+  static class Detail extends TestPath {
+    Detail() {
+      super("detail");
+    }
+  }
+
+  static class Loading extends TestPath {
+    Loading() {
+      super("loading");
+    }
+  }
+
+  static class Error extends TestPath {
+    Error() {
+      super("error");
+    }
   }
 
   private void verifyBackstack(Backstack backstack, Object... screens) {
-    List<Object> actualScreens = new ArrayList<Object>(backstack.size());
-    for (Backstack.Entry entry : backstack) {
-      actualScreens.add(entry.getScreen());
+    List<Object> actualScreens = new ArrayList<>(backstack.size());
+    for (Path entry : backstack) {
+      actualScreens.add(entry);
     }
     assertThat(actualScreens).containsExactly(screens);
   }

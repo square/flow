@@ -16,27 +16,19 @@
 
 package flow;
 
-class TestScreen {
-  final String name;
+import android.content.Context;
 
-  TestScreen(String name) {
-    this.name = name;
-  }
+public interface PathContextFactory {
+  /**
+   * Set up any services defined by this screen, and make them accessible via the context.
+   * Typically this means returning a new context that wraps the given one.
+   */
+  Context setUpContext(Path path, Context parentContext);
 
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    TestScreen screen = (TestScreen) o;
-    return name.equals(screen.name);
-  }
-
-  @Override
-  public int hashCode() {
-    return name.hashCode();
-  }
-
-  @Override public String toString() {
-    return String.format("%s{%h}", name, this);
-  }
+  /**
+   * Tear down any services previously started by {@link #setUpContext(Path, Context)}. Note that
+   * the Context instance given here may be a wrapper around an instance that this factory
+   * created.
+   */
+  void tearDownContext(Context context);
 }

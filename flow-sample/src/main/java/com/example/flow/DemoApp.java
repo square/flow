@@ -17,15 +17,29 @@
 package com.example.flow;
 
 import android.app.Application;
+import com.example.flow.util.FlowBundler;
+import com.google.gson.Gson;
 import dagger.ObjectGraph;
+import flow.Backstack;
+import javax.annotation.Nullable;
 
 public class DemoApp extends Application {
+  private final FlowBundler flowBundler = new FlowBundler(new GsonParceler(new Gson())) {
+    @Override protected Backstack getColdStartBackstack(@Nullable Backstack restoredBackstack) {
+      return restoredBackstack == null ? Backstack.single(new Paths.ConversationList())
+          : restoredBackstack;
+    }
+  };
   private ObjectGraph globalGraph;
 
   @Override public void onCreate() {
     super.onCreate();
 
     globalGraph = ObjectGraph.create(new DaggerConfig());
+  }
+
+  public FlowBundler getFlowBundler() {
+    return flowBundler;
   }
 
   public ObjectGraph getGlobalGraph() {

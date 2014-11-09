@@ -21,54 +21,75 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
-import butterknife.ButterKnife;
-import butterknife.InjectView;
-import com.example.flow.appflow.AppFlow;
-import com.example.flow.appflow.FlowBundler;
-import com.example.flow.appflow.Screen;
-import com.example.flow.screenswitcher.FrameScreenSwitcherView;
-import com.google.gson.Gson;
-import flow.Backstack;
+import com.example.flow.pathview.HandlesBack;
+import com.example.flow.pathview.HandlesUp;
+import com.example.flow.util.FlowBundler;
 import flow.Flow;
 import flow.HasParent;
+import flow.Path;
+import flow.PathContainerView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static flow.Flow.Traversal;
+import static flow.Flow.TraversalCallback;
 
-public class MainActivity extends Activity implements Flow.Listener {
+public class MainActivity extends Activity implements Flow.Dispatcher {
+  private PathContainerView container;
+  private HandlesBack containerAsBackTarget;
+  private HandlesUp containerAsUpTarget;
+
+  private Flow flow;
+
   /**
-   * Persists the {@link Flow} in the bundle. Initialized with the home screen,
-   * {@link Screens.ConversationList}.
+   * Pay attention to the {@link #setContentView} call here. It's creating a responsive layout
+   * for us.
+   * <p>
+   * Notice that the app has two root_layout files. The main one, in {@code res/layout} is used by
+   * mobile devices and by tablets in portrait orientation. It holds a generic {@link
+   * com.example.flow.pathview.FramePathContainerView}.
+   * <p>
+   * The interesting one, loaded by tablets in landscape mode, is {@code res/layout-sw600dp-land}.
+   * It loads a {@link com.example.flow.view.TabletMasterDetailRoot}, with a master list on the
+   * left and a detail view on the right.
+   * <p>
+   * But this master activity knows nothing about those two view types. It only requires that
+   * the view loaded by {@code root_layout.xml} implements the {@link PathContainerView} interface,
+   * to render whatever is appropriate for the screens received from {@link Flow} via
+   * {@link #dispatch}.
    */
-  private final FlowBundler flowBundler =
-      new FlowBundler(new Screens.ConversationList(), MainActivity.this,
-          new GsonParcer<>(new Gson()));
-
-  @InjectView(R.id.container) FrameScreenSwitcherView container;
-
-  private AppFlow appFlow;
-
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
-    appFlow = flowBundler.onCreate(savedInstanceState);
+    flow = getFlowBundler().onCreate(savedInstanceState);
 
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
 
-    setContentView(R.layout.activity_main);
-    ButterKnife.inject(this);
+    setContentView(R.layout.root_layout);
 
-    AppFlow.loadInitialScreen(this);
+    container = (PathContainerView) findViewById(R.id.container);
+    containerAsBackTarget = (HandlesBack) container;
+    containerAsUpTarget = (HandlesUp) container;
+  }
+
+  @Override protected void onResume() {
+    super.onResume();
+    flow.setDispatcher(this);
+  }
+
+  @Override protected void onPause() {
+    flow.removeDispatcher(this);
+    super.onPause();
   }
 
   @Override public Object getSystemService(String name) {
-    if (AppFlow.isAppFlowSystemService(name)) return appFlow;
+    if (Flow.isFlowSystemService(name)) return flow;
     return super.getSystemService(name);
   }
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    flowBundler.onSaveInstanceState(outState);
+    getFlowBundler().onSaveInstanceState(outState);
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
@@ -76,12 +97,12 @@ public class MainActivity extends Activity implements Flow.Listener {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            AppFlow.get(MainActivity.this).goTo(new Screens.FriendList());
+            Flow.get(MainActivity.this).goTo(new Paths.FriendList());
             return true;
           }
         });
 
-    Object screen = AppFlow.get(this).getBackstack().current().getScreen();
+    Object screen = Flow.get(this).getBackstack().current();
     boolean hasUp = screen instanceof HasParent;
     friendsMenu.setVisible(!hasUp);
 
@@ -90,30 +111,33 @@ public class MainActivity extends Activity implements Flow.Listener {
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      return container.onUpPressed();
+      return containerAsUpTarget.onUpPressed();
     } else {
       return super.onOptionsItemSelected(item);
     }
   }
 
   @Override public void onBackPressed() {
-    if (!container.onBackPressed()) {
+    if (!containerAsBackTarget.onBackPressed()) {
       super.onBackPressed();
     }
   }
 
-  @Override public void go(Backstack nextBackstack, Flow.Direction direction,
-      Flow.Callback callback) {
-    Screen screen = (Screen) nextBackstack.current().getScreen();
-    container.showScreen(screen, direction, callback);
+  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+    Path path = traversal.destination.current();
+    container.executeTraversal(traversal, callback);
 
-    setTitle(screen.getClass().getSimpleName());
+    setTitle(path.getClass().getSimpleName());
 
     ActionBar actionBar = getActionBar();
-    boolean hasUp = screen instanceof HasParent;
+    boolean hasUp = path instanceof HasParent;
     actionBar.setDisplayHomeAsUpEnabled(hasUp);
     actionBar.setHomeButtonEnabled(hasUp);
 
     invalidateOptionsMenu();
+  }
+
+  private FlowBundler getFlowBundler() {
+    return ((DemoApp) getApplication()).getFlowBundler();
   }
 }

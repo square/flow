@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 Square Inc.
+ * Copyright 2014 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,27 @@
 
 package flow;
 
-import android.os.Parcelable;
+class TestPath extends Path {
+  final String name;
 
-/**
- * Generic interface to wrap and unwrap objects as instances of {@link Parcelable}. This is used
- * with {@link Backstack} to provide a pluggable way of saving the applications screens.
- */
-public interface Parcer<T> {
-  Parcelable wrap(T instance);
-  T unwrap(Parcelable parcelable);
+  TestPath(String name) {
+    this.name = name;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    TestPath screen = (TestPath) o;
+    return name.equals(screen.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return name.hashCode();
+  }
+
+  @Override public String toString() {
+    return String.format("%s{%h}", name, this);
+  }
 }

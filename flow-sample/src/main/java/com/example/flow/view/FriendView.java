@@ -22,9 +22,9 @@ import android.widget.FrameLayout;
 import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
+import com.example.flow.Paths;
 import com.example.flow.R;
-import com.example.flow.Screens;
-import com.example.flow.appflow.AppFlow;
+import flow.Path;
 import com.example.flow.util.Utils;
 import com.example.flow.model.User;
 import java.util.List;
@@ -41,7 +41,7 @@ public class FriendView extends FrameLayout {
     super(context, attrs);
     Utils.inject(context, this);
 
-    Screens.Friend screen = AppFlow.getScreen(context);
+    Paths.Friend screen = Path.get(context);
     friend = friends.get(screen.index);
   }
 
