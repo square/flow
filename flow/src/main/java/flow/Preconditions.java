@@ -14,7 +14,7 @@
 
 package flow;
 
-public final class Preconditions {
+final class Preconditions {
   private Preconditions() {
   }
 
