@@ -31,8 +31,6 @@ import flow.PathContainerView;
 public class FramePathContainerView extends FrameLayout
     implements HandlesBack, HandlesUp, PathContainerView {
   private final PathContainer container;
-  private final UpAndBackHandler upAndBackHandler;
-
   private boolean disabled;
 
   @SuppressWarnings("UnusedDeclaration") // Used by layout inflation, of course!
@@ -49,7 +47,6 @@ public class FramePathContainerView extends FrameLayout
       PathContainer.Factory switcherFactory) {
     super(context, attrs);
     container = switcherFactory.createPathContainer(this);
-    upAndBackHandler = new UpAndBackHandler(Flow.get(context));
   }
 
   @Override public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -76,11 +73,11 @@ public class FramePathContainerView extends FrameLayout
   }
 
   @Override public boolean onUpPressed() {
-    return upAndBackHandler.onUpPressed(getCurrentChild());
+    return UpAndBack.onUpPressed(getCurrentChild());
   }
 
   @Override public boolean onBackPressed() {
-    return upAndBackHandler.onBackPressed(getCurrentChild());
+    return UpAndBack.onBackPressed(getCurrentChild());
   }
 
   @Override public ViewGroup getCurrentChild() {

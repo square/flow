@@ -10,7 +10,7 @@ import com.example.flow.R;
 import com.example.flow.pathview.FramePathContainerView;
 import com.example.flow.pathview.HandlesBack;
 import com.example.flow.pathview.HandlesUp;
-import com.example.flow.pathview.UpAndBackHandler;
+import com.example.flow.pathview.UpAndBack;
 import flow.Flow;
 import flow.Path;
 import flow.PathContainerView;
@@ -22,8 +22,6 @@ import javax.annotation.Nonnull;
  */
 public class TabletMasterDetailRoot extends LinearLayout
     implements HandlesBack, HandlesUp, PathContainerView {
-  private final UpAndBackHandler upAndBackHandler;
-
   private FramePathContainerView masterContainer;
   private FramePathContainerView detailContainer;
 
@@ -31,7 +29,6 @@ public class TabletMasterDetailRoot extends LinearLayout
 
   public TabletMasterDetailRoot(Context context, AttributeSet attrs) {
     super(context, attrs);
-    upAndBackHandler = new UpAndBackHandler(Flow.get(context));
   }
 
   @Override public boolean dispatchTouchEvent(@Nonnull MotionEvent ev) {
@@ -83,10 +80,10 @@ public class TabletMasterDetailRoot extends LinearLayout
   }
 
   @Override public boolean onUpPressed() {
-    return upAndBackHandler.onUpPressed(detailContainer);
+    return UpAndBack.onUpPressed(detailContainer);
   }
 
   @Override public boolean onBackPressed() {
-    return upAndBackHandler.onBackPressed(detailContainer);
+    return UpAndBack.onBackPressed(detailContainer);
   }
 }
