@@ -69,15 +69,13 @@ public abstract class PathContainer {
 
   private static final Map<Class, Integer> PATH_LAYOUT_CACHE = new LinkedHashMap<>();
 
-  private final PathContainerView view;
   private final int tagKey;
 
   protected PathContainer(PathContainerView view, int tagKey) {
-    this.view = view;
     this.tagKey = tagKey;
   }
 
-  public final void executeTraversal(Flow.Traversal traversal,
+  public final void executeTraversal(PathContainerView view, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
     Backstack.Entry entry = traversal.destination.currentEntry();

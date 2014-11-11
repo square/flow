@@ -52,8 +52,7 @@ public class TabletMasterDetailRoot extends LinearLayout
     return this;
   }
 
-  @Override public void executeTraversal(Flow.Traversal traversal,
-      Flow.TraversalCallback callback) {
+  @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
 
     class CountdownCallback implements Flow.TraversalCallback {
       final Flow.TraversalCallback wrapped;
@@ -75,8 +74,8 @@ public class TabletMasterDetailRoot extends LinearLayout
 
     disabled = true;
     callback = new CountdownCallback(callback);
-    detailContainer.executeTraversal(traversal, callback);
-    masterContainer.executeTraversal(traversal, callback);
+    detailContainer.dispatch(traversal, callback);
+    masterContainer.dispatch(traversal, callback);
   }
 
   @Override public boolean onUpPressed() {
