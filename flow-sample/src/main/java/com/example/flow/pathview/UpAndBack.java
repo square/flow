@@ -22,29 +22,26 @@ import flow.Flow;
 /**
  * Support for {@link HandlesUp} and {@link HandlesBack}.
  */
-public class UpAndBackHandler {
-  private final Flow flow;
-
-  public UpAndBackHandler(Flow flow) {
-    this.flow = flow;
-  }
-
-  public boolean onUpPressed(View childView) {
+public class UpAndBack {
+  public static boolean onUpPressed(View childView) {
     if (childView instanceof HandlesUp) {
       if (((HandlesUp) childView).onUpPressed()) {
         return true;
       }
     }
     // Try to go up.  If up isn't supported, go back.
-    return flow.goUp() || onBackPressed(childView);
+    return Flow.get(childView).goUp() || onBackPressed(childView);
   }
 
-  public boolean onBackPressed(View childView) {
+  public static boolean onBackPressed(View childView) {
     if (childView instanceof HandlesBack) {
       if (((HandlesBack) childView).onBackPressed()) {
         return true;
       }
     }
-    return flow.goBack();
+    return Flow.get(childView).goBack();
+  }
+
+  private UpAndBack() {
   }
 }
