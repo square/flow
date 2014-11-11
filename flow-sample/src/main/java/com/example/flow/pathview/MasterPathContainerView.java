@@ -22,8 +22,7 @@ public class MasterPathContainerView extends FramePathContainerView {
         });
   }
 
-  @Override public void executeTraversal(Flow.Traversal traversal,
-      final Flow.TraversalCallback callback) {
+  @Override public void dispatch(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
 
     MasterDetailPath currentMaster =
         ((MasterDetailPath) Flow.get(getContext()).getBackstack().current()).getMaster();
@@ -34,7 +33,7 @@ public class MasterPathContainerView extends FramePathContainerView {
     if (getCurrentChild() != null && newMaster.equals(currentMaster)) {
       callback.onTraversalCompleted();
     } else {
-      super.executeTraversal(traversal, new Flow.TraversalCallback() {
+      super.dispatch(traversal, new Flow.TraversalCallback() {
         @Override public void onTraversalCompleted() {
           callback.onTraversalCompleted();
         }

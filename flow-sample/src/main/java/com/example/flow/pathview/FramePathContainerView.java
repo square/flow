@@ -61,10 +61,9 @@ public class FramePathContainerView extends FrameLayout
     super.onFinishInflate();
   }
 
-  @Override public void executeTraversal(Flow.Traversal traversal,
-      final Flow.TraversalCallback callback) {
+  @Override public void dispatch(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
     disabled = true;
-    container.executeTraversal(traversal, new Flow.TraversalCallback() {
+    container.executeTraversal(this, traversal, new Flow.TraversalCallback() {
       @Override public void onTraversalCompleted() {
         callback.onTraversalCompleted();
         disabled = false;

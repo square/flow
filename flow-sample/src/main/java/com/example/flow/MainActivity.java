@@ -125,7 +125,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
 
   @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
     Path path = traversal.destination.current();
-    container.executeTraversal(traversal, callback);
+    container.dispatch(traversal, callback);
 
     setTitle(path.getClass().getSimpleName());
 
