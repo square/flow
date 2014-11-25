@@ -5,8 +5,6 @@ import android.util.AttributeSet;
 import com.example.flow.R;
 import flow.Flow;
 import flow.Path;
-import flow.PathContainer;
-import flow.PathContainerView;
 import flow.PathContextFactory;
 
 import static com.example.flow.Paths.MasterDetailPath;
@@ -14,12 +12,7 @@ import static com.example.flow.Paths.MasterDetailPath;
 public class MasterPathContainerView extends FramePathContainerView {
 
   public MasterPathContainerView(Context context, AttributeSet attrs) {
-    super(context, attrs,
-        new PathContainer.Factory(R.id.screen_switcher_tag, Path.contextFactory()) {
-          @Override public PathContainer createPathContainer(PathContainerView view) {
-            return new MasterPathContainer(view, tagKey, contextFactory);
-          }
-        });
+    super(context, attrs, new MasterPathContainer(R.id.screen_switcher_tag, Path.contextFactory()));
   }
 
   @Override public void dispatch(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
@@ -43,8 +36,8 @@ public class MasterPathContainerView extends FramePathContainerView {
 
   static class MasterPathContainer extends SimplePathContainer {
 
-    MasterPathContainer(PathContainerView view, int tagKey, PathContextFactory contextFactory) {
-      super(view, tagKey, contextFactory);
+    MasterPathContainer(int tagKey, PathContextFactory contextFactory) {
+      super(tagKey, contextFactory);
     }
 
     @Override protected int getLayout(Path path) {

@@ -35,18 +35,16 @@ public class FramePathContainerView extends FrameLayout
 
   @SuppressWarnings("UnusedDeclaration") // Used by layout inflation, of course!
   public FramePathContainerView(Context context, AttributeSet attrs) {
-    this(context, attrs,
-        new SimplePathContainer.Factory(R.id.screen_switcher_tag, Path.contextFactory()));
+    this(context, attrs, new SimplePathContainer(R.id.screen_switcher_tag, Path.contextFactory()));
   }
 
   /**
    * Allows subclasses to use custom {@link flow.PathContainer} implementations. Allows the use
    * of more sophisticated transition schemes, and customized context wrappers.
    */
-  protected FramePathContainerView(Context context, AttributeSet attrs,
-      PathContainer.Factory switcherFactory) {
+  protected FramePathContainerView(Context context, AttributeSet attrs, PathContainer container) {
     super(context, attrs);
-    container = switcherFactory.createPathContainer(this);
+    this.container = container;
   }
 
   @Override public boolean dispatchTouchEvent(MotionEvent ev) {
