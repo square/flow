@@ -65,14 +65,14 @@ public abstract class Path {
     return this == ROOT;
   }
 
-  protected static final class Builder {
+  public static final class Builder {
     private final List<Path> elements = new ArrayList<>();
 
     Builder() {
       elements.add(ROOT);
     }
 
-    protected void append(Path path) {
+    public void append(Path path) {
       elements.add(path);
     }
 
