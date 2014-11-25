@@ -16,7 +16,7 @@
 
 package flow;
 
-public final class ObjectUtils {
+final class ObjectUtils {
   private ObjectUtils() {
     // No instances.
   }
@@ -26,12 +26,12 @@ public final class ObjectUtils {
    *
    * http://youtrack.jetbrains.com/issue/IDEA-72835
    */
-  public static <T> Class<T> getClass(Object object) {
+  static <T> Class<T> getClass(Object object) {
     //noinspection unchecked
     return (Class<T>) object.getClass();
   }
 
-  public static String getHumanClassName(Object object) {
+  static String getHumanClassName(Object object) {
     Class<Object> c = getClass(object);
     String humanName = c.getSimpleName();
     if (c.isMemberClass()) {

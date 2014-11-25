@@ -26,7 +26,6 @@ import java.util.Map;
 
 public final class PathContext extends ContextWrapper {
   private static final String SERVICE_NAME = "PATH_CONTEXT";
-  private static final Map<Path, Context> EMPTY_CONTEXT_MAP = Collections.emptyMap();
   private final Path path;
   private final Map<Path, Context> contexts;
 

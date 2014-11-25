@@ -25,7 +25,7 @@ final class Preconditions {
    * @return the non-null reference that was validated
    * @throws NullPointerException if {@code reference} is null
    */
-  public static <T> T checkNotNull(T reference, String errorMessage, Object... args) {
+  static <T> T checkNotNull(T reference, String errorMessage, Object... args) {
     if (reference == null) {
       throw new NullPointerException(String.format(errorMessage, args));
     }
@@ -36,7 +36,7 @@ final class Preconditions {
   /**
    * @throws java.lang.IllegalArgumentException if condition is false.
    */
-  public static void checkArgument(boolean condition, String errorMessage, Object... args) {
+  static void checkArgument(boolean condition, String errorMessage, Object... args) {
     if (!condition) {
       throw new IllegalArgumentException(String.format(errorMessage, args));
     }
@@ -50,7 +50,7 @@ final class Preconditions {
    * @throws java.lang.NullPointerException if {@code value} is null
    * @throws java.lang.IllegalArgumentException if {@code value} is empty
    */
-  public static String checkNotNullOrBlank(String value, String errorMessage, Object... args) {
+  static String checkNotNullOrBlank(String value, String errorMessage, Object... args) {
     checkNotNull(value, errorMessage, args);
     String trimmed = value.trim();
     if (trimmed.isEmpty()) {
@@ -59,7 +59,7 @@ final class Preconditions {
     return trimmed;
   }
 
-  public static void checkState(boolean expression, String errorMessage, Object... args) {
+  static void checkState(boolean expression, String errorMessage, Object... args) {
     if (!expression) {
       throw new IllegalStateException(String.format(errorMessage, args));
     }
