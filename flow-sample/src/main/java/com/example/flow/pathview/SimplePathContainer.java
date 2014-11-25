@@ -27,7 +27,6 @@ import com.example.flow.util.Utils;
 import flow.Flow;
 import flow.Path;
 import flow.PathContainer;
-import flow.PathContainerView;
 import flow.PathContext;
 import flow.PathContextFactory;
 
@@ -38,20 +37,10 @@ import static flow.Flow.Direction.REPLACE;
  * Uses {@link flow.PathContext} to allow customized sub-containers.
  */
 public class SimplePathContainer extends PathContainer {
-  public static final class Factory extends PathContainer.Factory {
-    public Factory(int tagKey, PathContextFactory contextFactory) {
-      super(tagKey, contextFactory);
-    }
-
-    @Override public PathContainer createPathContainer(PathContainerView view) {
-      return new SimplePathContainer(view, tagKey, contextFactory);
-    }
-  }
-
   private final PathContextFactory contextFactory;
 
-  SimplePathContainer(PathContainerView view, int tagKey, PathContextFactory contextFactory) {
-    super(view, tagKey);
+  SimplePathContainer(int tagKey, PathContextFactory contextFactory) {
+    super(tagKey);
     this.contextFactory = contextFactory;
   }
 

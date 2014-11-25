@@ -26,17 +26,6 @@ import java.util.Map;
  * container views to be largely declarative.
  */
 public abstract class PathContainer {
-  public abstract static class Factory {
-    protected final int tagKey;
-    protected final PathContextFactory contextFactory;
-
-    public Factory(int tagKey, PathContextFactory contextFactory) {
-      this.tagKey = tagKey;
-      this.contextFactory = contextFactory;
-    }
-
-    public abstract PathContainer createPathContainer(PathContainerView view);
-  }
 
   /**
    * Provides information about the current or most recent Traversal handled by the container.
@@ -71,7 +60,7 @@ public abstract class PathContainer {
 
   private final int tagKey;
 
-  protected PathContainer(PathContainerView view, int tagKey) {
+  protected PathContainer(int tagKey) {
     this.tagKey = tagKey;
   }
 
