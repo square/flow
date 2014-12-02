@@ -146,8 +146,8 @@ public final class Flow {
   }
 
   /**
-   * Reset to the specified screen. Pops until the screen is found. If the screen is not found,
-   * the entire backstack is replaced with the screen.
+   * Set the specified screen to the top of the backstack. If the screen already
+   * exists in the backstack, the screen will be moved to the top of the backstack.
    */
   public void resetTo(final Path path) {
     move(new PendingTraversal() {
