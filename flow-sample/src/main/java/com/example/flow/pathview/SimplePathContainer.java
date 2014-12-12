@@ -39,7 +39,7 @@ import static flow.Flow.Direction.REPLACE;
 public class SimplePathContainer extends PathContainer {
   private final PathContextFactory contextFactory;
 
-  SimplePathContainer(int tagKey, PathContextFactory contextFactory) {
+  public SimplePathContainer(int tagKey, PathContextFactory contextFactory) {
     super(tagKey);
     this.contextFactory = contextFactory;
   }
