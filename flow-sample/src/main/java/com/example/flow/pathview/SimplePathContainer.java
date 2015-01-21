@@ -58,10 +58,10 @@ public class SimplePathContainer extends PathContainer {
 
     Path to = traversalState.toPath();
 
-    ViewGroup newView;
+    View newView;
     context = PathContext.create(oldPath, to, contextFactory);
     int layout = getLayout(to);
-    newView = (ViewGroup) LayoutInflater.from(context)
+    newView = LayoutInflater.from(context)
         .cloneInContext(context)
         .inflate(layout, containerView, false);
 
