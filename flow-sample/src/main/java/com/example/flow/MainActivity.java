@@ -22,7 +22,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
-import com.example.flow.pathview.HandlesUp;
 import com.example.flow.util.FlowBundler;
 import flow.Flow;
 import flow.HasParent;
@@ -36,7 +35,6 @@ import static flow.Flow.TraversalCallback;
 public class MainActivity extends Activity implements Flow.Dispatcher {
   private PathContainerView container;
   private HandlesBack containerAsBackTarget;
-  private HandlesUp containerAsUpTarget;
 
   private Flow flow;
 
@@ -69,7 +67,6 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
 
     container = (PathContainerView) findViewById(R.id.container);
     containerAsBackTarget = (HandlesBack) container;
-    containerAsUpTarget = (HandlesUp) container;
   }
 
   @Override protected void onResume() {
@@ -111,7 +108,8 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
 
   @Override public boolean onOptionsItemSelected(MenuItem item) {
     if (item.getItemId() == android.R.id.home) {
-      return containerAsUpTarget.onUpPressed();
+      onBackPressed();
+      return true;
     } else {
       return super.onOptionsItemSelected(item);
     }
@@ -123,18 +121,19 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
     }
   }
 
-  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+  @Override public void dispatch(Traversal traversal, final TraversalCallback callback) {
     Path path = traversal.destination.current();
-    container.dispatch(traversal, callback);
-
     setTitle(path.getClass().getSimpleName());
-
     ActionBar actionBar = getActionBar();
-    boolean hasUp = path instanceof HasParent;
-    actionBar.setDisplayHomeAsUpEnabled(hasUp);
-    actionBar.setHomeButtonEnabled(hasUp);
-
-    invalidateOptionsMenu();
+    boolean canGoBack = traversal.destination.size() > 1;
+    actionBar.setDisplayHomeAsUpEnabled(canGoBack);
+    actionBar.setHomeButtonEnabled(canGoBack);
+    container.dispatch(traversal, new TraversalCallback() {
+      @Override public void onTraversalCompleted() {
+        invalidateOptionsMenu();
+        callback.onTraversalCompleted();
+      }
+    });
   }
 
   private FlowBundler getFlowBundler() {

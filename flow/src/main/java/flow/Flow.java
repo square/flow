@@ -198,8 +198,9 @@ public final class Flow {
    * Go up one screen.
    *
    * @return false if going up is not possible.
+   * @deprecated Applications should handle "up" themselves, if necessary.
    */
-  public boolean goUp() {
+  @Deprecated public boolean goUp() {
     boolean canGoUp = false;
     if (backstack.current() instanceof HasParent || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED)) {

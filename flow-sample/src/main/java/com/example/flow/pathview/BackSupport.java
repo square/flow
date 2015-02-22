@@ -20,18 +20,9 @@ import android.view.View;
 import flow.Flow;
 
 /**
- * Support for {@link HandlesUp} and {@link HandlesBack}.
+ * Support for {@link HandlesBack}.
  */
-public class UpAndBack {
-  public static boolean onUpPressed(View childView) {
-    if (childView instanceof HandlesUp) {
-      if (((HandlesUp) childView).onUpPressed()) {
-        return true;
-      }
-    }
-    // Try to go up.  If up isn't supported, go back.
-    return Flow.get(childView).goUp() || onBackPressed(childView);
-  }
+public class BackSupport {
 
   public static boolean onBackPressed(View childView) {
     if (childView instanceof HandlesBack) {
@@ -42,6 +33,6 @@ public class UpAndBack {
     return Flow.get(childView).goBack();
   }
 
-  private UpAndBack() {
+  private BackSupport() {
   }
 }

@@ -107,7 +107,10 @@ public final class Backstack implements Iterable<Path> {
     return backstack.toString();
   }
 
-  public static Backstack fromUpChain(Path path) {
+  /**
+   * @deprecated Applications should implement this themselves, if necessary.
+   */
+  @Deprecated public static Backstack fromUpChain(Path path) {
     LinkedList<Path> newBackstack = new LinkedList<>();
 
     Path current = path;

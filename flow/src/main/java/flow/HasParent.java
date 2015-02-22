@@ -19,7 +19,9 @@ package flow;
 /**
  * Describes the parent of a specific screen which is used to support the up affordance.
  * Implementing screens are required to be able to return an instance of their parent.
+ *
+ * @deprecated Up handling is deprecated, left to applications to implement if needed.
  */
-public interface HasParent {
+@Deprecated public interface HasParent {
   Path getParent();
 }

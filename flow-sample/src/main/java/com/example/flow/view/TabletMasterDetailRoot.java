@@ -9,8 +9,7 @@ import com.example.flow.Paths;
 import com.example.flow.R;
 import com.example.flow.pathview.FramePathContainerView;
 import com.example.flow.pathview.HandlesBack;
-import com.example.flow.pathview.HandlesUp;
-import com.example.flow.pathview.UpAndBack;
+import com.example.flow.pathview.BackSupport;
 import flow.Flow;
 import flow.Path;
 import flow.PathContainerView;
@@ -21,7 +20,7 @@ import javax.annotation.Nonnull;
  * the explanation in {@link com.example.flow.MainActivity#onCreate}.
  */
 public class TabletMasterDetailRoot extends LinearLayout
-    implements HandlesBack, HandlesUp, PathContainerView {
+    implements HandlesBack, PathContainerView {
   private FramePathContainerView masterContainer;
   private FramePathContainerView detailContainer;
 
@@ -78,11 +77,7 @@ public class TabletMasterDetailRoot extends LinearLayout
     masterContainer.dispatch(traversal, callback);
   }
 
-  @Override public boolean onUpPressed() {
-    return UpAndBack.onUpPressed(detailContainer);
-  }
-
   @Override public boolean onBackPressed() {
-    return UpAndBack.onBackPressed(detailContainer);
+    return BackSupport.onBackPressed(detailContainer);
   }
 }
