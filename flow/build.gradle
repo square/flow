@@ -1,0 +1,36 @@
+import com.android.builder.core.BuilderConstants;
+
+buildscript {
+  dependencies {
+    classpath deps.android_gradle_plugin
+  }
+}
+
+apply plugin: 'com.android.library'
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+  minSdkVersion rootProject.ext.minSdkVersion
+    versionName VERSION_NAME
+  }
+}
+
+dependencies {
+  testCompile 'junit:junit:4.10'
+  testCompile 'org.easytesting:fest-assert-core:2.0M10'
+}
+
+
+android.libraryVariants.all { variant ->
+  def name = variant.buildType.name
+  if (!BuilderConstants.DEBUG.equals(name)) {
+    def task = project.tasks.create "jar${name.capitalize()}", Jar
+    task.dependsOn variant.javaCompile
+    task.from variant.javaCompile.destinationDir
+    artifacts.add('archives', task);
+  }
+}
+
+apply from: 'gradle-mvn-push.gradle'
