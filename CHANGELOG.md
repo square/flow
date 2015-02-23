@@ -18,6 +18,8 @@ Version 0.9 *(TBD)*
 
   * Listener is now called Dispatcher, and can be set on a Flow after construction.
 
+  * Deprecated "up" navigation. We may revisit with a better implementation later.
+
   * Updated sample app to demonstrate all of the above.
 
 Version 0.8 *(2014-09-17)*

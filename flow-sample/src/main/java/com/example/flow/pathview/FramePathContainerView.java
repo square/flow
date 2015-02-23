@@ -29,7 +29,7 @@ import flow.PathContainerView;
 
 /** A FrameLayout that can show screens for a {@link flow.Flow}. */
 public class FramePathContainerView extends FrameLayout
-    implements HandlesBack, HandlesUp, PathContainerView {
+    implements HandlesBack, PathContainerView {
   private final PathContainer container;
   private boolean disabled;
 
@@ -69,12 +69,8 @@ public class FramePathContainerView extends FrameLayout
     });
   }
 
-  @Override public boolean onUpPressed() {
-    return UpAndBack.onUpPressed(getCurrentChild());
-  }
-
   @Override public boolean onBackPressed() {
-    return UpAndBack.onBackPressed(getCurrentChild());
+    return BackSupport.onBackPressed(getCurrentChild());
   }
 
   @Override public ViewGroup getCurrentChild() {
