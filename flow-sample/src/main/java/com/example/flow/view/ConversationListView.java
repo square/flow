@@ -46,6 +46,10 @@ public class ConversationListView extends ListView implements IsMasterView {
     });
   }
 
+  @Override public void setSingleChoiceMode() {
+    setChoiceMode(CHOICE_MODE_SINGLE);
+  }
+
   @Override public void updateSelection() {
     Paths.ConversationPath path =
         (Paths.ConversationPath) Flow.get(getContext()).getBackstack().current();
