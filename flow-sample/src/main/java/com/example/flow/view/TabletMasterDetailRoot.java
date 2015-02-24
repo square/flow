@@ -66,6 +66,7 @@ public class TabletMasterDetailRoot extends LinearLayout
         if (countDown == 0) {
           disabled = false;
           wrapped.onTraversalCompleted();
+          ((IsMasterView) masterContainer.getCurrentChild()).setSingleChoiceMode();
           ((IsMasterView) masterContainer.getCurrentChild()).updateSelection();
         }
       }

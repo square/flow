@@ -37,8 +37,6 @@ public class FriendListView extends ListView implements IsMasterView {
     Utils.inject(context, this);
 
     setFriends(friends);
-
-    setChoiceMode(ListView.CHOICE_MODE_SINGLE);
   }
 
   public void setFriends(List<User> friends) {
@@ -50,6 +48,10 @@ public class FriendListView extends ListView implements IsMasterView {
         Flow.get(getContext()).goTo(new Paths.Friend(position));
       }
     });
+  }
+
+  @Override public void setSingleChoiceMode() {
+    setChoiceMode(CHOICE_MODE_SINGLE);
   }
 
   @Override public void updateSelection() {
