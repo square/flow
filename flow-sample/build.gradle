@@ -1,0 +1,32 @@
+buildscript {
+  dependencies {
+    classpath deps.android_gradle_plugin
+  }
+}
+
+apply plugin: 'com.android.application'
+
+dependencies {
+  compile project(':flow')
+
+  compile 'com.google.code.gson:gson:2.3'
+  compile 'com.squareup.dagger:dagger:1.2.2'
+  provided 'com.squareup.dagger:dagger-compiler:1.2.2'
+  compile 'com.android.support:support-annotations:21.0.3'
+  compile 'com.android.support:support-v4:21.0.3'
+  compile 'com.jakewharton:butterknife:5.1.2'
+}
+
+android {
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
+
+  defaultConfig {
+    minSdkVersion rootProject.ext.minSdkVersion
+    versionName VERSION_NAME
+  }
+
+  lintOptions {
+    abortOnError false
+  }
+}

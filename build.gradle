@@ -1,0 +1,28 @@
+ext.deps = [
+    android_gradle_plugin      : 'com.android.tools.build:gradle:1.1.0',
+]
+
+ext.minSdkVersion = 14
+ext.compileSdkVersion = 21
+ext.buildToolsVersion = '21.1.2'
+
+task wrapper(type: Wrapper) {
+  gradleVersion = '2.3'
+}
+
+subprojects {
+  buildscript {
+    repositories {
+      mavenCentral()
+    }
+  }
+
+  repositories {
+    mavenCentral()
+  }
+
+  group = GROUP
+  version = VERSION_NAME
+
+  apply plugin: 'maven'
+}
