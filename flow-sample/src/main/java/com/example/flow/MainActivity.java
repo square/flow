@@ -91,10 +91,11 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
     super.onPause();
   }
 
-
-
   @Override public Object getSystemService(String name) {
-    Object service = flowSupport.getSystemService(name);
+    Object service = null;
+    if (flowSupport != null) {
+       service = flowSupport.getSystemService(name);
+    }
     return service != null ? service : super.getSystemService(name);
   }
 
