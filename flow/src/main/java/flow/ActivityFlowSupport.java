@@ -129,12 +129,18 @@ public final class ActivityFlowSupport {
   public void onSaveInstanceState(Bundle outState, View container) {
     checkArgument(outState != null, "outState may not be null");
     checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
-    Backstack backstack = getBackstackToSave(flow.getBackstack());
-    if (backstack == null) return;
+    Backstack currentBackstack = flow.getBackstack();
+    // save current entry's view state
+    Entry currentEntry = currentBackstack.currentEntry();
+    if (currentEntry != null && canPersist(currentEntry)) {
+      currentEntry.saveViewState(container);
+    }
+    // filter backstack for persistable paths
+    Backstack backstackToSave = getBackstackToSave(currentBackstack);
+    if (backstackToSave == null) return;
 
-    flow.getBackstack().currentEntry().saveViewState(container);
     //noinspection ConstantConditions
-    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
+    outState.putParcelable(FLOW_KEY, backstackToSave.getParcelable(parceler));
   }
 
   /**
@@ -154,12 +160,16 @@ public final class ActivityFlowSupport {
     boolean empty = true;
     while (it.hasNext()) {
       Entry entry = it.next();
-      if (!entry.getPath().getClass().isAnnotationPresent(NotPersistent.class)) {
+      if (canPersist(entry)) {
         save.push(entry);
         empty = false;
       }
     }
     return empty ? null : save.build();
+  }
+
+  private static boolean canPersist(Entry entry) {
+    return !entry.getPath().getClass().isAnnotationPresent(NotPersistent.class);
   }
 }
 
