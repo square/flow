@@ -132,7 +132,7 @@ public final class ActivityFlowSupport {
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
 
-    flow.getBackstack().saveCurrentState(container);
+    flow.getBackstack().currentEntry().saveViewState(container);
     //noinspection ConstantConditions
     outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
   }
