@@ -5,6 +5,8 @@ import android.view.View;
 
 import java.util.Iterator;
 
+import flow.Backstack.Entry;
+
 import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkState;
 
@@ -147,13 +149,13 @@ public final class ActivityFlowSupport {
   }
 
   private Backstack getBackstackToSave(Backstack backstack) {
-    Iterator<Path> it = backstack.reverseIterator();
+    Iterator<Entry> it = backstack.getEntries().descendingIterator();
     Backstack.Builder save = Backstack.emptyBuilder();
     boolean empty = true;
     while (it.hasNext()) {
-      Path path = it.next();
-      if (!path.getClass().isAnnotationPresent(NotPersistent.class)) {
-        save.push(path);
+      Entry entry = it.next();
+      if (!entry.getPath().getClass().isAnnotationPresent(NotPersistent.class)) {
+        save.push(entry);
         empty = false;
       }
     }

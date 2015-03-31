@@ -90,6 +90,10 @@ public final class Backstack implements Iterable<Path> {
     return backstack.size();
   }
 
+  Deque<Entry> getEntries() {
+    return backstack;
+  }
+
   public Path current() {
     return currentEntry().getPath();
   }
@@ -176,6 +180,12 @@ public final class Backstack implements Iterable<Path> {
 
     public Builder push(Path path) {
       Entry entry = new Entry(path);
+      backstack.push(entry);
+
+      return this;
+    }
+
+    public Builder push(Entry entry) {
       backstack.push(entry);
 
       return this;
