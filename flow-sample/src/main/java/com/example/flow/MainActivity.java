@@ -18,6 +18,7 @@ package com.example.flow;
 
 import android.app.ActionBar;
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -61,11 +62,10 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GsonParceler parceler = new GsonParceler(new Gson());
-    Backstack defaultBackstack = Backstack.single(new Paths.ConversationList());
     @SuppressWarnings("deprecation") ActivityFlowSupport.NonConfigurationInstance nonConfig =
         (ActivityFlowSupport.NonConfigurationInstance) getLastNonConfigurationInstance();
-    flowSupport =
-        ActivityFlowSupport.onCreate(nonConfig, savedInstanceState, parceler, defaultBackstack);
+    flowSupport = ActivityFlowSupport.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
+        Backstack.single(new Paths.ConversationList()));
 
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
@@ -76,9 +76,9 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
     containerAsBackTarget = (HandlesBack) container;
   }
 
-  @SuppressWarnings("deprecation") // https://code.google.com/p/android/issues/detail?id=151346
-  @Override public Object onRetainNonConfigurationInstance() {
-    return flowSupport.onRetainNonConfigurationInstance();
+  @Override protected void onNewIntent(Intent intent) {
+    super.onNewIntent(intent);
+    flowSupport.onNewIntent(intent);
   }
 
   @Override protected void onResume() {
@@ -89,6 +89,11 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   @Override protected void onPause() {
     flowSupport.onPause();
     super.onPause();
+  }
+
+  @SuppressWarnings("deprecation") // https://code.google.com/p/android/issues/detail?id=151346
+  @Override public Object onRetainNonConfigurationInstance() {
+    return flowSupport.onRetainNonConfigurationInstance();
   }
 
   @Override public Object getSystemService(String name) {
