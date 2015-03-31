@@ -98,6 +98,10 @@ public final class Backstack implements Iterable<Path> {
     return backstack.peek();
   }
 
+  public void saveCurrentState(View view) {
+    currentEntry().saveViewState(view);
+  }
+
   /** Get a builder to modify a copy of this backstack. */
   public Builder buildUpon() {
     return new Builder(backstack);

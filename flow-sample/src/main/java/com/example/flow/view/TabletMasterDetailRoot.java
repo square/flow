@@ -5,13 +5,14 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+
 import com.example.flow.Paths;
 import com.example.flow.R;
+import com.example.flow.pathview.BackSupport;
 import com.example.flow.pathview.FramePathContainerView;
 import com.example.flow.pathview.HandlesBack;
-import com.example.flow.pathview.BackSupport;
+
 import flow.Flow;
-import flow.Path;
 import flow.PathContainerView;
 
 /**
@@ -41,7 +42,7 @@ public class TabletMasterDetailRoot extends LinearLayout
   }
 
   @Override public ViewGroup getCurrentChild() {
-    Paths.MasterDetailPath showing = Path.get(getContext());
+    Paths.MasterDetailPath showing = (Paths.MasterDetailPath) Flow.get(getContext()).getBackstack().current();
     return showing.isMaster() ? masterContainer.getCurrentChild()
         : detailContainer.getCurrentChild();
   }

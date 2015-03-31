@@ -1,6 +1,8 @@
 package flow;
 
 import android.os.Bundle;
+import android.view.View;
+
 import java.util.Iterator;
 
 import static flow.Preconditions.checkArgument;
@@ -122,11 +124,13 @@ public final class ActivityFlowSupport {
     return flow.goBack();
   }
 
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(Bundle outState, View container) {
     checkArgument(outState != null, "outState may not be null");
     checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
+
+    flow.getBackstack().saveCurrentState(container);
     //noinspection ConstantConditions
     outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
   }
