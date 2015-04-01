@@ -163,13 +163,13 @@ public final class ActivityFlowSupport {
   }
 
   private static Backstack getBackstackToSave(Backstack backstack) {
-    Iterator<Path> it = backstack.reverseIterator();
+    Iterator<Object> it = backstack.reverseIterator();
     Backstack.Builder save = Backstack.emptyBuilder();
     boolean empty = true;
     while (it.hasNext()) {
-      Path path = it.next();
-      if (!path.getClass().isAnnotationPresent(NotPersistent.class)) {
-        save.push(path);
+      Object state = it.next();
+      if (!state.getClass().isAnnotationPresent(NotPersistent.class)) {
+        save.push(state);
         empty = false;
       }
     }

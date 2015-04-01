@@ -4,8 +4,8 @@ import android.content.Context;
 import android.util.AttributeSet;
 import com.example.flow.R;
 import flow.Flow;
-import flow.Path;
-import flow.PathContextFactory;
+import flow.path.Path;
+import flow.path.PathContextFactory;
 
 import static com.example.flow.Paths.MasterDetailPath;
 

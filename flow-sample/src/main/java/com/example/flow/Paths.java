@@ -16,9 +16,9 @@
 
 package com.example.flow;
 
+import flow.path.Path;
 import flow.HasParent;
 import flow.Layout;
-import flow.Path;
 
 public final class Paths {
 

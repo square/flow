@@ -24,9 +24,9 @@ import butterknife.ButterKnife;
 import butterknife.InjectView;
 import com.example.flow.Paths;
 import com.example.flow.R;
-import flow.Path;
-import com.example.flow.util.Utils;
 import com.example.flow.model.User;
+import com.example.flow.util.Utils;
+import flow.path.Path;
 import java.util.List;
 import javax.inject.Inject;
 

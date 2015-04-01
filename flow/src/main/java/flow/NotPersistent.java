@@ -6,7 +6,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Applied to a {@link Path}, indicates that it should not be persisted with the backstack.
+ * Applied to a state object, indicates that it should not be persisted with the backstack.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)

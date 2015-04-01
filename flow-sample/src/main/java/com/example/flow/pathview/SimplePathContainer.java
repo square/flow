@@ -25,16 +25,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import com.example.flow.util.Utils;
 import flow.Flow;
-import flow.Path;
-import flow.PathContainer;
-import flow.PathContext;
-import flow.PathContextFactory;
+import flow.path.Path;
+import flow.path.PathContainer;
+import flow.path.PathContext;
+import flow.path.PathContextFactory;
 
 import static flow.Flow.Direction.REPLACE;
 
 /**
  * Provides basic right-to-left transitions. Saves and restores view state.
- * Uses {@link flow.PathContext} to allow customized sub-containers.
+ * Uses {@link PathContext} to allow customized sub-containers.
  */
 public class SimplePathContainer extends PathContainer {
   private final PathContextFactory contextFactory;

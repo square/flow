@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.path;
 
 import android.view.View;
 import android.view.ViewGroup;
+import flow.Flow;
+import flow.Layout;
+import flow.ViewState;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -31,28 +34,32 @@ public abstract class PathContainer {
    * Provides information about the current or most recent Traversal handled by the container.
    */
   protected static final class TraversalState {
-    private Backstack.Entry fromEntry;
-    private Backstack.Entry toEntry;
+    private Path fromPath;
+    private ViewState fromViewState;
+    private Path toPath;
+    private ViewState toViewState;
 
-    public void setNextEntry(Backstack.Entry entry) {
-      this.fromEntry = this.toEntry;
-      this.toEntry = entry;
+    public void setNextEntry(Path path, ViewState viewState) {
+      this.fromPath = this.toPath;
+      this.fromViewState = this.toViewState;
+      this.toPath = path;
+      this.toViewState = viewState;
     }
 
     public Path fromPath() {
-      return fromEntry == null ? null : fromEntry.getPath();
+      return fromPath;
     }
 
     public Path toPath() {
-      return toEntry.getPath();
+      return toPath;
     }
 
     public void saveViewState(View view) {
-      fromEntry.saveViewState(view);
+      fromViewState.save(view);
     }
 
     public void restoreViewState(View view) {
-      toEntry.restoreViewState(view);
+      toViewState.restore(view);
     }
   }
 
@@ -67,23 +74,23 @@ public abstract class PathContainer {
   public final void executeTraversal(PathContainerView view, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
-    Backstack.Entry entry = traversal.destination.currentEntry();
-    Backstack.Entry oldEntry;
+    Path path = traversal.destination.current();
+    ViewState viewState = traversal.destination.currentViewState();
+    Path oldPath;
     ViewGroup containerView = view.getContainerView();
     TraversalState traversalState = ensureTag(containerView);
 
     // See if we already have the direct child we want, and if so short circuit the traversal.
     if (oldChild != null) {
-      oldEntry = Preconditions.checkNotNull(traversalState.toEntry,
+      oldPath = Preconditions.checkNotNull(traversalState.toPath,
           "Container view has child %s with no path", oldChild.toString());
-      if (oldEntry.equals(entry)) {
+      if (oldPath.equals(path)) {
         callback.onTraversalCompleted();
         return;
       }
     }
 
-    traversalState.setNextEntry(entry);
-
+    traversalState.setNextEntry(path, viewState);
     performTraversal(containerView, traversalState, traversal.direction, callback);
   }
 
@@ -100,10 +107,10 @@ public abstract class PathContainer {
   }
 
   protected int getLayout(Path path) {
-    Class<Object> pathType = ObjectUtils.getClass(path);
+    Class pathType = path.getClass();
     Integer layoutResId = PATH_LAYOUT_CACHE.get(pathType);
     if (layoutResId == null) {
-      Layout layout = pathType.getAnnotation(Layout.class);
+      Layout layout = (Layout) pathType.getAnnotation(Layout.class);
       Preconditions.checkNotNull(layout, "@%s annotation not found on class %s",
           Layout.class.getSimpleName(), pathType.getName());
       layoutResId = layout.value();

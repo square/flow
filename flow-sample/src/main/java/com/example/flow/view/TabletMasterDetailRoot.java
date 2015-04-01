@@ -7,12 +7,12 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import com.example.flow.Paths;
 import com.example.flow.R;
+import com.example.flow.pathview.BackSupport;
 import com.example.flow.pathview.FramePathContainerView;
 import com.example.flow.pathview.HandlesBack;
-import com.example.flow.pathview.BackSupport;
 import flow.Flow;
-import flow.Path;
-import flow.PathContainerView;
+import flow.path.Path;
+import flow.path.PathContainerView;
 
 /**
  * This view is shown only in landscape orientation on tablets. See

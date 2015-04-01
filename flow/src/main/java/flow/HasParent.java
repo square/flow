@@ -23,5 +23,5 @@ package flow;
  * @deprecated Up handling is deprecated, left to applications to implement if needed.
  */
 @Deprecated public interface HasParent {
-  Path getParent();
+  Object getParent();
 }
