@@ -28,8 +28,8 @@ import flow.ActivityFlowSupport;
 import flow.Backstack;
 import flow.Flow;
 import flow.HasParent;
-import flow.Path;
-import flow.PathContainerView;
+import flow.path.Path;
+import flow.path.PathContainerView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
 import static flow.Flow.Traversal;

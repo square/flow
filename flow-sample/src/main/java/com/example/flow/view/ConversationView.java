@@ -23,10 +23,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import com.example.flow.Paths;
-import flow.Path;
 import com.example.flow.model.Conversation;
 import com.example.flow.util.Utils;
 import flow.Flow;
+import flow.path.Path;
 import java.util.List;
 import javax.inject.Inject;
 

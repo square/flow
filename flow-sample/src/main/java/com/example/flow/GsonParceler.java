@@ -22,7 +22,6 @@ import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 import flow.Parceler;
-import flow.Path;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
@@ -34,7 +33,7 @@ public class GsonParceler implements Parceler {
     this.gson = gson;
   }
 
-  @Override public Parcelable wrap(Path instance) {
+  @Override public Parcelable wrap(Object instance) {
     try {
       String json = encode(instance);
       return new Wrapper(json);
@@ -43,7 +42,7 @@ public class GsonParceler implements Parceler {
     }
   }
 
-  @Override public Path unwrap(Parcelable parcelable) {
+  @Override public Object unwrap(Parcelable parcelable) {
     Wrapper wrapper = (Wrapper) parcelable;
     try {
       return decode(wrapper.json);
@@ -52,7 +51,7 @@ public class GsonParceler implements Parceler {
     }
   }
 
-  private String encode(Path instance) throws IOException {
+  private String encode(Object instance) throws IOException {
     StringWriter stringWriter = new StringWriter();
     JsonWriter writer = new JsonWriter(stringWriter);
 
@@ -70,7 +69,7 @@ public class GsonParceler implements Parceler {
     }
   }
 
-  private Path decode(String json) throws IOException {
+  private Object decode(String json) throws IOException {
     JsonReader reader = new JsonReader(new StringReader(json));
 
     try {
