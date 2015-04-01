@@ -32,6 +32,7 @@ public final class Flow {
   }
 
   public static Flow get(Context context) {
+    //noinspection ResourceType
     return (Flow) context.getSystemService(FLOW_SERVICE);
   }
 
@@ -103,11 +104,7 @@ public final class Flow {
       // Nothing is happening;
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
-      move(new PendingTraversal() {
-        @Override protected void doExecute() {
-          go(backstack, Direction.REPLACE);
-        }
-      });
+      set(backstack, Direction.REPLACE);
       return;
     }
 
@@ -135,34 +132,51 @@ public final class Flow {
     if (this.dispatcher == checkNotNull(dispatcher, "dispatcher")) this.dispatcher = null;
   }
 
-  /** Push the screen onto the backstack. */
-  public void goTo(final Path path) {
+  /**
+   * Replaces the backstack with the one given and dispatches in the given direction.
+   */
+  public void set(final Backstack backstack, final Direction direction) {
     move(new PendingTraversal() {
-      @Override protected void doExecute() {
-        Backstack newBackstack = backstack.buildUpon().push(path).build();
-        go(newBackstack, Direction.FORWARD);
+      @Override void doExecute() {
+        dispatch(backstack, direction);
       }
     });
   }
 
   /**
-   * Reset to the specified screen. Pops until the screen is found. If the screen is not found,
-   * the entire backstack is replaced with the screen.
+   * Updates the backstack such that the given path is at the top and dispatches the updated
+   * backstack.
+   *
+   * If newTop is already at the top of the backstack, the backstack will be unchanged, but it will
+   * be dispatched with direction {@link Direction#REPLACE}.
+   *
+   * If newTop is already on the backstack but not at the top, the stack will pop until newTop is
+   * at the top, and the dispatch direction will be {@link Direction#BACKWARD}.
+   *
+   * If newTop is not already on the backstack, it will be pushed and the dispatch direction will be
+   * {@link Direction#FORWARD}.
+   *
+   * Paths equality is always checked using {@link Path#equals(Object)}.
    */
-  public void resetTo(final Path path) {
+  public void set(final Path newTop) {
     move(new PendingTraversal() {
-      @Override protected void doExecute() {
+      @Override void doExecute() {
+        if (newTop.equals(backstack.current())) {
+          dispatch(backstack, Direction.REPLACE);
+          return;
+        }
+
         Backstack.Builder builder = backstack.buildUpon();
         int count = 0;
-        // Take care to leave the original screen instance on the stack, if we find it.
-        Path lastPopped = null;
+        // Search backward to see if we already have newTop on the stack
+        Path preservedInstance = null;
         for (Iterator<Path> it = backstack.reverseIterator(); it.hasNext(); ) {
           Path entry = it.next();
 
-          if (entry.equals(path)) {
-            // Clear up to the target screen.
+          // If we find newTop on the stack, pop back to it.
+          if (entry.equals(newTop)) {
             for (int i = 0; i < backstack.size() - count; i++) {
-              lastPopped = builder.pop();
+              preservedInstance = builder.pop();
             }
             break;
           } else {
@@ -171,25 +185,45 @@ public final class Flow {
         }
 
         Backstack newBackstack;
-        if (lastPopped != null) {
-          builder.push(lastPopped);
+        if (preservedInstance != null) {
+          // newTop was on the backstack. Put the preserved instance back on and dispatch.
+          builder.push(preservedInstance);
           newBackstack = builder.build();
-          go(newBackstack, Direction.BACKWARD);
+          dispatch(newBackstack, Direction.BACKWARD);
         } else {
-          builder.push(path);
+          // newTop was not on the backstack. Push it on and dispatch.
+          builder.push(newTop);
           newBackstack = builder.build();
-          go(newBackstack, Direction.FORWARD);
+          dispatch(newBackstack, Direction.FORWARD);
         }
       }
     });
   }
 
-  /** Replaces the current backstack with the up stack of the screen. */
-  public void replaceTo(final Path path) {
+  /**
+   * Push the screen onto the backstack.
+   *
+   * @deprecated Use {@link #set(Path)}.
+   */
+  @Deprecated @SuppressWarnings("UnusedDeclaration") public void goTo(final Path path) {
+    set(path);
+  }
+
+  /**
+   * @deprecated Use {@link #set(Path)}.
+   */
+  @Deprecated @SuppressWarnings("UnusedDeclaration") public void resetTo(final Path path) {
+    set(path);
+  }
+
+  /**
+   * @deprecated Use {@link #set(Backstack, Direction)}.
+   */
+  @Deprecated  @SuppressWarnings("deprecation") public void replaceTo(final Path path) {
     move(new PendingTraversal() {
-      @Override protected void doExecute() {
+     @Override protected void doExecute() {
         Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(path));
-        go(newBackstack, Direction.REPLACE);
+        dispatch(newBackstack, Direction.REPLACE);
       }
     });
   }
@@ -198,22 +232,22 @@ public final class Flow {
    * Go up one screen.
    *
    * @return false if going up is not possible.
-   * @deprecated Applications should handle "up" themselves, if necessary.
+   * @deprecated Use {@link #set(Backstack, Direction)}
    */
-  @Deprecated public boolean goUp() {
+  @Deprecated @SuppressWarnings("deprecation") public boolean goUp() {
     boolean canGoUp = false;
     if (backstack.current() instanceof HasParent || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED)) {
       canGoUp = true;
     }
     move(new PendingTraversal() {
-      @Override public void doExecute() {
+       @Override public void doExecute() {
         Path current = backstack.current();
         if (current instanceof HasParent) {
           Path parent = ((HasParent) current).getParent();
           Backstack newBackstack =
               preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
-          go(newBackstack, Direction.BACKWARD);
+          dispatch(newBackstack, Direction.BACKWARD);
         } else {
           // We are not calling the listener, so we must complete this noop transition ourselves.
           onTraversalCompleted();
@@ -240,7 +274,7 @@ public final class Flow {
           Backstack.Builder builder = backstack.buildUpon();
           builder.pop();
           Backstack newBackstack = builder.build();
-          go(newBackstack, Direction.BACKWARD);
+          dispatch(newBackstack, Direction.BACKWARD);
         }
       }
     });
@@ -248,28 +282,29 @@ public final class Flow {
     return canGoBack;
   }
 
-  /** Goes forward to a new backstack. */
+  /**
+   * Goes forward to a new backstack.
+   *
+   * @deprecated Use {@link #set(Backstack, Direction)}
+   */
+  @Deprecated @SuppressWarnings("UnusedDeclaration")
   public void forward(final Backstack newBackstack) {
-    move(new PendingTraversal() {
-      @Override protected void doExecute() {
-        go(newBackstack, Direction.FORWARD);
-      }
-    });
+    set(newBackstack, Direction.FORWARD);
   }
 
-  /** Goes backward to a new backstack. */
+  /**
+   * Goes backward to a new backstack.
+   *
+   * @deprecated Use {@link #set(Backstack, Direction)}
+   */
+  @Deprecated @SuppressWarnings("UnusedDeclaration")
   public void backward(final Backstack newBackstack) {
-    move(new PendingTraversal() {
-      @Override protected void doExecute() {
-        go(newBackstack, Direction.BACKWARD);
-      }
-    });
+    set(newBackstack, Direction.BACKWARD);
   }
 
   private void move(PendingTraversal pendingTraversal) {
     if (this.pendingTraversal == null) {
       this.pendingTraversal = pendingTraversal;
-
       // If there is no dispatcher wait until one shows up before executing.
       if (dispatcher != null) pendingTraversal.execute();
     } else {
@@ -349,7 +384,7 @@ public final class Flow {
       }
     }
 
-    protected void go(Backstack nextBackstack, Direction direction) {
+    void dispatch(Backstack nextBackstack, Direction direction) {
       this.nextBackstack = checkNotNull(nextBackstack, "nextBackstack");
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
@@ -366,7 +401,7 @@ public final class Flow {
     }
 
     /**
-     * Must be synchronous and end with a call to {@link #go} or {@link #onTraversalCompleted()}.
+     * Must be synchronous and end with a call to {@link #dispatch} or {@link #onTraversalCompleted()}.
      */
     abstract void doExecute();
   }

@@ -48,7 +48,7 @@ public class ConversationView extends ListView {
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         int messageIndex = conversationList.indexOf(conversation);
-        Flow.get(getContext()).goTo(new Paths.Message(messageIndex, position));
+        Flow.get(getContext()).set(new Paths.Message(messageIndex, position));
       }
     });
   }

@@ -1,20 +1,17 @@
 # Flow
 
-Flow is a small library that helps with describing an app as a collection of moderately independent screens. These screens can be pushed onto a concrete backstack to provide navigation history.
+Flow allows you to enumerate to your app's UI states and navigate between them.
 
-## Screen
+## Path
 
-A screen describes a distinct state of an application. It contains enough information to bootstrap the view.
+A Path object maps to a distinct UI state of your app. It contains just enough information to
+recreate that state.
 
 ```java
 @Layout(R.layout.track)
-public class TrackScreen implements HasParent<AlbumScreen> {
+public class TrackScreen extends Path {
   public final int albumId;
   public final int trackId;
-
-  @Override public AlbumScreen getParent() {
-    return new AlbumScreen(albumId);
-  }
 
   public TrackScreen(int albumId, int trackId) {
     this.albumId = albumId;
@@ -23,20 +20,32 @@ public class TrackScreen implements HasParent<AlbumScreen> {
 }
 ```
 
-The `HasParent` interface is used to support the *up* notion used in Android.
-
 ## Backstack
 
-The backstack is the history of screens, with the head being the current or last-most screen.
+The Backstack is the history of Paths, with the head being the current Path.
 
 ## Flow
 
-The flow holds the current truth about your application, the history of screens. It can be told to transition to another screen by simply instantiating the screen you want to go to.
+The Flow holds the current Backstack and offers navigation.
 
 ```java
-flow.goTo(new TrackScreen(albumId, trackId));
+flow.set(new TrackScreen(albumId, trackId));
+
+flow.goBack();
 ```
 
+## Dispatcher
+Your app provides Flow with a Dispatcher which executes UI state changes.
+
+```java
+flow.setDispatcher(new Flow.Dispatcher() {
+ @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+      Path newPath = traversal.destination.current();
+      displayViewFor(newPath);
+      callback.onTraversalCompleted();
+    }
+});
+```
 
 
 Download
