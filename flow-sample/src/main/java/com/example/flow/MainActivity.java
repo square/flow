@@ -109,7 +109,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            Flow.get(MainActivity.this).goTo(new Paths.FriendList());
+            Flow.get(MainActivity.this).set(new Paths.FriendList());
             return true;
           }
         });

@@ -41,7 +41,7 @@ public class ConversationListView extends ListView implements IsMasterView {
     setAdapter(adapter);
     setOnItemClickListener(new OnItemClickListener() {
       @Override public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        Flow.get(getContext()).goTo(new Paths.Conversation(position));
+        Flow.get(getContext()).set(new Paths.Conversation(position));
       }
     });
   }

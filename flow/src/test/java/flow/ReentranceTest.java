@@ -18,11 +18,11 @@ package flow;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 
+import static flow.Flow.Direction.FORWARD;
 import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
 import static org.fest.assertions.api.Assertions.assertThat;
@@ -39,16 +39,16 @@ public class ReentranceTest {
         lastStack = navigation.destination;
         Object next = navigation.destination.current();
         if (next instanceof Detail) {
-          flow.goTo(new Loading());
+          flow.set(new Loading());
         } else if (next instanceof Loading) {
-          flow.goTo(new Error());
+          flow.set(new Error());
         }
         callback.onTraversalCompleted();
       }
     };
     flow = new Flow(Backstack.single(new Catalog()));
     flow.setDispatcher(dispatcher);
-    flow.goTo(new Detail());
+    flow.set(new Detail());
     verifyBackstack(lastStack, new Error(), new Loading(), new Detail(), new Catalog());
   }
 
@@ -61,9 +61,9 @@ public class ReentranceTest {
         Object next = navigation.destination.current();
         if (loading) {
           if (next instanceof Detail) {
-            flow.goTo(new Loading());
+            flow.set(new Loading());
           } else if (next instanceof Loading) {
-            flow.goTo(new Error());
+            flow.set(new Error());
           } else if (next instanceof Error) {
             loading = false;
             flow.goBack();
@@ -78,7 +78,7 @@ public class ReentranceTest {
     };
     flow = new Flow(Backstack.single(new Catalog()));
     flow.setDispatcher(dispatcher);
-    flow.goTo(new Detail());
+    flow.set(new Detail());
     verifyBackstack(lastStack, new Detail(), new Catalog());
   }
 
@@ -89,16 +89,17 @@ public class ReentranceTest {
         lastStack = traversal.destination;
         Object next = traversal.destination.current();
         if (next instanceof Detail) {
-          ReentranceTest.this.flow.forward(
-              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build());
+          ReentranceTest.this.flow.set(
+              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(),
+              FORWARD);
         } else if (next instanceof Loading) {
-          ReentranceTest.this.flow.goTo(new Error());
+          ReentranceTest.this.flow.set(new Error());
         }
         callback.onTraversalCompleted();
       }
     });
     this.flow = flow;
-    flow.goTo(new Detail());
+    flow.set(new Detail());
     verifyBackstack(lastStack, new Error(), new Loading(), new Detail());
   }
 
@@ -109,9 +110,9 @@ public class ReentranceTest {
         lastCallback = callback;
         Object next = traversal.destination.current();
         if (next instanceof Detail) {
-          flow.goTo(new Loading());
+          flow.set(new Loading());
         } else if (next instanceof Loading) {
-          flow.goTo(new Error());
+          flow.set(new Error());
         }
       }
     };
@@ -119,7 +120,7 @@ public class ReentranceTest {
     flow.setDispatcher(dispatcher);
     lastCallback.onTraversalCompleted();
 
-    flow.goTo(new Detail());
+    flow.set(new Detail());
     verifyBackstack(flow.getBackstack(), new Catalog());
     lastCallback.onTraversalCompleted();
     verifyBackstack(flow.getBackstack(), new Detail(), new Catalog());
@@ -163,7 +164,7 @@ public class ReentranceTest {
   @Test public void pendingTraversalReplacesBootstrap() {
     final AtomicInteger dispatchCount = new AtomicInteger(0);
     flow = new Flow(Backstack.single(new Catalog()));
-    flow.goTo(new Detail());
+    flow.set(new Detail());
 
     flow.setDispatcher(new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
@@ -179,9 +180,9 @@ public class ReentranceTest {
 
   @Test public void allPendingTraversalsFire() {
     flow = new Flow(Backstack.single(new Catalog()));
-    flow.goTo(new Loading());
-    flow.goTo(new Detail());
-    flow.goTo(new Error());
+    flow.set(new Loading());
+    flow.set(new Detail());
+    flow.set(new Error());
 
     flow.setDispatcher(new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
@@ -201,7 +202,7 @@ public class ReentranceTest {
 
     flow.setDispatcher(new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
-        flow.goTo(new Loading());
+        flow.set(new Loading());
         flow.removeDispatcher(this);
         callback.onTraversalCompleted();
       }
@@ -242,7 +243,7 @@ public class ReentranceTest {
     flow = new Flow(Backstack.single(new Catalog()));
     flow.setDispatcher(new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
-        flow.goTo(new Detail());
+        flow.set(new Detail());
         lastCallback = callback;
       }
     });
@@ -268,7 +269,7 @@ public class ReentranceTest {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastCallback = callback;
         flow.removeDispatcher(this);
-        flow.goTo(new Loading());
+        flow.set(new Loading());
       }
     });
 

@@ -63,7 +63,7 @@ public class MessageView extends LinearLayout {
   @OnClick(R.id.user) void userClicked() {
     int position = friendList.indexOf(message.from);
     if (position != -1) {
-      Flow.get(getContext()).goTo(new Paths.Friend(position));
+      Flow.get(getContext()).set(new Paths.Friend(position));
     }
   }
 }
