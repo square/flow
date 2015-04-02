@@ -31,7 +31,9 @@ import java.util.Iterator;
  * Describes the history of a {@link Flow} at a specific point in time.
  */
 public final class Backstack implements Iterable<Object> {
-  private final Deque<Entry> backstack;
+  public static interface Filter {
+    boolean apply(Object state);
+  }
 
   /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parceler}. */
   public static Backstack from(Parcelable parcelable, Parceler parceler) {
@@ -47,18 +49,38 @@ public final class Backstack implements Iterable<Object> {
     return new Backstack(entries);
   }
 
+  private final Deque<Entry> backstack;
+
   /** Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}. */
   public Parcelable getParcelable(Parceler parceler) {
     Bundle backstackBundle = new Bundle();
-
     ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
-
     for (Entry entry : backstack) {
-      Bundle entryBundle = new Bundle();
-      entryBundle.putParcelable("OBJECT", parceler.wrap(entry.state));
-      entryBundle.putSparseParcelableArray("VIEW_STATE", entry.viewState);
-      entryBundles.add(entryBundle);
+     entryBundles.add(entry.getBundle(parceler));
     }
+    backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
+    return backstackBundle;
+  }
+
+  /**
+   * Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}, filtered
+   * by the supplied {@link Filter}.
+   *
+   * The filter is invoked on each state in the stack in reverse order
+   *
+   * @return null if all states are filtered out.
+   */
+  public Parcelable getParcelable(Parceler parceler, Filter filter) {
+    Bundle backstackBundle = new Bundle();
+    ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
+    Iterator<Entry> it = backstack.descendingIterator();
+    while (it.hasNext()) {
+      Entry entry = it.next();
+      if (filter.apply(entry.state)) {
+        entryBundles.add(entry.getBundle(parceler));
+      }
+    }
+    Collections.reverse(entryBundles);
     backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return backstackBundle;
   }
@@ -126,6 +148,13 @@ public final class Backstack implements Iterable<Object> {
       if (viewState != null) {
         view.restoreHierarchyState(viewState);
       }
+    }
+
+    Bundle getBundle(Parceler parceler) {
+      Bundle bundle = new Bundle();
+      bundle.putParcelable("OBJECT", parceler.wrap(state));
+      bundle.putSparseParcelableArray("VIEW_STATE", viewState);
+      return bundle;
     }
 
     @Override

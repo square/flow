@@ -20,11 +20,19 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
     android:id="@+id/friend_view"
     >
   <TextView
       android:id="@+id/friend_info"
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
+      android:layout_height="wrap_content"
+      />
+  <EditText
+      android:id="@+id/friend_note"
+      android:freezesText="true"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:minLines="2"
       />
 </com.example.flow.view.FriendView>
