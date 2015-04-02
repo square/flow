@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.path;
 
 import android.content.Context;
 import android.view.ViewGroup;
+import flow.Flow;
 
 public interface PathContainerView extends Flow.Dispatcher {
   ViewGroup getCurrentChild();

@@ -26,12 +26,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
  */
-public final class Backstack implements Iterable<Path> {
+public final class Backstack implements Iterable<Object> {
   private final Deque<Entry> backstack;
 
   /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parceler}. */
@@ -40,8 +39,8 @@ public final class Backstack implements Iterable<Path> {
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Path path = parceler.unwrap(entryBundle.getParcelable("PATH"));
-      Entry entry = new Entry(path);
+      Object object = parceler.unwrap(entryBundle.getParcelable("OBJECT"));
+      Entry entry = new Entry(object);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
     }
@@ -56,7 +55,7 @@ public final class Backstack implements Iterable<Path> {
 
     for (Entry entry : backstack) {
       Bundle entryBundle = new Bundle();
-      entryBundle.putParcelable("PATH", parceler.wrap(entry.path));
+      entryBundle.putParcelable("OBJECT", parceler.wrap(entry.state));
       entryBundle.putSparseParcelableArray("VIEW_STATE", entry.viewState);
       entryBundles.add(entryBundle);
     }
@@ -68,21 +67,22 @@ public final class Backstack implements Iterable<Path> {
     return new Builder(Collections.<Entry>emptyList());
   }
 
-  /** Create a backstack that contains a single path. */
-  public static Backstack single(Path path) {
-    return emptyBuilder().push(path).build();
+  /** Create a backstack that contains a single object. */
+  public static Backstack single(Object object) {
+    return emptyBuilder().push(object).build();
   }
 
   private Backstack(Deque<Entry> backstack) {
     this.backstack = backstack;
   }
 
-  @Override public Iterator<Path> iterator() {
-    return new ReadIterator(backstack.iterator());
+  @SuppressWarnings("UnusedDeclaration")
+  @Override public Iterator<Object> iterator() {
+    return new ReadIterator<>(backstack.iterator());
   }
 
-  public Iterator<Path> reverseIterator() {
-    return new ReadIterator(backstack.descendingIterator());
+  public <T> Iterator<T> reverseIterator() {
+    return new ReadIterator<>(backstack.descendingIterator());
   }
 
 
@@ -90,11 +90,12 @@ public final class Backstack implements Iterable<Path> {
     return backstack.size();
   }
 
-  public Path current() {
-    return currentEntry().getPath();
+  public <T> T current() {
+    //noinspection unchecked
+    return (T) backstack.peek().state;
   }
 
-  Entry currentEntry() {
+  public ViewState currentViewState() {
     return backstack.peek();
   }
 
@@ -107,43 +108,21 @@ public final class Backstack implements Iterable<Path> {
     return backstack.toString();
   }
 
-  /**
-   * @deprecated Applications should implement this themselves, if necessary.
-   */
-  @Deprecated public static Backstack fromUpChain(Path path) {
-    LinkedList<Path> newBackstack = new LinkedList<>();
-
-    Path current = path;
-    while (current instanceof HasParent) {
-      newBackstack.addFirst(current);
-      current = ((HasParent) current).getParent();
-    }
-    newBackstack.addFirst(current);
-
-    Backstack.Builder builder = emptyBuilder();
-    builder.addAll(newBackstack);
-    return builder.build();
-  }
-
-  static final class Entry {
-    public final Path path;
+  private static final class Entry implements ViewState {
+    final Object state;
     SparseArray<Parcelable> viewState;
 
-    private Entry(Path path) {
-      this.path = path;
+    Entry(Object state) {
+      this.state = state;
     }
 
-    public Path getPath() {
-      return path;
-    }
-
-    public void saveViewState(View view) {
+    @Override public void save(View view) {
       SparseArray<Parcelable> state = new SparseArray<>();
       view.saveHierarchyState(state);
       viewState = state;
     }
 
-    public void restoreViewState(View view) {
+    @Override public void restore(View view) {
       if (viewState != null) {
         view.restoreHierarchyState(viewState);
       }
@@ -154,12 +133,12 @@ public final class Backstack implements Iterable<Path> {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Entry entry = (Entry) o;
-      return (path.equals(entry.path));
+      return (state.equals(entry.state));
     }
 
     @Override
     public int hashCode() {
-      return path.hashCode();
+      return state.hashCode();
     }
   }
 
@@ -170,27 +149,27 @@ public final class Backstack implements Iterable<Path> {
       this.backstack = new ArrayDeque<>(backstack);
     }
 
-    public Builder push(Path path) {
-      Entry entry = new Entry(path);
+    public Builder push(Object object) {
+      Entry entry = new Entry(object);
       backstack.push(entry);
 
       return this;
     }
 
-    public Builder addAll(Collection<Path> c) {
-      for (Path path : c) {
-        backstack.push(new Entry(path));
+    public Builder addAll(Collection<Object> c) {
+      for (Object object : c) {
+        backstack.push(new Entry(object));
       }
 
       return this;
     }
 
-    public Path peek() {
-      return backstack.peek().getPath();
+    public Object peek() {
+      return backstack.peek().state;
     }
 
-    public Path pop() {
-      return backstack.pop().getPath();
+    public Object pop() {
+      return backstack.pop().state;
     }
 
     public Backstack build() {
@@ -202,7 +181,7 @@ public final class Backstack implements Iterable<Path> {
     }
   }
 
-  private static class ReadIterator implements Iterator<Path> {
+  private static class ReadIterator<T> implements Iterator<T> {
     private final Iterator<Entry> iterator;
 
     public ReadIterator(Iterator<Entry> iterator) {
@@ -213,8 +192,9 @@ public final class Backstack implements Iterable<Path> {
       return iterator.hasNext();
     }
 
-    @Override public Path next() {
-      return iterator.next().getPath();
+    @Override public T next() {
+      //noinspection unchecked
+      return (T) iterator.next().state;
     }
 
     @Override public void remove() {

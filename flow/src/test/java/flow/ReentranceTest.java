@@ -89,9 +89,8 @@ public class ReentranceTest {
         lastStack = traversal.destination;
         Object next = traversal.destination.current();
         if (next instanceof Detail) {
-          ReentranceTest.this.flow.set(
-              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(),
-              FORWARD);
+          ReentranceTest.this.flow.setBackstack(
+              Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(), FORWARD);
         } else if (next instanceof Loading) {
           ReentranceTest.this.flow.set(new Error());
         }
@@ -289,25 +288,25 @@ public class ReentranceTest {
     verifyBackstack(flow.getBackstack(), new Loading(), new Catalog());
   }
 
-  static class Catalog extends TestPath {
+  static class Catalog extends TestState {
     Catalog() {
       super("catalog");
     }
   }
 
-  static class Detail extends TestPath {
+  static class Detail extends TestState {
     Detail() {
       super("detail");
     }
   }
 
-  static class Loading extends TestPath {
+  static class Loading extends TestState {
     Loading() {
       super("loading");
     }
   }
 
-  static class Error extends TestPath {
+  static class Error extends TestState {
     Error() {
       super("error");
     }
@@ -315,7 +314,7 @@ public class ReentranceTest {
 
   private void verifyBackstack(Backstack backstack, Object... screens) {
     List<Object> actualScreens = new ArrayList<>(backstack.size());
-    for (Path entry : backstack) {
+    for (Object entry : backstack) {
       actualScreens.add(entry);
     }
     assertThat(actualScreens).containsExactly(screens);
