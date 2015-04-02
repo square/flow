@@ -27,11 +27,11 @@ import com.google.gson.Gson;
 import flow.ActivityFlowSupport;
 import flow.Backstack;
 import flow.Flow;
-import flow.HasParent;
 import flow.path.Path;
 import flow.path.PathContainerView;
 
 import static android.view.MenuItem.SHOW_AS_ACTION_ALWAYS;
+import static flow.Flow.Direction.FORWARD;
 import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
 
@@ -99,7 +99,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   @Override public Object getSystemService(String name) {
     Object service = null;
     if (flowSupport != null) {
-       service = flowSupport.getSystemService(name);
+      service = flowSupport.getSystemService(name);
     }
     return service != null ? service : super.getSystemService(name);
   }
@@ -110,19 +110,17 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {
-    MenuItem friendsMenu = menu.add("Friends")
+    menu.add("Friends")
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            Flow.get(MainActivity.this).set(new Paths.FriendList());
+            Flow.get(MainActivity.this).setBackstack(Backstack.emptyBuilder() //
+                .push(new Paths.ConversationList()) //
+                .push(new Paths.FriendList()) //
+                .build(), FORWARD);
             return true;
           }
         });
-
-    Object screen = Flow.get(this).getBackstack().current();
-    boolean hasUp = screen instanceof HasParent;
-    friendsMenu.setVisible(!hasUp);
-
     return true;
   }
 
@@ -155,5 +153,4 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
       }
     });
   }
-
 }
