@@ -196,7 +196,7 @@ public class FlowTest {
 
     Backstack newBackstack = Backstack.emptyBuilder().addAll(
         Arrays.<Path>asList(charlie, delta)).build();
-    flow.set(newBackstack, Flow.Direction.FORWARD);
+    flow.setBackstack(newBackstack, Flow.Direction.FORWARD);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
     assertThat(lastStack.current()).isSameAs(delta);
     assertThat(flow.goBack()).isTrue();

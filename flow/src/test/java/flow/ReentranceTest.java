@@ -89,7 +89,7 @@ public class ReentranceTest {
         lastStack = traversal.destination;
         Object next = traversal.destination.current();
         if (next instanceof Detail) {
-          ReentranceTest.this.flow.set(
+          ReentranceTest.this.flow.setBackstack(
               Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(),
               FORWARD);
         } else if (next instanceof Loading) {
