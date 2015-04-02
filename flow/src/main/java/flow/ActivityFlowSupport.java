@@ -1,5 +1,6 @@
 package flow;
 
+import android.content.Intent;
 import android.os.Bundle;
 import java.util.Iterator;
 
@@ -68,10 +69,15 @@ public final class ActivityFlowSupport {
     }
   }
 
-  private static final String FLOW_KEY = ActivityFlowSupport.class.getSimpleName() + "_backstack";
+  public static void setBackstackExtra(Intent intent, Backstack backstack, Parceler parceler) {
+    intent.putExtra(BACKSTACK_KEY, backstack.getParcelable(parceler));
+  }
 
-  private final Flow flow;
+  private static final String BACKSTACK_KEY =
+      ActivityFlowSupport.class.getSimpleName() + "_backstack";
+
   private final Parceler parceler;
+  private final Flow flow;
   private Flow.Dispatcher dispatcher;
 
   private ActivityFlowSupport(Flow flow, Parceler parceler) {
@@ -80,36 +86,42 @@ public final class ActivityFlowSupport {
   }
 
   public static ActivityFlowSupport onCreate(NonConfigurationInstance nonConfigurationInstance,
-      Bundle savedInstanceState, Parceler parceler, Backstack defaultBackstack) {
-    if (nonConfigurationInstance != null) {
-      return new ActivityFlowSupport(nonConfigurationInstance.flow, parceler);
-    }
+      Intent intent, Bundle savedInstanceState, Parceler parceler, Backstack defaultBackstack) {
     checkArgument(parceler != null, "parceler may not be null");
-    checkArgument(defaultBackstack != null, "defaultBackstack may not be null");
-    Backstack initialBackstack = null;
-    if (savedInstanceState != null && savedInstanceState.containsKey(FLOW_KEY)) {
-      initialBackstack = Backstack.from(savedInstanceState.getParcelable(FLOW_KEY), parceler);
+    final Flow flow;
+    if (nonConfigurationInstance != null) {
+      flow = nonConfigurationInstance.flow;
+    } else {
+      Backstack savedBackstack = null;
+      if (savedInstanceState != null && savedInstanceState.containsKey(BACKSTACK_KEY)) {
+        savedBackstack = Backstack.from(savedInstanceState.getParcelable(BACKSTACK_KEY), parceler);
+      }
+      flow = new Flow(selectBackstack(intent, savedBackstack, defaultBackstack, parceler));
     }
-    if (initialBackstack == null) {
-      initialBackstack = defaultBackstack;
+    return new ActivityFlowSupport(flow, parceler);
+  }
+
+  public void onNewIntent(Intent intent) {
+    checkArgument(intent != null, "intent may not be null");
+    if (intent.hasExtra(BACKSTACK_KEY)) {
+      Backstack backstack = Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
+      flow.set(backstack, Flow.Direction.REPLACE);
     }
-    return new ActivityFlowSupport(new Flow(initialBackstack), parceler);
+  }
+
+  public void onResume(Flow.Dispatcher dispatcher) {
+    checkArgument(dispatcher != null, "dispatcher may not be null");
+    this.dispatcher = dispatcher;
+
+    flow.setDispatcher(dispatcher);
   }
 
   public NonConfigurationInstance onRetainNonConfigurationInstance() {
     return new NonConfigurationInstance(flow);
   }
 
-  public void onResume(Flow.Dispatcher dispatcher) {
-    checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
-    checkArgument(dispatcher != null, "dispatcher may not be null");
-    this.dispatcher = dispatcher;
-    flow.setDispatcher(dispatcher);
-  }
-
   public void onPause() {
-    checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
-    checkState(dispatcher != null, "Don't have a Dispatcher. Did you forget to call onResume()?");
+    checkState(dispatcher != null, "Did you forget to call onResume()?");
     flow.removeDispatcher(dispatcher);
     dispatcher = null;
   }
@@ -118,17 +130,15 @@ public final class ActivityFlowSupport {
    * @return true if the button press has been handled.
    */
   public boolean onBackPressed() {
-    checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
     return flow.goBack();
   }
 
   public void onSaveInstanceState(Bundle outState) {
     checkArgument(outState != null, "outState may not be null");
-    checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
     Backstack backstack = getBackstackToSave(flow.getBackstack());
     if (backstack == null) return;
     //noinspection ConstantConditions
-    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
+    outState.putParcelable(BACKSTACK_KEY, backstack.getParcelable(parceler));
   }
 
   /**
@@ -136,13 +146,23 @@ public final class ActivityFlowSupport {
    */
   public Object getSystemService(String name) {
     if (Flow.isFlowSystemService(name)) {
-      checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
       return flow;
     }
     return null;
   }
 
-  private Backstack getBackstackToSave(Backstack backstack) {
+  private static Backstack selectBackstack(Intent intent, Backstack saved,
+      Backstack defaultBackstack, Parceler parceler) {
+    if (intent.hasExtra(BACKSTACK_KEY)) {
+      return Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
+    }
+    if (saved != null) {
+      return saved;
+    }
+    return defaultBackstack;
+  }
+
+  private static Backstack getBackstackToSave(Backstack backstack) {
     Iterator<Path> it = backstack.reverseIterator();
     Backstack.Builder save = Backstack.emptyBuilder();
     boolean empty = true;
@@ -156,4 +176,3 @@ public final class ActivityFlowSupport {
     return empty ? null : save.build();
   }
 }
-
