@@ -101,7 +101,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
 
   @Override protected void onSaveInstanceState(Bundle outState) {
     super.onSaveInstanceState(outState);
-    flowSupport.onSaveInstanceState(outState);
+    flowSupport.onSaveInstanceState(outState, container.getCurrentChild());
   }
 
   @Override public boolean onCreateOptionsMenu(Menu menu) {

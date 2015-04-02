@@ -1,7 +1,11 @@
 package flow;
 
 import android.os.Bundle;
+import android.view.View;
+
 import java.util.Iterator;
+
+import flow.Backstack.Entry;
 
 import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkState;
@@ -122,13 +126,21 @@ public final class ActivityFlowSupport {
     return flow.goBack();
   }
 
-  public void onSaveInstanceState(Bundle outState) {
+  public void onSaveInstanceState(Bundle outState, View container) {
     checkArgument(outState != null, "outState may not be null");
     checkState(flow != null, "Don't have a Flow. Did you forget to call onCreate()?");
-    Backstack backstack = getBackstackToSave(flow.getBackstack());
-    if (backstack == null) return;
+    Backstack currentBackstack = flow.getBackstack();
+    // save current entry's view state
+    Entry currentEntry = currentBackstack.currentEntry();
+    if (currentEntry != null && canPersist(currentEntry)) {
+      currentEntry.saveViewState(container);
+    }
+    // filter backstack for persistable paths
+    Backstack backstackToSave = getBackstackToSave(currentBackstack);
+    if (backstackToSave == null) return;
+
     //noinspection ConstantConditions
-    outState.putParcelable(FLOW_KEY, backstack.getParcelable(parceler));
+    outState.putParcelable(FLOW_KEY, backstackToSave.getParcelable(parceler));
   }
 
   /**
@@ -143,17 +155,21 @@ public final class ActivityFlowSupport {
   }
 
   private Backstack getBackstackToSave(Backstack backstack) {
-    Iterator<Path> it = backstack.reverseIterator();
+    Iterator<Entry> it = backstack.getEntries().descendingIterator();
     Backstack.Builder save = Backstack.emptyBuilder();
     boolean empty = true;
     while (it.hasNext()) {
-      Path path = it.next();
-      if (!path.getClass().isAnnotationPresent(NotPersistent.class)) {
-        save.push(path);
+      Entry entry = it.next();
+      if (canPersist(entry)) {
+        save.push(entry);
         empty = false;
       }
     }
     return empty ? null : save.build();
+  }
+
+  private static boolean canPersist(Entry entry) {
+    return !entry.getPath().getClass().isAnnotationPresent(NotPersistent.class);
   }
 }
 
