@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.path;
 
 import android.content.Context;
 import android.content.ContextWrapper;

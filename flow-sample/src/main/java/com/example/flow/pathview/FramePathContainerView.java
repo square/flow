@@ -22,10 +22,11 @@ import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import com.example.flow.R;
+import flow.path.Path;
+import flow.path.PathContainer;
+import flow.path.PathContainerView;
 import flow.Flow;
-import flow.Path;
-import flow.PathContainer;
-import flow.PathContainerView;
+
 
 /** A FrameLayout that can show screens for a {@link flow.Flow}. */
 public class FramePathContainerView extends FrameLayout

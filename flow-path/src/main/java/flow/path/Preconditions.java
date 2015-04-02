@@ -12,7 +12,7 @@
  * the License.
  */
 
-package flow;
+package flow.path;
 
 final class Preconditions {
   private Preconditions() {
@@ -34,7 +34,7 @@ final class Preconditions {
   }
 
   /**
-   * @throws java.lang.IllegalArgumentException if condition is false.
+   * @throws IllegalArgumentException if condition is false.
    */
   static void checkArgument(boolean condition, String errorMessage, Object... args) {
     if (!condition) {

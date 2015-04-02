@@ -23,6 +23,6 @@ import android.os.Parcelable;
  * with {@link Backstack} to provide a pluggable way of saving the applications screens.
  */
 public interface Parceler {
-  Parcelable wrap(Path instance);
-  Path unwrap(Parcelable parcelable);
+  Parcelable wrap(Object instance);
+  Object unwrap(Parcelable parcelable);
 }
