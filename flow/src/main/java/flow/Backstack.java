@@ -26,7 +26,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
@@ -107,26 +106,6 @@ public final class Backstack implements Iterable<Object> {
 
   @Override public String toString() {
     return backstack.toString();
-  }
-
-  /**
-   * @deprecated Applications should implement this themselves, if necessary.
-   */
-  @Deprecated public static Backstack fromUpChain(Object object) {
-    LinkedList<Object> newBackstack = new LinkedList<>();
-
-    Object current = object;
-    //noinspection deprecation
-    while (current instanceof HasParent) {
-      newBackstack.addFirst(current);
-      //noinspection deprecation
-      current = ((HasParent) current).getParent();
-    }
-    newBackstack.addFirst(current);
-
-    Backstack.Builder builder = emptyBuilder();
-    builder.addAll(newBackstack);
-    return builder.build();
   }
 
   private static final class Entry implements ViewState {
