@@ -105,7 +105,7 @@ public final class ActivityFlowSupport {
     checkArgument(intent != null, "intent may not be null");
     if (intent.hasExtra(BACKSTACK_KEY)) {
       Backstack backstack = Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
-      flow.set(backstack, Flow.Direction.REPLACE);
+      flow.setBackstack(backstack, Flow.Direction.REPLACE);
     }
   }
 

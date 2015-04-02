@@ -104,7 +104,7 @@ public final class Flow {
       // Nothing is happening;
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
-      set(backstack, Direction.REPLACE);
+      setBackstack(backstack, Direction.REPLACE);
       return;
     }
 
@@ -135,7 +135,7 @@ public final class Flow {
   /**
    * Replaces the backstack with the one given and dispatches in the given direction.
    */
-  public void set(final Backstack backstack, final Direction direction) {
+  public void setBackstack(final Backstack backstack, final Direction direction) {
     move(new PendingTraversal() {
       @Override void doExecute() {
         dispatch(backstack, direction);
@@ -217,7 +217,7 @@ public final class Flow {
   }
 
   /**
-   * @deprecated Use {@link #set(Backstack, Direction)}.
+   * @deprecated Use {@link #setBackstack(Backstack, Direction)}.
    */
   @Deprecated  @SuppressWarnings("deprecation") public void replaceTo(final Path path) {
     move(new PendingTraversal() {
@@ -232,7 +232,7 @@ public final class Flow {
    * Go up one screen.
    *
    * @return false if going up is not possible.
-   * @deprecated Use {@link #set(Backstack, Direction)}
+   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
    */
   @Deprecated @SuppressWarnings("deprecation") public boolean goUp() {
     boolean canGoUp = false;
@@ -285,21 +285,21 @@ public final class Flow {
   /**
    * Goes forward to a new backstack.
    *
-   * @deprecated Use {@link #set(Backstack, Direction)}
+   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
    */
   @Deprecated @SuppressWarnings("UnusedDeclaration")
   public void forward(final Backstack newBackstack) {
-    set(newBackstack, Direction.FORWARD);
+    setBackstack(newBackstack, Direction.FORWARD);
   }
 
   /**
    * Goes backward to a new backstack.
    *
-   * @deprecated Use {@link #set(Backstack, Direction)}
+   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
    */
   @Deprecated @SuppressWarnings("UnusedDeclaration")
   public void backward(final Backstack newBackstack) {
-    set(newBackstack, Direction.BACKWARD);
+    setBackstack(newBackstack, Direction.BACKWARD);
   }
 
   private void move(PendingTraversal pendingTraversal) {
