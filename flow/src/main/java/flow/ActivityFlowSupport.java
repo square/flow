@@ -69,24 +69,24 @@ public final class ActivityFlowSupport {
     }
   }
 
-  public static void setBackstackExtra(Intent intent, Backstack backstack, Parceler parceler) {
+  public static void setBackstackExtra(Intent intent, Backstack backstack, StateParceler parceler) {
     intent.putExtra(BACKSTACK_KEY, backstack.getParcelable(parceler));
   }
 
   private static final String BACKSTACK_KEY =
       ActivityFlowSupport.class.getSimpleName() + "_backstack";
 
-  private final Parceler parceler;
+  private final StateParceler parceler;
   private final Flow flow;
   private Flow.Dispatcher dispatcher;
 
-  private ActivityFlowSupport(Flow flow, Parceler parceler) {
+  private ActivityFlowSupport(Flow flow, StateParceler parceler) {
     this.flow = flow;
     this.parceler = parceler;
   }
 
   public static ActivityFlowSupport onCreate(NonConfigurationInstance nonConfigurationInstance,
-      Intent intent, Bundle savedInstanceState, Parceler parceler, Backstack defaultBackstack) {
+      Intent intent, Bundle savedInstanceState, StateParceler parceler, Backstack defaultBackstack) {
     checkArgument(parceler != null, "parceler may not be null");
     final Flow flow;
     if (nonConfigurationInstance != null) {
@@ -152,7 +152,7 @@ public final class ActivityFlowSupport {
   }
 
   private static Backstack selectBackstack(Intent intent, Backstack saved,
-      Backstack defaultBackstack, Parceler parceler) {
+      Backstack defaultBackstack, StateParceler parceler) {
     if (intent.hasExtra(BACKSTACK_KEY)) {
       return Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
     }

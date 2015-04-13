@@ -40,7 +40,7 @@ public class FramePathContainerView extends FrameLayout
   }
 
   /**
-   * Allows subclasses to use custom {@link flow.PathContainer} implementations. Allows the use
+   * Allows subclasses to use custom {@link flow.path.PathContainer} implementations. Allows the use
    * of more sophisticated transition schemes, and customized context wrappers.
    */
   protected FramePathContainerView(Context context, AttributeSet attrs, PathContainer container) {

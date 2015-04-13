@@ -37,7 +37,7 @@ public class ReentranceTest {
     Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
       @Override public void dispatch(Traversal navigation, TraversalCallback callback) {
         lastStack = navigation.destination;
-        Object next = navigation.destination.current();
+        Object next = navigation.destination.top();
         if (next instanceof Detail) {
           flow.set(new Loading());
         } else if (next instanceof Loading) {
@@ -58,7 +58,7 @@ public class ReentranceTest {
 
       @Override public void dispatch(Traversal navigation, TraversalCallback onComplete) {
         lastStack = navigation.destination;
-        Object next = navigation.destination.current();
+        Object next = navigation.destination.top();
         if (loading) {
           if (next instanceof Detail) {
             flow.set(new Loading());
@@ -87,7 +87,7 @@ public class ReentranceTest {
     flow.setDispatcher(new Flow.Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
-        Object next = traversal.destination.current();
+        Object next = traversal.destination.top();
         if (next instanceof Detail) {
           ReentranceTest.this.flow.setBackstack(
               Backstack.emptyBuilder().push(new Detail()).push(new Loading()).build(), FORWARD);
@@ -107,7 +107,7 @@ public class ReentranceTest {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         lastCallback = callback;
-        Object next = traversal.destination.current();
+        Object next = traversal.destination.top();
         if (next instanceof Detail) {
           flow.set(new Loading());
         } else if (next instanceof Loading) {

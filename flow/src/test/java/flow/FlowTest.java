@@ -64,19 +64,19 @@ public class FlowTest {
     flow.setDispatcher(new FlowDispatcher());
 
     flow.set(new Dos());
-    assertThat(lastStack.current()).isInstanceOf(Dos.class);
+    assertThat(lastStack.top()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
 
     flow.set(new Tres());
-    assertThat(lastStack.current()).isInstanceOf(Tres.class);
+    assertThat(lastStack.top()).isInstanceOf(Tres.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Dos.class);
+    assertThat(lastStack.top()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Uno.class);
+    assertThat(lastStack.top()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
@@ -139,11 +139,11 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
 
     assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Dos.class);
+    assertThat(lastStack.top()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Uno.class);
+    assertThat(lastStack.top()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goUp()).isFalse();
@@ -158,10 +158,10 @@ public class FlowTest {
     flow.setDispatcher(new FlowDispatcher());
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(baker);
+    assertThat(lastStack.top()).isEqualTo(baker);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(able);
+    assertThat(lastStack.top()).isEqualTo(able);
 
     assertThat(flow.goBack()).isFalse();
   }
@@ -173,15 +173,15 @@ public class FlowTest {
     flow.setDispatcher(new FlowDispatcher());
 
     flow.replaceTo(new Tres());
-    assertThat(lastStack.current()).isInstanceOf(Tres.class);
+    assertThat(lastStack.top()).isInstanceOf(Tres.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.REPLACE);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Dos.class);
+    assertThat(lastStack.top()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Uno.class);
+    assertThat(lastStack.top()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
@@ -198,9 +198,9 @@ public class FlowTest {
         Arrays.<Object>asList(charlie, delta)).build();
     flow.setBackstack(newBackstack, Flow.Direction.FORWARD);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
-    assertThat(lastStack.current()).isSameAs(delta);
+    assertThat(lastStack.top()).isSameAs(delta);
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isSameAs(charlie);
+    assertThat(lastStack.top()).isSameAs(charlie);
     assertThat(flow.goBack()).isFalse();
   }
 
@@ -213,16 +213,16 @@ public class FlowTest {
     assertThat(backstack.size()).isEqualTo(4);
 
     flow.set(charlie);
-    assertThat(lastStack.current()).isEqualTo(charlie);
+    assertThat(lastStack.top()).isEqualTo(charlie);
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(baker);
+    assertThat(lastStack.top()).isEqualTo(baker);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(able);
+    assertThat(lastStack.top()).isEqualTo(able);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
@@ -236,16 +236,16 @@ public class FlowTest {
     assertThat(backstack.size()).isEqualTo(2);
 
     flow.set(charlie);
-    assertThat(lastStack.current()).isEqualTo(charlie);
+    assertThat(lastStack.top()).isEqualTo(charlie);
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.FORWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(baker);
+    assertThat(lastStack.top()).isEqualTo(baker);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(able);
+    assertThat(lastStack.top()).isEqualTo(able);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
     assertThat(flow.goBack()).isFalse();
   }
@@ -258,9 +258,9 @@ public class FlowTest {
     assertThat(backstack.size()).isEqualTo(2);
 
     flow.set(new TestState("Able"));
-    assertThat(lastStack.current()).isEqualTo(new TestState("Able"));
-    assertThat(lastStack.current() == able).isTrue();
-    assertThat(lastStack.current()).isSameAs(able);
+    assertThat(lastStack.top()).isEqualTo(new TestState("Able"));
+    assertThat(lastStack.top() == able).isTrue();
+    assertThat(lastStack.top()).isSameAs(able);
     assertThat(lastStack.size()).isEqualTo(1);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
@@ -279,16 +279,16 @@ public class FlowTest {
     TestState foxtrot = new Foxtrot();
     flow.replaceTo(foxtrot);
     assertThat(lastStack.size()).isEqualTo(4);
-    assertThat(lastStack.current()).isSameAs(foxtrot);
+    assertThat(lastStack.top()).isSameAs(foxtrot);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.current()).isEqualTo(new Echo());
+    assertThat(lastStack.top()).isEqualTo(new Echo());
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.current()).isSameAs(baker);
+    assertThat(lastStack.top()).isSameAs(baker);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.current()).isSameAs(able);
+    assertThat(lastStack.top()).isSameAs(able);
   }
 
   @SuppressWarnings("deprecation") @Test public void goUpKeepsOriginals() {
@@ -307,13 +307,13 @@ public class FlowTest {
 
     flow.goUp();
     assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.current()).isEqualTo(new Echo());
+    assertThat(lastStack.top()).isEqualTo(new Echo());
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.current()).isSameAs(baker);
+    assertThat(lastStack.top()).isSameAs(baker);
     flow.goBack();
     assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.current()).isSameAs(able);
+    assertThat(lastStack.top()).isSameAs(able);
   }
 
   static class Picky extends Object {
@@ -349,16 +349,16 @@ public class FlowTest {
     assertThat(backstack.size()).isEqualTo(4);
 
     flow.set(new Picky("Charlie"));
-    assertThat(lastStack.current()).isEqualTo(new Picky("Charlie"));
+    assertThat(lastStack.top()).isEqualTo(new Picky("Charlie"));
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(new Picky("Baker"));
+    assertThat(lastStack.top()).isEqualTo(new Picky("Baker"));
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isEqualTo(new Picky("Able"));
+    assertThat(lastStack.top()).isEqualTo(new Picky("Able"));
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
@@ -375,7 +375,7 @@ public class FlowTest {
     flow.replaceTo(new TestState("Echo"));
     Backstack newBack = flow.getBackstack();
     assertThat(newBack.size()).isEqualTo(1);
-    assertThat(newBack.current()).isEqualTo(new TestState("Echo"));
+    assertThat(newBack.top()).isEqualTo(new TestState("Echo"));
   }
 
   /**
@@ -387,14 +387,14 @@ public class FlowTest {
 
     Flow flow = new Flow(backstack);
     flow.setDispatcher(new FlowDispatcher());
-    assertThat(flow.getBackstack().current()).isInstanceOf(Tres.class);
+    assertThat(flow.getBackstack().top()).isInstanceOf(Tres.class);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Dos.class);
+    assertThat(lastStack.top()).isInstanceOf(Dos.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.current()).isInstanceOf(Uno.class);
+    assertThat(lastStack.top()).isInstanceOf(Uno.class);
     assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();

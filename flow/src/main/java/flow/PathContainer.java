@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package flow.path;
+package flow;
 
 import android.view.View;
 import android.view.ViewGroup;
-import flow.Flow;
-import flow.Layout;
-import flow.ViewState;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Handles swapping paths within a container view, as well as flow mechanics, allowing supported
  * container views to be largely declarative.
+ *
+ * @deprecated use flow.path.PathContainer from the flow-path module.
  */
+@Deprecated
 public abstract class PathContainer {
 
   /**

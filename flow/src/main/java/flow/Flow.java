@@ -161,7 +161,7 @@ public final class Flow {
   public void set(final Object newTop) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        if (newTop.equals(backstack.current())) {
+        if (newTop.equals(backstack.top())) {
           dispatch(backstack, Direction.REPLACE);
           return;
         }
@@ -236,13 +236,13 @@ public final class Flow {
    */
   @Deprecated @SuppressWarnings("deprecation") public boolean goUp() {
     boolean canGoUp = false;
-    if (backstack.current() instanceof HasParent || (pendingTraversal != null
+    if (backstack.top() instanceof HasParent || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED)) {
       canGoUp = true;
     }
     move(new PendingTraversal() {
        @Override public void doExecute() {
-        Object current = backstack.current();
+        Object current = backstack.top();
         if (current instanceof HasParent) {
           Object parent = ((HasParent) current).getParent();
           Backstack newBackstack =

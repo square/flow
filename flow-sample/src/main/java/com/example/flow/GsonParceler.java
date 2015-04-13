@@ -21,12 +21,12 @@ import android.os.Parcelable;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
-import flow.Parceler;
+import flow.StateParceler;
 import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 
-public class GsonParceler implements Parceler {
+public class GsonParceler implements StateParceler {
   private final Gson gson;
 
   public GsonParceler(Gson gson) {
