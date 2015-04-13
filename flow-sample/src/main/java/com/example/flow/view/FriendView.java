@@ -18,7 +18,7 @@ package com.example.flow.view;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import butterknife.ButterKnife;
 import butterknife.InjectView;
@@ -30,7 +30,7 @@ import flow.path.Path;
 import java.util.List;
 import javax.inject.Inject;
 
-public class FriendView extends FrameLayout {
+public class FriendView extends LinearLayout {
   @Inject List<User> friends;
 
   private final User friend;

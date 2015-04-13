@@ -64,16 +64,13 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
     GsonParceler parceler = new GsonParceler(new Gson());
     @SuppressWarnings("deprecation") ActivityFlowSupport.NonConfigurationInstance nonConfig =
         (ActivityFlowSupport.NonConfigurationInstance) getLastNonConfigurationInstance();
-    flowSupport = ActivityFlowSupport.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
-        Backstack.single(new Paths.ConversationList()));
-
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
-
     setContentView(R.layout.root_layout);
-
     container = (PathContainerView) findViewById(R.id.container);
     containerAsBackTarget = (HandlesBack) container;
+    flowSupport = ActivityFlowSupport.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
+        Backstack.single(new Paths.ConversationList()), this);
   }
 
   @Override protected void onNewIntent(Intent intent) {
@@ -83,7 +80,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
 
   @Override protected void onResume() {
     super.onResume();
-    flowSupport.onResume(this);
+    flowSupport.onResume();
   }
 
   @Override protected void onPause() {
