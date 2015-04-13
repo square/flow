@@ -51,12 +51,6 @@ public final class Backstack implements Iterable<Object> {
 
   private final Deque<Entry> backstack;
 
-  /** @deprecated Use {@link #from(android.os.Parcelable, StateParceler)}. */
-  @Deprecated
-  public static Backstack from(Parcelable parcelable, final Parceler parceler) {
-    return from(parcelable, new DeprecatedParcelerAdapter(parceler));
-  }
-
   /** Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}. */
   public Parcelable getParcelable(StateParceler parceler) {
     Bundle backstackBundle = new Bundle();
@@ -69,7 +63,7 @@ public final class Backstack implements Iterable<Object> {
   }
 
   /**
-   * Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}, filtered
+   * Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}, filtered
    * by the supplied {@link Filter}.
    *
    * The filter is invoked on each state in the stack in reverse order
@@ -89,12 +83,6 @@ public final class Backstack implements Iterable<Object> {
     Collections.reverse(entryBundles);
     backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return backstackBundle;
-  }
-
-  /** @deprecated Use {@link #getParcelable(StateParceler)}. */
-  @Deprecated
-  public Parcelable getParcelable(Parceler parceler) {
-    return  getParcelable(new DeprecatedParcelerAdapter(parceler));
   }
 
   public static Builder emptyBuilder() {
@@ -127,12 +115,6 @@ public final class Backstack implements Iterable<Object> {
   public <T> T top() {
     //noinspection unchecked
     return (T) backstack.peek().state;
-  }
-
-  /** @deprecated Use {@link #top()}. */
-  @Deprecated
-  public Path current() {
-    return top();
   }
 
   public ViewState currentViewState() {
@@ -246,22 +228,6 @@ public final class Backstack implements Iterable<Object> {
 
     @Override public void remove() {
       throw new UnsupportedOperationException();
-    }
-  }
-
-  private static class DeprecatedParcelerAdapter implements StateParceler {
-    private final Parceler parceler;
-
-    public DeprecatedParcelerAdapter(Parceler parceler) {
-      this.parceler = parceler;
-    }
-
-    @Override public Parcelable wrap(Object instance) {
-      return parceler.wrap((Path) instance);
-    }
-
-    @Override public Object unwrap(Parcelable parcelable) {
-      return parceler.unwrap(parcelable);
     }
   }
 }
