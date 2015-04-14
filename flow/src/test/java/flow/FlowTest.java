@@ -25,21 +25,13 @@ import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
 
 public class FlowTest {
-  static class Uno extends Object {
+  static class Uno {
   }
 
-  @SuppressWarnings("deprecation")
-  static class Dos extends Object implements HasParent {
-    @Override public Uno getParent() {
-      return new Uno();
-    }
+  static class Dos {
   }
 
-  @SuppressWarnings("deprecation")
-  static class Tres extends Object implements HasParent {
-    @Override public Dos getParent() {
-      return new Dos();
-    }
+  static class Tres {
   }
 
   final TestState able = new TestState("Able");
@@ -117,38 +109,6 @@ public class FlowTest {
     listener.flow.set(new Dos());
   }
 
-  @Test public void noUpNoUps() {
-    Backstack backstack = Backstack.single(new Uno());
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-    lastStack = null;
-    lastDirection = null;
-
-    //noinspection deprecation
-    assertThat(flow.goUp()).isFalse();
-    assertThat(lastStack).isNull();
-    assertThat(lastDirection).isNull();
-  }
-
-  @SuppressWarnings("deprecation")
-  @Test public void upAndDown() {
-    Backstack backstack = Backstack.single(new Tres());
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-
-    assertThat(flow.goBack()).isFalse();
-
-    assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Dos.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goUp()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Uno.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goUp()).isFalse();
-  }
-
   @Test public void backStackAddAllIsPushy() {
     Backstack backstack =
         Backstack.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie)).build();
@@ -166,27 +126,6 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  @SuppressWarnings("deprecation") @Test public void replaceBuildsBackStackFromUpLinks() {
-    Backstack backstack =
-        Backstack.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-
-    flow.replaceTo(new Tres());
-    assertThat(lastStack.top()).isInstanceOf(Tres.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.REPLACE);
-
-    assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Dos.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Uno.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goBack()).isFalse();
-  }
-
   @Test public void setBackstackWorks() {
     Backstack backstack =
         Backstack.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
@@ -194,8 +133,8 @@ public class FlowTest {
     FlowDispatcher dispatcher = new FlowDispatcher();
     flow.setDispatcher(dispatcher);
 
-    Backstack newBackstack = Backstack.emptyBuilder().addAll(
-        Arrays.<Object>asList(charlie, delta)).build();
+    Backstack newBackstack =
+        Backstack.emptyBuilder().addAll(Arrays.<Object>asList(charlie, delta)).build();
     flow.setBackstack(newBackstack, Flow.Direction.FORWARD);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
     assertThat(lastStack.top()).isSameAs(delta);
@@ -265,58 +204,7 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
 
-  @SuppressWarnings("deprecation") @Test public void replaceKeepsOriginals() {
-    TestState able = new Grandpa();
-    TestState baker = new Daddy();
-    TestState charlie = new Baby();
-    TestState delta = new TestState("Delta");
-    Backstack backstack =
-        Backstack.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-    assertThat(backstack.size()).isEqualTo(4);
-
-    TestState foxtrot = new Foxtrot();
-    flow.replaceTo(foxtrot);
-    assertThat(lastStack.size()).isEqualTo(4);
-    assertThat(lastStack.top()).isSameAs(foxtrot);
-    flow.goBack();
-    assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.top()).isEqualTo(new Echo());
-    flow.goBack();
-    assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.top()).isSameAs(baker);
-    flow.goBack();
-    assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.top()).isSameAs(able);
-  }
-
-  @SuppressWarnings("deprecation") @Test public void goUpKeepsOriginals() {
-    TestState able = new Grandpa();
-    TestState baker = new Daddy();
-    TestState charlie = new Baby();
-    TestState delta = new TestState("Delta");
-    TestState foxtrot = new Foxtrot();
-
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(able, baker, charlie, delta, foxtrot))
-        .build();
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-    assertThat(backstack.size()).isEqualTo(5);
-
-    flow.goUp();
-    assertThat(lastStack.size()).isEqualTo(3);
-    assertThat(lastStack.top()).isEqualTo(new Echo());
-    flow.goBack();
-    assertThat(lastStack.size()).isEqualTo(2);
-    assertThat(lastStack.top()).isSameAs(baker);
-    flow.goBack();
-    assertThat(lastStack.size()).isEqualTo(1);
-    assertThat(lastStack.top()).isSameAs(able);
-  }
-
-  static class Picky extends Object {
+  static class Picky {
     final String value;
 
     Picky(String value) {
@@ -362,91 +250,5 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
-  }
-
-  @SuppressWarnings("deprecation") @Test public void replaceWithNonUppy() {
-    Backstack backstack = Backstack.emptyBuilder()
-        .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
-            new Picky("Delta")))
-        .build();
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-
-    flow.replaceTo(new TestState("Echo"));
-    Backstack newBack = flow.getBackstack();
-    assertThat(newBack.size()).isEqualTo(1);
-    assertThat(newBack.top()).isEqualTo(new TestState("Echo"));
-  }
-
-  /**
-   * Sometimes its nice to jump into a new flow at a midpoint.
-   */
-  @SuppressWarnings("deprecation") @Test public void buildFromUp() {
-    Backstack backstack = Backstack.fromUpChain(new Tres());
-    assertThat(backstack.size()).isEqualTo(3);
-
-    Flow flow = new Flow(backstack);
-    flow.setDispatcher(new FlowDispatcher());
-    assertThat(flow.getBackstack().top()).isInstanceOf(Tres.class);
-
-    assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Dos.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goBack()).isTrue();
-    assertThat(lastStack.top()).isInstanceOf(Uno.class);
-    assertThat(lastDirection).isSameAs(Flow.Direction.BACKWARD);
-
-    assertThat(flow.goBack()).isFalse();
-  }
-
-  static class Grandpa extends TestState {
-    Grandpa() {
-      super("Grandpa");
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  static class Daddy extends TestState implements HasParent {
-    Daddy() {
-      super("Daddy");
-    }
-
-    @Override public TestState getParent() {
-      return new Grandpa();
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  static class Baby extends TestState implements HasParent {
-    Baby() {
-      super("Baby");
-    }
-
-    @Override public TestState getParent() {
-      return new Daddy();
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  static class Echo extends TestState implements HasParent {
-    Echo() {
-      super("Echo");
-    }
-
-    @Override public TestState getParent() {
-      return new Daddy();
-    }
-  }
-
-  @SuppressWarnings("deprecation")
-  static class Foxtrot extends TestState implements HasParent {
-    Foxtrot() {
-      super("Foxtrot");
-    }
-
-    @Override public TestState getParent() {
-      return new Echo();
-    }
   }
 }

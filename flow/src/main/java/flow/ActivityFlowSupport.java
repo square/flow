@@ -2,10 +2,9 @@ package flow;
 
 import android.content.Intent;
 import android.os.Bundle;
-import java.util.Iterator;
+import android.os.Parcelable;
 
 import static flow.Preconditions.checkArgument;
-import static flow.Preconditions.checkState;
 
 /**
  * Manages a Flow within an Activity.  Make sure that each method is called from the corresponding
@@ -79,14 +78,18 @@ public final class ActivityFlowSupport {
   private final StateParceler parceler;
   private final Flow flow;
   private Flow.Dispatcher dispatcher;
+  private boolean dispatcherSet;
 
-  private ActivityFlowSupport(Flow flow, StateParceler parceler) {
+  private ActivityFlowSupport(Flow flow, Flow.Dispatcher dispatcher, StateParceler parceler) {
     this.flow = flow;
+    this.dispatcher = dispatcher;
     this.parceler = parceler;
   }
 
+  /** Immediately starts the Dispatcher, so the dispatcher should be prepared before calling. */
   public static ActivityFlowSupport onCreate(NonConfigurationInstance nonConfigurationInstance,
-      Intent intent, Bundle savedInstanceState, StateParceler parceler, Backstack defaultBackstack) {
+      Intent intent, Bundle savedInstanceState, StateParceler parceler, Backstack defaultBackstack,
+      Flow.Dispatcher dispatcher) {
     checkArgument(parceler != null, "parceler may not be null");
     final Flow flow;
     if (nonConfigurationInstance != null) {
@@ -98,7 +101,8 @@ public final class ActivityFlowSupport {
       }
       flow = new Flow(selectBackstack(intent, savedBackstack, defaultBackstack, parceler));
     }
-    return new ActivityFlowSupport(flow, parceler);
+    flow.setDispatcher(dispatcher);
+    return new ActivityFlowSupport(flow, dispatcher, parceler);
   }
 
   public void onNewIntent(Intent intent) {
@@ -109,11 +113,11 @@ public final class ActivityFlowSupport {
     }
   }
 
-  public void onResume(Flow.Dispatcher dispatcher) {
-    checkArgument(dispatcher != null, "dispatcher may not be null");
-    this.dispatcher = dispatcher;
-
-    flow.setDispatcher(dispatcher);
+  public void onResume() {
+    if (!dispatcherSet) {
+      dispatcherSet = true;
+      flow.setDispatcher(dispatcher);
+    }
   }
 
   public NonConfigurationInstance onRetainNonConfigurationInstance() {
@@ -121,9 +125,8 @@ public final class ActivityFlowSupport {
   }
 
   public void onPause() {
-    checkState(dispatcher != null, "Did you forget to call onResume()?");
     flow.removeDispatcher(dispatcher);
-    dispatcher = null;
+    dispatcherSet = false;
   }
 
   /**
@@ -135,10 +138,15 @@ public final class ActivityFlowSupport {
 
   public void onSaveInstanceState(Bundle outState) {
     checkArgument(outState != null, "outState may not be null");
-    Backstack backstack = getBackstackToSave(flow.getBackstack());
-    if (backstack == null) return;
-    //noinspection ConstantConditions
-    outState.putParcelable(BACKSTACK_KEY, backstack.getParcelable(parceler));
+    Parcelable parcelable = flow.getBackstack().getParcelable(parceler, new Backstack.Filter() {
+      @Override public boolean apply(Object state) {
+        return !state.getClass().isAnnotationPresent(NotPersistent.class);
+      }
+    });
+    if (parcelable != null) {
+      //noinspection ConstantConditions
+      outState.putParcelable(BACKSTACK_KEY, parcelable);
+    }
   }
 
   /**
@@ -160,19 +168,5 @@ public final class ActivityFlowSupport {
       return saved;
     }
     return defaultBackstack;
-  }
-
-  private static Backstack getBackstackToSave(Backstack backstack) {
-    Iterator<Object> it = backstack.reverseIterator();
-    Backstack.Builder save = Backstack.emptyBuilder();
-    boolean empty = true;
-    while (it.hasNext()) {
-      Object state = it.next();
-      if (!state.getClass().isAnnotationPresent(NotPersistent.class)) {
-        save.push(state);
-        empty = false;
-      }
-    }
-    return empty ? null : save.build();
   }
 }

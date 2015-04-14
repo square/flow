@@ -16,9 +16,8 @@
 
 package com.example.flow;
 
-import flow.path.Path;
-import flow.HasParent;
 import flow.Layout;
+import flow.path.Path;
 
 public final class Paths {
 
@@ -85,28 +84,19 @@ public final class Paths {
   }
 
   @Layout(R.layout.conversation_view) //
-  public static class Conversation extends ConversationPath implements HasParent {
-
+  public static class Conversation extends ConversationPath {
     public Conversation(int conversationIndex) {
       super(conversationIndex);
-    }
-
-    @Override public ConversationList getParent() {
-      return new ConversationList();
     }
   }
 
   @Layout(R.layout.message_view) //
-  public static class Message extends ConversationPath implements HasParent {
+  public static class Message extends ConversationPath {
     public final int messageId;
 
     public Message(int conversationIndex, int messageId) {
       super(conversationIndex);
       this.messageId = messageId;
-    }
-
-    @Override public Conversation getParent() {
-      return new Conversation(conversationIndex);
     }
 
     @Override
@@ -156,24 +146,16 @@ public final class Paths {
   }
 
   @Layout(R.layout.friend_list_view) //
-  public static class FriendList extends FriendPath implements HasParent {
+  public static class FriendList extends FriendPath {
     public FriendList() {
       super(-1);
-    }
-
-    @Override public ConversationList getParent() {
-      return new ConversationList();
     }
   }
 
   @Layout(R.layout.friend_view) //
-  public static class Friend extends FriendPath implements HasParent {
+  public static class Friend extends FriendPath {
     public Friend(int index) {
       super(index);
-    }
-
-    @Override public FriendList getParent() {
-      return new FriendList();
     }
   }
 

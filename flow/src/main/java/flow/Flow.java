@@ -201,63 +201,6 @@ public final class Flow {
   }
 
   /**
-   * Push the screen onto the backstack.
-   *
-   * @deprecated Use {@link #set(Object)}.
-   */
-  @Deprecated @SuppressWarnings("UnusedDeclaration") public void goTo(final Object object) {
-    set(object);
-  }
-
-  /**
-   * @deprecated Use {@link #set(Object)}.
-   */
-  @Deprecated @SuppressWarnings("UnusedDeclaration") public void resetTo(final Object object) {
-    set(object);
-  }
-
-  /**
-   * @deprecated Use {@link #setBackstack(Backstack, Direction)}.
-   */
-  @Deprecated  @SuppressWarnings("deprecation") public void replaceTo(final Object object) {
-    move(new PendingTraversal() {
-     @Override protected void doExecute() {
-        Backstack newBackstack = preserveEquivalentPrefix(backstack, Backstack.fromUpChain(object));
-        dispatch(newBackstack, Direction.REPLACE);
-      }
-    });
-  }
-
-  /**
-   * Go up one screen.
-   *
-   * @return false if going up is not possible.
-   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
-   */
-  @Deprecated @SuppressWarnings("deprecation") public boolean goUp() {
-    boolean canGoUp = false;
-    if (backstack.top() instanceof HasParent || (pendingTraversal != null
-        && pendingTraversal.state != TraversalState.FINISHED)) {
-      canGoUp = true;
-    }
-    move(new PendingTraversal() {
-       @Override public void doExecute() {
-        Object current = backstack.top();
-        if (current instanceof HasParent) {
-          Object parent = ((HasParent) current).getParent();
-          Backstack newBackstack =
-              preserveEquivalentPrefix(backstack, Backstack.fromUpChain(parent));
-          dispatch(newBackstack, Direction.BACKWARD);
-        } else {
-          // We are not calling the listener, so we must complete this noop transition ourselves.
-          onTraversalCompleted();
-        }
-      }
-    });
-    return canGoUp;
-  }
-
-  /**
    * Go back one screen.
    *
    * @return false if going back is not possible.
@@ -282,26 +225,6 @@ public final class Flow {
     return canGoBack;
   }
 
-  /**
-   * Goes forward to a new backstack.
-   *
-   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
-   */
-  @Deprecated @SuppressWarnings("UnusedDeclaration")
-  public void forward(final Backstack newBackstack) {
-    setBackstack(newBackstack, Direction.FORWARD);
-  }
-
-  /**
-   * Goes backward to a new backstack.
-   *
-   * @deprecated Use {@link #setBackstack(Backstack, Direction)}
-   */
-  @Deprecated @SuppressWarnings("UnusedDeclaration")
-  public void backward(final Backstack newBackstack) {
-    setBackstack(newBackstack, Direction.BACKWARD);
-  }
-
   private void move(PendingTraversal pendingTraversal) {
     if (this.pendingTraversal == null) {
       this.pendingTraversal = pendingTraversal;
@@ -310,33 +233,6 @@ public final class Flow {
     } else {
       this.pendingTraversal.enqueue(pendingTraversal);
     }
-  }
-
-  private static Backstack preserveEquivalentPrefix(Backstack current, Backstack proposed) {
-    Iterator<Object> oldIt = current.reverseIterator();
-    Iterator<Object> newIt = proposed.reverseIterator();
-
-    Backstack.Builder preserving = Backstack.emptyBuilder();
-
-    while (newIt.hasNext()) {
-      Object newEntry = newIt.next();
-      if (!oldIt.hasNext()) {
-        preserving.push(newEntry);
-        break;
-      }
-      Object oldEntry = oldIt.next();
-      if (oldEntry.equals(newEntry)) {
-        preserving.push(oldEntry);
-      } else {
-        preserving.push(newEntry);
-        break;
-      }
-    }
-
-    while (newIt.hasNext()) {
-      preserving.push(newIt.next());
-    }
-    return preserving.build();
   }
 
   private enum TraversalState {
