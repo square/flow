@@ -35,8 +35,8 @@ public final class Backstack implements Iterable<Object> {
     boolean apply(Object state);
   }
 
-  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link Parceler}. */
-  public static Backstack from(Parcelable parcelable, Parceler parceler) {
+  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link StateParceler}. */
+  public static Backstack from(Parcelable parcelable, StateParceler parceler) {
     Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
@@ -51,8 +51,8 @@ public final class Backstack implements Iterable<Object> {
 
   private final Deque<Entry> backstack;
 
-  /** Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}. */
-  public Parcelable getParcelable(Parceler parceler) {
+  /** Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}. */
+  public Parcelable getParcelable(StateParceler parceler) {
     Bundle backstackBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
     for (Entry entry : backstack) {
@@ -63,14 +63,14 @@ public final class Backstack implements Iterable<Object> {
   }
 
   /**
-   * Get a {@link Parcelable} of this backstack using the supplied {@link Parceler}, filtered
+   * Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}, filtered
    * by the supplied {@link Filter}.
    *
    * The filter is invoked on each state in the stack in reverse order
    *
    * @return null if all states are filtered out.
    */
-  public Parcelable getParcelable(Parceler parceler, Filter filter) {
+  public Parcelable getParcelable(StateParceler parceler, Filter filter) {
     Bundle backstackBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
     Iterator<Entry> it = backstack.descendingIterator();
@@ -112,7 +112,7 @@ public final class Backstack implements Iterable<Object> {
     return backstack.size();
   }
 
-  public <T> T current() {
+  public <T> T top() {
     //noinspection unchecked
     return (T) backstack.peek().state;
   }
@@ -150,7 +150,7 @@ public final class Backstack implements Iterable<Object> {
       }
     }
 
-    Bundle getBundle(Parceler parceler) {
+    Bundle getBundle(StateParceler parceler) {
       Bundle bundle = new Bundle();
       bundle.putParcelable("OBJECT", parceler.wrap(state));
       bundle.putSparseParcelableArray("VIEW_STATE", viewState);

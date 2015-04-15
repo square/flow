@@ -74,7 +74,7 @@ public abstract class PathContainer {
   public final void executeTraversal(PathContainerView view, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
-    Path path = traversal.destination.current();
+    Path path = traversal.destination.top();
     ViewState viewState = traversal.destination.currentViewState();
     Path oldPath;
     ViewGroup containerView = view.getContainerView();

@@ -161,7 +161,7 @@ public final class Flow {
   public void set(final Object newTop) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        if (newTop.equals(backstack.current())) {
+        if (newTop.equals(backstack.top())) {
           dispatch(backstack, Direction.REPLACE);
           return;
         }

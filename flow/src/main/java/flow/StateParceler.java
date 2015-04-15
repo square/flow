@@ -19,10 +19,10 @@ package flow;
 import android.os.Parcelable;
 
 /**
- * Generic interface to wrap and unwrap objects as instances of {@link Parcelable}. This is used
- * with {@link Backstack} to provide a pluggable way of saving the applications screens.
+ * Used by Backstack to convert your state objects to and from instances of
+ * {@link android.os.Parcelable}.
  */
-public interface Parceler {
+public interface StateParceler {
   Parcelable wrap(Object instance);
   Object unwrap(Parcelable parcelable);
 }

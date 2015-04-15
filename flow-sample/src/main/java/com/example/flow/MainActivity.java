@@ -137,7 +137,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   }
 
   @Override public void dispatch(Traversal traversal, final TraversalCallback callback) {
-    Path path = traversal.destination.current();
+    Path path = traversal.destination.top();
     setTitle(path.getClass().getSimpleName());
     ActionBar actionBar = getActionBar();
     boolean canGoBack = traversal.destination.size() > 1;
