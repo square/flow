@@ -24,7 +24,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
 import com.google.gson.Gson;
-import flow.ActivityFlowSupport;
+import flow.FlowDelegate;
 import flow.Backstack;
 import flow.Flow;
 import flow.path.Path;
@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   private PathContainerView container;
   private HandlesBack containerAsBackTarget;
 
-  private ActivityFlowSupport flowSupport;
+  private FlowDelegate flowSupport;
 
   /**
    * Pay attention to the {@link #setContentView} call here. It's creating a responsive layout
@@ -62,14 +62,14 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GsonParceler parceler = new GsonParceler(new Gson());
-    @SuppressWarnings("deprecation") ActivityFlowSupport.NonConfigurationInstance nonConfig =
-        (ActivityFlowSupport.NonConfigurationInstance) getLastNonConfigurationInstance();
+    @SuppressWarnings("deprecation") FlowDelegate.NonConfigurationInstance nonConfig =
+        (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
     setContentView(R.layout.root_layout);
     container = (PathContainerView) findViewById(R.id.container);
     containerAsBackTarget = (HandlesBack) container;
-    flowSupport = ActivityFlowSupport.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
+    flowSupport = FlowDelegate.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
         Backstack.single(new Paths.ConversationList()), this);
   }
 

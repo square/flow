@@ -14,17 +14,17 @@ import static flow.Preconditions.checkArgument;
  *
  * <pre>{@code
  * public class MainActivity extends Activity {
- *   private ActivityFlowSupport activityFlowSupport;
+ *   private FlowDelegate activityFlowSupport;
  *   private final Flow.Dispatcher dispatcher = ...;
  *
  *   &#064;Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     Parceler parceler = new GsonParceler();
  *     Backstack defaultBackstack = Backstack.single(new MyAppIntroScreen());
- *     ActivityFlowSupport.NonConfigurationInstance nonConfig =
- *         (ActivityFlowSupport.NonConfigurationInstance) getLastNonConfigurationInstance();
+ *     FlowDelegate.NonConfigurationInstance nonConfig =
+ *         (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
  *     flowSupport =
- *         ActivityFlowSupport.onCreate(nonConfig, savedInstanceState, parceler, defaultBackstack);
+ *         FlowDelegate.onCreate(nonConfig, savedInstanceState, parceler, defaultBackstack);
  *   }
  *
  *   &#064;Override public void onResume() {
@@ -59,7 +59,7 @@ import static flow.Preconditions.checkArgument;
  * }
  * }</pre>
  */
-public final class ActivityFlowSupport {
+public final class FlowDelegate {
   public static final class NonConfigurationInstance {
     private final Flow flow;
 
@@ -73,21 +73,21 @@ public final class ActivityFlowSupport {
   }
 
   private static final String BACKSTACK_KEY =
-      ActivityFlowSupport.class.getSimpleName() + "_backstack";
+      FlowDelegate.class.getSimpleName() + "_backstack";
 
   private final StateParceler parceler;
   private final Flow flow;
   private Flow.Dispatcher dispatcher;
   private boolean dispatcherSet;
 
-  private ActivityFlowSupport(Flow flow, Flow.Dispatcher dispatcher, StateParceler parceler) {
+  private FlowDelegate(Flow flow, Flow.Dispatcher dispatcher, StateParceler parceler) {
     this.flow = flow;
     this.dispatcher = dispatcher;
     this.parceler = parceler;
   }
 
   /** Immediately starts the Dispatcher, so the dispatcher should be prepared before calling. */
-  public static ActivityFlowSupport onCreate(NonConfigurationInstance nonConfigurationInstance,
+  public static FlowDelegate onCreate(NonConfigurationInstance nonConfigurationInstance,
       Intent intent, Bundle savedInstanceState, StateParceler parceler, Backstack defaultBackstack,
       Flow.Dispatcher dispatcher) {
     checkArgument(parceler != null, "parceler may not be null");
@@ -102,7 +102,7 @@ public final class ActivityFlowSupport {
       flow = new Flow(selectBackstack(intent, savedBackstack, defaultBackstack, parceler));
     }
     flow.setDispatcher(dispatcher);
-    return new ActivityFlowSupport(flow, dispatcher, parceler);
+    return new FlowDelegate(flow, dispatcher, parceler);
   }
 
   public void onNewIntent(Intent intent) {
