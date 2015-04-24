@@ -138,7 +138,7 @@ public final class Flow {
   public void setHistory(final History history, final Direction direction) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        dispatch(history, direction);
+        dispatch(preserveEquivalentPrefix(getHistory(), history), direction);
       }
     });
   }
@@ -233,6 +233,33 @@ public final class Flow {
     } else {
       this.pendingTraversal.enqueue(pendingTraversal);
     }
+  }
+
+  private static History preserveEquivalentPrefix(History current, History proposed) {
+    Iterator<Object> oldIt = current.reverseIterator();
+    Iterator<Object> newIt = proposed.reverseIterator();
+
+    History.Builder preserving = History.emptyBuilder();
+
+    while (newIt.hasNext()) {
+      Object newEntry = newIt.next();
+      if (!oldIt.hasNext()) {
+        preserving.push(newEntry);
+        break;
+      }
+      Object oldEntry = oldIt.next();
+      if (oldEntry.equals(newEntry)) {
+        preserving.push(oldEntry);
+      } else {
+        preserving.push(newEntry);
+        break;
+      }
+    }
+
+    while (newIt.hasNext()) {
+      preserving.push(newIt.next());
+    }
+    return preserving.build();
   }
 
   private enum TraversalState {

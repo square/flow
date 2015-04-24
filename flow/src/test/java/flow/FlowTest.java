@@ -16,6 +16,7 @@
 package flow;
 
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import org.junit.Test;
 
@@ -100,7 +101,12 @@ public class FlowTest {
       }
 
       @Override public void dispatch(Traversal traversal, TraversalCallback onComplete) {
-        assertThat(firstHistory).isSameAs(flow.getHistory());
+        assertThat(firstHistory).hasSameSizeAs(flow.getHistory());
+        Iterator<Object> original = firstHistory.iterator();
+        Iterator<Object> current = flow.getHistory().iterator();
+        while (current.hasNext()) {
+          assertThat(current.next()).isEqualTo(original.next());
+        }
         onComplete.onTraversalCompleted();
       }
     }
@@ -203,6 +209,36 @@ public class FlowTest {
     assertThat(lastStack.size()).isEqualTo(1);
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
+
+  @SuppressWarnings("deprecation") @Test public void setHistoryKeepsOriginals() {
+    TestState able = new TestState("Able");
+    TestState baker = new TestState("Baker");
+    TestState charlie = new TestState("Charlie");
+    TestState delta = new TestState("Delta");
+    History history =
+        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
+    Flow flow = new Flow(history);
+    flow.setDispatcher(new FlowDispatcher());
+    assertThat(history.size()).isEqualTo(4);
+
+    TestState echo = new TestState("Echo");
+    TestState foxtrot = new TestState("Foxtrot");
+    History newHistory =
+        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, echo, foxtrot)).build();
+    flow.setHistory(newHistory, Flow.Direction.REPLACE);
+    assertThat(lastStack.size()).isEqualTo(4);
+    assertThat(lastStack.top()).isEqualTo(foxtrot);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(3);
+    assertThat(lastStack.top()).isEqualTo(echo);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(2);
+    assertThat(lastStack.top()).isSameAs(baker);
+    flow.goBack();
+    assertThat(lastStack.size()).isEqualTo(1);
+    assertThat(lastStack.top()).isSameAs(able);
+  }
+
 
   static class Picky {
     final String value;
