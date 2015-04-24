@@ -2,42 +2,39 @@
 
 Flow allows you to enumerate to your app's UI states and navigate between them.
 
-## Path
-
-A Path object maps to a distinct UI state of your app. It contains just enough information to
-recreate that state.
+You represent each state of your app as a value object.
 
 ```java
-@Layout(R.layout.track)
-public class TrackScreen extends Path {
-  public final int albumId;
-  public final int trackId;
+public final class TrackScreen {
+  public final String albumId;
+  public final String trackId;
 
-  public TrackScreen(int albumId, int trackId) {
+  public TrackScreen(String albumId, String trackId) {
     this.albumId = albumId;
     this.trackId = trackId;
   }
 }
 ```
 
-## Flow
-
-The Flow holds the current History and offers navigation.
+Ask Flow to put your app into a state by calling `Flow#set()`.
 
 ```java
 flow.set(new TrackScreen(albumId, trackId));
+```
 
+Flow keeps track of your state history, so you can go back.
+
+```java
 flow.goBack();
 ```
 
-## Dispatcher
-Your app provides Flow with a Dispatcher which executes UI state changes.
+Your app provides Flow with a Dispatcher which executes state changes.
 
 ```java
 flow.setDispatcher(new Flow.Dispatcher() {
  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
-      Path newPath = traversal.destination.current();
-      displayViewFor(newPath);
+      Object newState = traversal.destination.top();
+      displayViewFor(newState);
       callback.onTraversalCompleted();
     }
 });
