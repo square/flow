@@ -30,13 +30,13 @@ import java.util.Iterator;
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
  */
-public final class Backstack implements Iterable<Object> {
+public final class History implements Iterable<Object> {
   public static interface Filter {
     boolean apply(Object state);
   }
 
-  /** Restore a saved backstack from a {@link Parcelable} using the supplied {@link StateParceler}. */
-  public static Backstack from(Parcelable parcelable, StateParceler parceler) {
+  /** Restore a saved history from a {@link Parcelable} using the supplied {@link StateParceler}. */
+  public static History from(Parcelable parcelable, StateParceler parceler) {
     Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
@@ -46,24 +46,24 @@ public final class Backstack implements Iterable<Object> {
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
     }
-    return new Backstack(entries);
+    return new History(entries);
   }
 
-  private final Deque<Entry> backstack;
+  private final Deque<Entry> history;
 
-  /** Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}. */
+  /** Get a {@link Parcelable} of this history using the supplied {@link StateParceler}. */
   public Parcelable getParcelable(StateParceler parceler) {
-    Bundle backstackBundle = new Bundle();
-    ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
-    for (Entry entry : backstack) {
+    Bundle historyBundle = new Bundle();
+    ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
+    for (Entry entry : history) {
      entryBundles.add(entry.getBundle(parceler));
     }
-    backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
-    return backstackBundle;
+    historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
+    return historyBundle;
   }
 
   /**
-   * Get a {@link Parcelable} of this backstack using the supplied {@link StateParceler}, filtered
+   * Get a {@link Parcelable} of this history using the supplied {@link StateParceler}, filtered
    * by the supplied {@link Filter}.
    *
    * The filter is invoked on each state in the stack in reverse order
@@ -71,9 +71,9 @@ public final class Backstack implements Iterable<Object> {
    * @return null if all states are filtered out.
    */
   public Parcelable getParcelable(StateParceler parceler, Filter filter) {
-    Bundle backstackBundle = new Bundle();
-    ArrayList<Bundle> entryBundles = new ArrayList<>(backstack.size());
-    Iterator<Entry> it = backstack.descendingIterator();
+    Bundle historyBundle = new Bundle();
+    ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
+    Iterator<Entry> it = history.descendingIterator();
     while (it.hasNext()) {
       Entry entry = it.next();
       if (filter.apply(entry.state)) {
@@ -81,53 +81,53 @@ public final class Backstack implements Iterable<Object> {
       }
     }
     Collections.reverse(entryBundles);
-    backstackBundle.putParcelableArrayList("ENTRIES", entryBundles);
-    return backstackBundle;
+    historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
+    return historyBundle;
   }
 
   public static Builder emptyBuilder() {
     return new Builder(Collections.<Entry>emptyList());
   }
 
-  /** Create a backstack that contains a single object. */
-  public static Backstack single(Object object) {
+  /** Create a history that contains a single object. */
+  public static History single(Object object) {
     return emptyBuilder().push(object).build();
   }
 
-  private Backstack(Deque<Entry> backstack) {
-    this.backstack = backstack;
+  private History(Deque<Entry> history) {
+    this.history = history;
   }
 
   @SuppressWarnings("UnusedDeclaration")
   @Override public Iterator<Object> iterator() {
-    return new ReadIterator<>(backstack.iterator());
+    return new ReadIterator<>(history.iterator());
   }
 
   public <T> Iterator<T> reverseIterator() {
-    return new ReadIterator<>(backstack.descendingIterator());
+    return new ReadIterator<>(history.descendingIterator());
   }
 
 
   public int size() {
-    return backstack.size();
+    return history.size();
   }
 
   public <T> T top() {
     //noinspection unchecked
-    return (T) backstack.peek().state;
+    return (T) history.peek().state;
   }
 
   public ViewState currentViewState() {
-    return backstack.peek();
+    return history.peek();
   }
 
-  /** Get a builder to modify a copy of this backstack. */
+  /** Get a builder to modify a copy of this history. */
   public Builder buildUpon() {
-    return new Builder(backstack);
+    return new Builder(history);
   }
 
   @Override public String toString() {
-    return backstack.toString();
+    return history.toString();
   }
 
   private static final class Entry implements ViewState {
@@ -172,41 +172,41 @@ public final class Backstack implements Iterable<Object> {
   }
 
   public static final class Builder {
-    private final Deque<Entry> backstack;
+    private final Deque<Entry> history;
 
-    private Builder(Collection<Entry> backstack) {
-      this.backstack = new ArrayDeque<>(backstack);
+    private Builder(Collection<Entry> history) {
+      this.history = new ArrayDeque<>(history);
     }
 
     public Builder push(Object object) {
       Entry entry = new Entry(object);
-      backstack.push(entry);
+      history.push(entry);
 
       return this;
     }
 
     public Builder addAll(Collection<Object> c) {
       for (Object object : c) {
-        backstack.push(new Entry(object));
+        history.push(new Entry(object));
       }
 
       return this;
     }
 
     public Object peek() {
-      return backstack.peek().state;
+      return history.peek().state;
     }
 
     public Object pop() {
-      return backstack.pop().state;
+      return history.pop().state;
     }
 
-    public Backstack build() {
-      if (backstack.isEmpty()) {
-        throw new IllegalStateException("Backstack may not be empty");
+    public History build() {
+      if (history.isEmpty()) {
+        throw new IllegalStateException("History may not be empty");
       }
 
-      return new Backstack(backstack);
+      return new History(history);
     }
   }
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package flow;
+package com.example.flow.pathview;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;

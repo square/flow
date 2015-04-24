@@ -24,8 +24,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
 import com.google.gson.Gson;
-import flow.ActivityFlowSupport;
-import flow.Backstack;
+import flow.FlowDelegate;
+import flow.History;
 import flow.Flow;
 import flow.path.Path;
 import flow.path.PathContainerView;
@@ -39,7 +39,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   private PathContainerView container;
   private HandlesBack containerAsBackTarget;
 
-  private ActivityFlowSupport flowSupport;
+  private FlowDelegate flowSupport;
 
   /**
    * Pay attention to the {@link #setContentView} call here. It's creating a responsive layout
@@ -62,15 +62,15 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     GsonParceler parceler = new GsonParceler(new Gson());
-    @SuppressWarnings("deprecation") ActivityFlowSupport.NonConfigurationInstance nonConfig =
-        (ActivityFlowSupport.NonConfigurationInstance) getLastNonConfigurationInstance();
+    @SuppressWarnings("deprecation") FlowDelegate.NonConfigurationInstance nonConfig =
+        (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
     final ActionBar actionBar = getActionBar();
     actionBar.setDisplayShowHomeEnabled(false);
     setContentView(R.layout.root_layout);
     container = (PathContainerView) findViewById(R.id.container);
     containerAsBackTarget = (HandlesBack) container;
-    flowSupport = ActivityFlowSupport.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
-        Backstack.single(new Paths.ConversationList()), this);
+    flowSupport = FlowDelegate.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
+        History.single(new Paths.ConversationList()), this);
   }
 
   @Override protected void onNewIntent(Intent intent) {
@@ -111,7 +111,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            Flow.get(MainActivity.this).setBackstack(Backstack.emptyBuilder() //
+            Flow.get(MainActivity.this).setHistory(History.emptyBuilder() //
                 .push(new Paths.ConversationList()) //
                 .push(new Paths.FriendList()) //
                 .build(), FORWARD);
