@@ -19,10 +19,7 @@ package flow.path;
 import android.view.View;
 import android.view.ViewGroup;
 import flow.Flow;
-import flow.Layout;
 import flow.ViewState;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 /**
  * Handles swapping paths within a container view, as well as flow mechanics, allowing supported
@@ -63,8 +60,6 @@ public abstract class PathContainer {
     }
   }
 
-  private static final Map<Class, Integer> PATH_LAYOUT_CACHE = new LinkedHashMap<>();
-
   private final int tagKey;
 
   protected PathContainer(int tagKey) {
@@ -104,18 +99,5 @@ public abstract class PathContainer {
       container.setTag(tagKey, traversalState);
     }
     return traversalState;
-  }
-
-  protected int getLayout(Path path) {
-    Class pathType = path.getClass();
-    Integer layoutResId = PATH_LAYOUT_CACHE.get(pathType);
-    if (layoutResId == null) {
-      Layout layout = (Layout) pathType.getAnnotation(Layout.class);
-      Preconditions.checkNotNull(layout, "@%s annotation not found on class %s",
-          Layout.class.getSimpleName(), pathType.getName());
-      layoutResId = layout.value();
-      PATH_LAYOUT_CACHE.put(pathType, layoutResId);
-    }
-    return layoutResId;
   }
 }

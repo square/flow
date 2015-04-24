@@ -29,6 +29,8 @@ import flow.path.Path;
 import flow.path.PathContainer;
 import flow.path.PathContext;
 import flow.path.PathContextFactory;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import static flow.Flow.Direction.REPLACE;
 
@@ -37,6 +39,7 @@ import static flow.Flow.Direction.REPLACE;
  * Uses {@link PathContext} to allow customized sub-containers.
  */
 public class SimplePathContainer extends PathContainer {
+  private static final Map<Class, Integer> PATH_LAYOUT_CACHE = new LinkedHashMap<>();
   private final PathContextFactory contextFactory;
 
   public SimplePathContainer(int tagKey, PathContextFactory contextFactory) {
@@ -92,6 +95,22 @@ public class SimplePathContainer extends PathContainer {
         }
       });
     }
+  }
+
+  protected int getLayout(Path path) {
+    Class pathType = path.getClass();
+    Integer layoutResId = PATH_LAYOUT_CACHE.get(pathType);
+    if (layoutResId == null) {
+      Layout layout = (Layout) pathType.getAnnotation(Layout.class);
+      if (layout == null) {
+        throw new IllegalArgumentException(
+            String.format("@%s annotation not found on class %s", Layout.class.getSimpleName(),
+                pathType.getName()));
+      }
+      layoutResId = layout.value();
+      PATH_LAYOUT_CACHE.put(pathType, layoutResId);
+    }
+    return layoutResId;
   }
 
   private void runAnimation(final ViewGroup container, final View from, final View to,
