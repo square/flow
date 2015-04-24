@@ -19,7 +19,7 @@ package flow;
 import android.os.Parcelable;
 
 /**
- * Used by Backstack to convert your state objects to and from instances of
+ * Used by History to convert your state objects to and from instances of
  * {@link android.os.Parcelable}.
  */
 public interface StateParceler {

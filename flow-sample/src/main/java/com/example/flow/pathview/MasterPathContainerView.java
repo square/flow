@@ -18,7 +18,7 @@ public class MasterPathContainerView extends FramePathContainerView {
   @Override public void dispatch(Flow.Traversal traversal, final Flow.TraversalCallback callback) {
 
     MasterDetailPath currentMaster =
-        ((MasterDetailPath) Flow.get(getContext()).getBackstack().top()).getMaster();
+        ((MasterDetailPath) Flow.get(getContext()).getHistory().top()).getMaster();
 
     MasterDetailPath newMaster = ((MasterDetailPath) traversal.destination.top()).getMaster();
 

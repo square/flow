@@ -25,7 +25,7 @@ import android.view.MenuItem;
 import com.example.flow.pathview.HandlesBack;
 import com.google.gson.Gson;
 import flow.FlowDelegate;
-import flow.Backstack;
+import flow.History;
 import flow.Flow;
 import flow.path.Path;
 import flow.path.PathContainerView;
@@ -70,7 +70,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
     container = (PathContainerView) findViewById(R.id.container);
     containerAsBackTarget = (HandlesBack) container;
     flowSupport = FlowDelegate.onCreate(nonConfig, getIntent(), savedInstanceState, parceler,
-        Backstack.single(new Paths.ConversationList()), this);
+        History.single(new Paths.ConversationList()), this);
   }
 
   @Override protected void onNewIntent(Intent intent) {
@@ -111,7 +111,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
         .setShowAsActionFlags(SHOW_AS_ACTION_ALWAYS)
         .setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
           @Override public boolean onMenuItemClick(MenuItem menuItem) {
-            Flow.get(MainActivity.this).setBackstack(Backstack.emptyBuilder() //
+            Flow.get(MainActivity.this).setHistory(History.emptyBuilder() //
                 .push(new Paths.ConversationList()) //
                 .push(new Paths.FriendList()) //
                 .build(), FORWARD);

@@ -48,7 +48,7 @@ public class ConversationListView extends ListView implements IsMasterView {
 
   @Override public void updateSelection() {
     Paths.ConversationPath path =
-        (Paths.ConversationPath) Flow.get(getContext()).getBackstack().top();
+        (Paths.ConversationPath) Flow.get(getContext()).getHistory().top();
     setItemChecked(path.conversationIndex, true);
     invalidate();
   }

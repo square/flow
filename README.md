@@ -20,13 +20,9 @@ public class TrackScreen extends Path {
 }
 ```
 
-## Backstack
-
-The Backstack is the history of Paths, with the head being the current Path.
-
 ## Flow
 
-The Flow holds the current Backstack and offers navigation.
+The Flow holds the current History and offers navigation.
 
 ```java
 flow.set(new TrackScreen(albumId, trackId));

@@ -49,7 +49,7 @@ public final class Flow {
     /**
      * Must be called exactly once to indicate that the corresponding transition has completed.
      *
-     * If not called, the backstack will not be updated and further calls to Flow will not execute.
+     * If not called, the history will not be updated and further calls to Flow will not execute.
      * Calling more than once will result in an exception.
      */
     void onTraversalCompleted();
@@ -57,11 +57,11 @@ public final class Flow {
 
   public static final class Traversal {
     /** May be null if this is a traversal into the start state. */
-    public final Backstack origin;
-    public final Backstack destination;
+    public final History origin;
+    public final History destination;
     public final Direction direction;
 
-    private Traversal(Backstack from, Backstack to, Direction direction) {
+    private Traversal(History from, History to, Direction direction) {
       this.origin = from;
       this.destination = to;
       this.direction = direction;
@@ -70,8 +70,8 @@ public final class Flow {
 
   public interface Dispatcher {
     /**
-     * Called when the backstack is about to change.  Note that Flow does not consider the
-     * Traversal to be finished, and will not actually update the backstack, until the callback is
+     * Called when the history is about to change.  Note that Flow does not consider the
+     * Traversal to be finished, and will not actually update the history, until the callback is
      * triggered. Traversals cannot be canceled.
      *
      * @param callback Must be called to indicate completion of the traversal.
@@ -79,16 +79,16 @@ public final class Flow {
     void dispatch(Traversal traversal, TraversalCallback callback);
   }
 
-  private Backstack backstack;
+  private History history;
   private Dispatcher dispatcher;
   private PendingTraversal pendingTraversal;
 
-  public Flow(Backstack backstack) {
-    this.backstack = backstack;
+  public Flow(History history) {
+    this.history = history;
   }
 
-  public Backstack getBackstack() {
-    return backstack;
+  public History getHistory() {
+    return history;
   }
 
   /**
@@ -104,7 +104,7 @@ public final class Flow {
       // Nothing is happening;
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
-      setBackstack(backstack, Direction.REPLACE);
+      setHistory(history, Direction.REPLACE);
       return;
     }
 
@@ -133,27 +133,27 @@ public final class Flow {
   }
 
   /**
-   * Replaces the backstack with the one given and dispatches in the given direction.
+   * Replaces the history with the one given and dispatches in the given direction.
    */
-  public void setBackstack(final Backstack backstack, final Direction direction) {
+  public void setHistory(final History history, final Direction direction) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        dispatch(backstack, direction);
+        dispatch(history, direction);
       }
     });
   }
 
   /**
-   * Updates the backstack such that the given object is at the top and dispatches the updated
-   * backstack.
+   * Updates the history such that the given object is at the top and dispatches the updated
+   * history.
    *
-   * If newTop is already at the top of the backstack, the backstack will be unchanged, but it will
+   * If newTop is already at the top of the history, the history will be unchanged, but it will
    * be dispatched with direction {@link Direction#REPLACE}.
    *
-   * If newTop is already on the backstack but not at the top, the stack will pop until newTop is
+   * If newTop is already on the history but not at the top, the stack will pop until newTop is
    * at the top, and the dispatch direction will be {@link Direction#BACKWARD}.
    *
-   * If newTop is not already on the backstack, it will be pushed and the dispatch direction will be
+   * If newTop is not already on the history, it will be pushed and the dispatch direction will be
    * {@link Direction#FORWARD}.
    *
    * Objects equality is always checked using {@link Object#equals(Object)}.
@@ -161,21 +161,21 @@ public final class Flow {
   public void set(final Object newTop) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        if (newTop.equals(backstack.top())) {
-          dispatch(backstack, Direction.REPLACE);
+        if (newTop.equals(history.top())) {
+          dispatch(history, Direction.REPLACE);
           return;
         }
 
-        Backstack.Builder builder = backstack.buildUpon();
+        History.Builder builder = history.buildUpon();
         int count = 0;
         // Search backward to see if we already have newTop on the stack
         Object preservedInstance = null;
-        for (Iterator<Object> it = backstack.reverseIterator(); it.hasNext(); ) {
+        for (Iterator<Object> it = history.reverseIterator(); it.hasNext(); ) {
           Object entry = it.next();
 
           // If we find newTop on the stack, pop back to it.
           if (entry.equals(newTop)) {
-            for (int i = 0; i < backstack.size() - count; i++) {
+            for (int i = 0; i < history.size() - count; i++) {
               preservedInstance = builder.pop();
             }
             break;
@@ -184,17 +184,17 @@ public final class Flow {
           }
         }
 
-        Backstack newBackstack;
+        History newHistory;
         if (preservedInstance != null) {
-          // newTop was on the backstack. Put the preserved instance back on and dispatch.
+          // newTop was on the history. Put the preserved instance back on and dispatch.
           builder.push(preservedInstance);
-          newBackstack = builder.build();
-          dispatch(newBackstack, Direction.BACKWARD);
+          newHistory = builder.build();
+          dispatch(newHistory, Direction.BACKWARD);
         } else {
-          // newTop was not on the backstack. Push it on and dispatch.
+          // newTop was not on the history. Push it on and dispatch.
           builder.push(newTop);
-          newBackstack = builder.build();
-          dispatch(newBackstack, Direction.FORWARD);
+          newHistory = builder.build();
+          dispatch(newHistory, Direction.FORWARD);
         }
       }
     });
@@ -206,18 +206,18 @@ public final class Flow {
    * @return false if going back is not possible.
    */
   public boolean goBack() {
-    boolean canGoBack = backstack.size() > 1 || (pendingTraversal != null
+    boolean canGoBack = history.size() > 1 || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED);
     move(new PendingTraversal() {
       @Override protected void doExecute() {
-        if (backstack.size() == 1) {
+        if (history.size() == 1) {
           // We are not calling the listener, so we must complete this noop transition ourselves.
           onTraversalCompleted();
         } else {
-          Backstack.Builder builder = backstack.buildUpon();
+          History.Builder builder = history.buildUpon();
           builder.pop();
-          Backstack newBackstack = builder.build();
-          dispatch(newBackstack, Direction.BACKWARD);
+          History newHistory = builder.build();
+          dispatch(newHistory, Direction.BACKWARD);
         }
       }
     });
@@ -253,7 +253,7 @@ public final class Flow {
 
     TraversalState state = TraversalState.ENQUEUED;
     PendingTraversal next;
-    Backstack nextBackstack;
+    History nextHistory;
 
     void enqueue(PendingTraversal pendingTraversal) {
       if (this.next == null) {
@@ -270,8 +270,8 @@ public final class Flow {
                 : "transition not yet dispatched!");
       }
       // Is not set by noop transitions.
-      if (nextBackstack != null) {
-        backstack = nextBackstack;
+      if (nextHistory != null) {
+        history = nextHistory;
       }
       state = TraversalState.FINISHED;
       pendingTraversal = next;
@@ -280,12 +280,12 @@ public final class Flow {
       }
     }
 
-    void dispatch(Backstack nextBackstack, Direction direction) {
-      this.nextBackstack = checkNotNull(nextBackstack, "nextBackstack");
+    void dispatch(History nextHistory, Direction direction) {
+      this.nextHistory = checkNotNull(nextHistory, "nextBackstack");
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
       }
-      dispatcher.dispatch(new Traversal(getBackstack(), nextBackstack, direction), this);
+      dispatcher.dispatch(new Traversal(getHistory(), nextHistory, direction), this);
     }
 
     final void execute() {

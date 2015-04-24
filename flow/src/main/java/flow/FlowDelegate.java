@@ -20,11 +20,11 @@ import static flow.Preconditions.checkArgument;
  *   &#064;Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     Parceler parceler = new GsonParceler();
- *     Backstack defaultBackstack = Backstack.single(new MyAppIntroScreen());
+ *     History defaultHistory = History.single(new MyAppIntroScreen());
  *     FlowDelegate.NonConfigurationInstance nonConfig =
  *         (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
  *     flowSupport =
- *         FlowDelegate.onCreate(nonConfig, savedInstanceState, parceler, defaultBackstack);
+ *         FlowDelegate.onCreate(nonConfig, savedInstanceState, parceler, defaultHistory);
  *   }
  *
  *   &#064;Override public void onResume() {
@@ -68,12 +68,12 @@ public final class FlowDelegate {
     }
   }
 
-  public static void setBackstackExtra(Intent intent, Backstack backstack, StateParceler parceler) {
-    intent.putExtra(BACKSTACK_KEY, backstack.getParcelable(parceler));
+  public static void setHistoryExtra(Intent intent, History history, StateParceler parceler) {
+    intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
   }
 
-  private static final String BACKSTACK_KEY =
-      FlowDelegate.class.getSimpleName() + "_backstack";
+  private static final String HISTORY_KEY =
+      FlowDelegate.class.getSimpleName() + "_history";
 
   private final StateParceler parceler;
   private final Flow flow;
@@ -88,18 +88,18 @@ public final class FlowDelegate {
 
   /** Immediately starts the Dispatcher, so the dispatcher should be prepared before calling. */
   public static FlowDelegate onCreate(NonConfigurationInstance nonConfigurationInstance,
-      Intent intent, Bundle savedInstanceState, StateParceler parceler, Backstack defaultBackstack,
+      Intent intent, Bundle savedInstanceState, StateParceler parceler, History defaultHistory,
       Flow.Dispatcher dispatcher) {
     checkArgument(parceler != null, "parceler may not be null");
     final Flow flow;
     if (nonConfigurationInstance != null) {
       flow = nonConfigurationInstance.flow;
     } else {
-      Backstack savedBackstack = null;
-      if (savedInstanceState != null && savedInstanceState.containsKey(BACKSTACK_KEY)) {
-        savedBackstack = Backstack.from(savedInstanceState.getParcelable(BACKSTACK_KEY), parceler);
+      History savedHistory = null;
+      if (savedInstanceState != null && savedInstanceState.containsKey(HISTORY_KEY)) {
+        savedHistory = History.from(savedInstanceState.getParcelable(HISTORY_KEY), parceler);
       }
-      flow = new Flow(selectBackstack(intent, savedBackstack, defaultBackstack, parceler));
+      flow = new Flow(selectHistory(intent, savedHistory, defaultHistory, parceler));
     }
     flow.setDispatcher(dispatcher);
     return new FlowDelegate(flow, dispatcher, parceler);
@@ -107,9 +107,9 @@ public final class FlowDelegate {
 
   public void onNewIntent(Intent intent) {
     checkArgument(intent != null, "intent may not be null");
-    if (intent.hasExtra(BACKSTACK_KEY)) {
-      Backstack backstack = Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
-      flow.setBackstack(backstack, Flow.Direction.REPLACE);
+    if (intent.hasExtra(HISTORY_KEY)) {
+      History history = History.from(intent.getParcelableExtra(HISTORY_KEY), parceler);
+      flow.setHistory(history, Flow.Direction.REPLACE);
     }
   }
 
@@ -138,14 +138,14 @@ public final class FlowDelegate {
 
   public void onSaveInstanceState(Bundle outState) {
     checkArgument(outState != null, "outState may not be null");
-    Parcelable parcelable = flow.getBackstack().getParcelable(parceler, new Backstack.Filter() {
+    Parcelable parcelable = flow.getHistory().getParcelable(parceler, new History.Filter() {
       @Override public boolean apply(Object state) {
         return !state.getClass().isAnnotationPresent(NotPersistent.class);
       }
     });
     if (parcelable != null) {
       //noinspection ConstantConditions
-      outState.putParcelable(BACKSTACK_KEY, parcelable);
+      outState.putParcelable(HISTORY_KEY, parcelable);
     }
   }
 
@@ -159,14 +159,14 @@ public final class FlowDelegate {
     return null;
   }
 
-  private static Backstack selectBackstack(Intent intent, Backstack saved,
-      Backstack defaultBackstack, StateParceler parceler) {
-    if (intent.hasExtra(BACKSTACK_KEY)) {
-      return Backstack.from(intent.getParcelableExtra(BACKSTACK_KEY), parceler);
+  private static History selectHistory(Intent intent, History saved,
+      History defaultHistory, StateParceler parceler) {
+    if (intent.hasExtra(HISTORY_KEY)) {
+      return History.from(intent.getParcelableExtra(HISTORY_KEY), parceler);
     }
     if (saved != null) {
       return saved;
     }
-    return defaultBackstack;
+    return defaultHistory;
   }
 }
