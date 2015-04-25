@@ -20,7 +20,7 @@ import static flow.Preconditions.checkArgument;
  *   &#064;Override protected void onCreate(Bundle savedInstanceState) {
  *     super.onCreate(savedInstanceState);
  *     Parceler parceler = new GsonParceler();
- *     History defaultHistory = History.single(new MyAppIntroScreen());
+ *     History defaultHistory = History.single(new MyAppIntroPath());
  *     FlowDelegate.NonConfigurationInstance nonConfig =
  *         (FlowDelegate.NonConfigurationInstance) getLastNonConfigurationInstance();
  *     flowSupport =

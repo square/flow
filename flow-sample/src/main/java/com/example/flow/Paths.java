@@ -26,7 +26,7 @@ public final class Paths {
   }
 
   /**
-   * Identifies screens in a master / detail relationship. Both master and detail screens
+   * Identifies paths in a master / detail relationship. Both master and detail paths
    * extend this class.
    * <p>
    * Not a lot of thought has been put into making a decent master / detail modeling here. Rather
@@ -35,12 +35,12 @@ public final class Paths {
    */
   public abstract static class MasterDetailPath extends Path {
     /**
-     * Returns the screen that shows the master list for this type of screen.
-     * If this screen is the master, returns self.
+     * Returns the path that shows the master list for this type of path.
+     * If this path is the master, returns self.
      * <p>
-     * For example, the {@link Conversation} and {@link Message} screens are both
-     * "under" the master {@link ConversationList} screen. All three of these
-     * screens return a {@link Conversation} from this method.
+     * For example, the {@link Conversation} and {@link Message} paths are both
+     * "under" the master {@link ConversationList} path. All three of these
+     * paths return a {@link ConversationList} from this method.
      */
     public abstract MasterDetailPath getMaster();
 

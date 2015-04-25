@@ -22,7 +22,7 @@ public class MasterPathContainerView extends FramePathContainerView {
 
     MasterDetailPath newMaster = ((MasterDetailPath) traversal.destination.top()).getMaster();
 
-    // Short circuit if the new screen has the same master.
+    // Short circuit if the new path has the same master.
     if (getCurrentChild() != null && newMaster.equals(currentMaster)) {
       callback.onTraversalCompleted();
     } else {

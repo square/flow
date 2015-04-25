@@ -41,8 +41,8 @@ public class FriendView extends LinearLayout {
     super(context, attrs);
     Utils.inject(context, this);
 
-    Paths.Friend screen = Path.get(context);
-    friend = friends.get(screen.index);
+    Paths.Friend path = Path.get(context);
+    friend = friends.get(path.index);
   }
 
   @Override protected void onFinishInflate() {

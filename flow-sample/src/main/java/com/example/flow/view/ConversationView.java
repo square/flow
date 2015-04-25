@@ -37,8 +37,8 @@ public class ConversationView extends ListView {
     super(context, attrs);
     Utils.inject(context, this);
 
-    Paths.Conversation screen = Path.get(context);
-    setConversation(conversationList.get(screen.conversationIndex));
+    Paths.Conversation path = Path.get(context);
+    setConversation(conversationList.get(path.conversationIndex));
   }
 
   private void setConversation(final Conversation conversation) {

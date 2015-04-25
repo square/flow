@@ -312,11 +312,11 @@ public class ReentranceTest {
     }
   }
 
-  private void verifyHistory(History history, Object... screens) {
-    List<Object> actualScreens = new ArrayList<>(history.size());
+  private void verifyHistory(History history, Object... paths) {
+    List<Object> actualPaths = new ArrayList<>(history.size());
     for (Object entry : history) {
-      actualScreens.add(entry);
+      actualPaths.add(entry);
     }
-    assertThat(actualScreens).containsExactly(screens);
+    assertThat(actualPaths).containsExactly(paths);
   }
 }
