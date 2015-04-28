@@ -52,8 +52,8 @@ public class FriendListView extends ListView implements IsMasterView {
     });
   }
 
-  @Override public void updateSelection() {
-    Paths.FriendPath screen = (Paths.FriendPath) Flow.get(getContext()).getHistory().top();
+  @Override public void updateSelection(Paths.MasterDetailPath newPath) {
+    Paths.FriendPath screen = (Paths.FriendPath) newPath;
     setItemChecked(screen.index, true);
     invalidate();
   }

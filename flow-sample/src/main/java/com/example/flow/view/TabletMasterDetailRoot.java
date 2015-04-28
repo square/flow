@@ -18,8 +18,7 @@ import flow.path.PathContainerView;
  * This view is shown only in landscape orientation on tablets. See
  * the explanation in {@link com.example.flow.MainActivity#onCreate}.
  */
-public class TabletMasterDetailRoot extends LinearLayout
-    implements HandlesBack, PathContainerView {
+public class TabletMasterDetailRoot extends LinearLayout implements HandlesBack, PathContainerView {
   private FramePathContainerView masterContainer;
   private FramePathContainerView detailContainer;
 
@@ -50,7 +49,7 @@ public class TabletMasterDetailRoot extends LinearLayout
     return this;
   }
 
-  @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
+  @Override public void dispatch(final Flow.Traversal traversal, Flow.TraversalCallback callback) {
 
     class CountdownCallback implements Flow.TraversalCallback {
       final Flow.TraversalCallback wrapped;
@@ -65,7 +64,8 @@ public class TabletMasterDetailRoot extends LinearLayout
         if (countDown == 0) {
           disabled = false;
           wrapped.onTraversalCompleted();
-          ((IsMasterView) masterContainer.getCurrentChild()).updateSelection();
+          ((IsMasterView) masterContainer.getCurrentChild()).updateSelection(
+              traversal.destination.<Paths.MasterDetailPath>top());
         }
       }
     }
