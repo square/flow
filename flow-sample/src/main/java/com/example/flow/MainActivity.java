@@ -55,7 +55,7 @@ public class MainActivity extends Activity implements Flow.Dispatcher {
    * <p>
    * But this master activity knows nothing about those two view types. It only requires that
    * the view loaded by {@code root_layout.xml} implements the {@link PathContainerView} interface,
-   * to render whatever is appropriate for the screens received from {@link Flow} via
+   * to render whatever is appropriate for the paths received from {@link Flow} via
    * {@link #dispatch}.
    */
   @Override

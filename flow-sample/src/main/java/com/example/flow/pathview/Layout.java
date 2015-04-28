@@ -23,12 +23,12 @@ import static java.lang.annotation.ElementType.TYPE;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 /**
- * Marks a class that designates a screen and specifies its layout. A screen is a distinct part of
+ * Marks a class that designates a path and specifies its layout. A path is a distinct part of
  * an application containing all information that describes this state.
  *
  * <p>For example, <pre><code>
  * {@literal@}Layout(R.layout.conversation_screen_layout)
- * public class ConversationScreen { ... }
+ * public class ConversationPath { ... }
  * </code></pre>
  */
 @Retention(RUNTIME) @Target(TYPE)

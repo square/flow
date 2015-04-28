@@ -20,7 +20,7 @@ import android.content.Context;
 
 public interface PathContextFactory {
   /**
-   * Set up any services defined by this screen, and make them accessible via the context.
+   * Set up any services defined by this path, and make them accessible via the context.
    * Typically this means returning a new context that wraps the given one.
    */
   Context setUpContext(Path path, Context parentContext);

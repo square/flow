@@ -23,7 +23,7 @@ import java.util.Iterator;
 import static flow.Preconditions.checkNotNull;
 import static java.lang.String.format;
 
-/** Holds the current truth, the history of screens, and exposes operations to change it. */
+/** Holds the current truth, the history of paths, and exposes operations to change it. */
 public final class Flow {
   private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
 
@@ -201,7 +201,7 @@ public final class Flow {
   }
 
   /**
-   * Go back one screen.
+   * Go back one path.
    *
    * @return false if going back is not possible.
    */

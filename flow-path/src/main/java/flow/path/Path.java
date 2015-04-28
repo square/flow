@@ -42,7 +42,7 @@ public abstract class Path {
     }
     // If this blows up, it's on the caller.  We hide the cast as a convenience.
     //noinspection unchecked
-    return (T) wrapper.localScreen;
+    return (T) wrapper.localPath;
   }
 
   protected void build(Builder builder) {
@@ -90,11 +90,11 @@ public abstract class Path {
       return (LocalPathWrapper) context.getSystemService(LOCAL_WRAPPER_SERVICE);
     }
 
-    final Object localScreen;
+    final Object localPath;
 
-    LocalPathWrapper(Context base, Object localScreen) {
+    LocalPathWrapper(Context base, Object localPath) {
       super(base);
-      this.localScreen = localScreen;
+      this.localPath = localPath;
     }
 
     @Override public Object getSystemService(String name) {
