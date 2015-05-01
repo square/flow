@@ -26,12 +26,14 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
  */
 public final class History implements Iterable<Object> {
-  public static interface Filter {
+  public interface Filter {
     boolean apply(Object state);
   }
 
@@ -107,7 +109,6 @@ public final class History implements Iterable<Object> {
     return new ReadIterator<>(history.descendingIterator());
   }
 
-
   public int size() {
     return history.size();
   }
@@ -121,7 +122,13 @@ public final class History implements Iterable<Object> {
     return history.peek();
   }
 
-  /** Get a builder to modify a copy of this history. */
+  /**
+   * Get a builder to modify a copy of this history.
+   *
+   * The builder returned will retain all internal information related to the states in the history,
+   * including any associated View state. It is safe to remove states from the builder and push
+   * them back on; nothing will be lost in those operations.
+   * */
   public Builder buildUpon() {
     return new Builder(history);
   }
@@ -173,21 +180,32 @@ public final class History implements Iterable<Object> {
 
   public static final class Builder {
     private final Deque<Entry> history;
+    private final Map<Object, Entry> entryMemory = new LinkedHashMap<>();
 
     private Builder(Collection<Entry> history) {
       this.history = new ArrayDeque<>(history);
     }
 
-    public Builder push(Object object) {
-      Entry entry = new Entry(object);
-      history.push(entry);
+    public Builder clear() {
+      while (!history.isEmpty()) {
+        pop();
+      }
+      return this;
+    }
 
+    public Builder push(Object object) {
+      Entry entry = entryMemory.get(object);
+      if (entry == null) {
+        entry = new Entry(object);
+      }
+      history.push(entry);
+      entryMemory.remove(object);
       return this;
     }
 
     public Builder addAll(Collection<Object> c) {
       for (Object object : c) {
-        history.push(new Entry(object));
+        push(object);
       }
 
       return this;
@@ -198,7 +216,9 @@ public final class History implements Iterable<Object> {
     }
 
     public Object pop() {
-      return history.pop().state;
+      Entry entry = history.pop();
+      entryMemory.put(entry.state, entry);
+      return entry.state;
     }
 
     public History build() {

@@ -34,4 +34,6 @@ android.libraryVariants.all { variant ->
   }
 }
 
-apply from: '../gradle-mvn-push.gradle'
+if (hasProperty("POM_DEVELOPER_ID")) {
+  apply from: '../gradle-mvn-push.gradle'
+}

@@ -239,7 +239,7 @@ public final class Flow {
     Iterator<Object> oldIt = current.reverseIterator();
     Iterator<Object> newIt = proposed.reverseIterator();
 
-    History.Builder preserving = History.emptyBuilder();
+    History.Builder preserving = current.buildUpon().clear();
 
     while (newIt.hasNext()) {
       Object newEntry = newIt.next();
