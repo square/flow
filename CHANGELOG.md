@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 0.10 *(2015-05-01)*
+------
+* Fix: The Builder returned by `History#buildUpon()` is now safer to use. See
+  javadoc for detail.
+
 Version 0.9 *(2015-04-24)*
 ------
 A large number of breaking changes have been made in the interest of focusing 
