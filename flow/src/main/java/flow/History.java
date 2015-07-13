@@ -46,7 +46,7 @@ public final class History implements Iterable<Object> {
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     List<Entry> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object object = parceler.unwrap(entryBundle.getParcelable("OBJECT"));
+      Object object = parceler.toState(entryBundle.getParcelable("OBJECT"));
       Entry entry = new Entry(object);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
@@ -176,7 +176,7 @@ public final class History implements Iterable<Object> {
 
     Bundle getBundle(StateParceler parceler) {
       Bundle bundle = new Bundle();
-      bundle.putParcelable("OBJECT", parceler.wrap(state));
+      bundle.putParcelable("OBJECT", parceler.toParcelable(state));
       bundle.putSparseParcelableArray("VIEW_STATE", viewState);
       return bundle;
     }

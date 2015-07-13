@@ -16,27 +16,44 @@
 
 package flow;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.View;
 import java.util.Iterator;
 
+import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkNotNull;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
-  private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
+  static final String HISTORY_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   public static Flow get(View view) {
     return get(view.getContext());
   }
 
   public static Flow get(Context context) {
-    //noinspection ResourceType
-    return (Flow) context.getSystemService(FLOW_SERVICE);
+    return InternalContextWrapper.getFlow(context);
   }
 
-  public static boolean isFlowSystemService(String name) {
-    return FLOW_SERVICE.equals(name);
+  public static Installer configure(Context baseContext, Activity activity) {
+    return new Installer(baseContext, activity);
+  }
+
+  public static boolean onBackPressed(Activity activity) {
+    return get(activity).goBack();
+  }
+
+  public static void setHistoryExtra(Intent intent, History history, StateParceler parceler) {
+    intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
+  }
+
+  public static void onNewIntent(Intent intent, Activity activity) {
+    checkArgument(intent != null, "intent may not be null");
+    if (intent.hasExtra(HISTORY_KEY)) {
+      InternalLifecycleIntegration.find(activity).onNewIntent(intent);
+    }
   }
 
   public enum Direction {
@@ -95,7 +112,7 @@ public final class Flow {
    * Traversal Traversal} is currently in progress with a previous Dispatcher, that Traversal will
    * not be affected.
    */
-  public void setDispatcher(Dispatcher dispatcher) {
+  void setDispatcher(Dispatcher dispatcher) {
     this.dispatcher = checkNotNull(dispatcher, "dispatcher");
 
     if (pendingTraversal == null || //
@@ -124,7 +141,7 @@ public final class Flow {
    * No further {@link Traversal Traversals}, including Traversals currently enqueued, will execute
    * until a new dispatcher is set.
    */
-  public void removeDispatcher(Dispatcher dispatcher) {
+  void removeDispatcher(Dispatcher dispatcher) {
     // This mechanism protects against out of order calls to this method and setDispatcher
     // (e.g. if an outgoing activity is paused after an incoming one resumes).
     if (this.dispatcher == checkNotNull(dispatcher, "dispatcher")) this.dispatcher = null;
@@ -322,7 +339,8 @@ public final class Flow {
     }
 
     /**
-     * Must be synchronous and end with a call to {@link #dispatch} or {@link #onTraversalCompleted()}.
+     * Must be synchronous and end with a call to {@link #dispatch} or {@link
+     * #onTraversalCompleted()}.
      */
     abstract void doExecute();
   }
