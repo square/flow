@@ -29,6 +29,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import static flow.Preconditions.checkArgument;
+
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
  */
@@ -82,6 +84,9 @@ public final class History implements Iterable<Object> {
         entryBundles.add(entry.getBundle(parceler));
       }
     }
+    if (entryBundles.isEmpty()) {
+      return null;
+    }
     Collections.reverse(entryBundles);
     historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return historyBundle;
@@ -97,6 +102,7 @@ public final class History implements Iterable<Object> {
   }
 
   private History(Deque<Entry> history) {
+    checkArgument(history != null && !history.isEmpty(), "History may not be empty");
     this.history = history;
   }
 
@@ -222,10 +228,6 @@ public final class History implements Iterable<Object> {
     }
 
     public History build() {
-      if (history.isEmpty()) {
-        throw new IllegalStateException("History may not be empty");
-      }
-
       return new History(history);
     }
   }
