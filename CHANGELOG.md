@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.11 *(2015-08-11)*
+------
+* Fix: No longer persists an empty list of states if the filter excludes everything.
+
 Version 0.10 *(2015-05-01)*
 ------
 * Fix: The Builder returned by `History#buildUpon()` is now safer to use. See
