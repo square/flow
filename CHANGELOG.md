@@ -1,6 +1,10 @@
 Change Log
 ==========
 
+Version 0.12 *(2015-08-13)*
+------
+* Fix: History.Builder#pop is nullable again, and adds History.Builder#isEmpty.
+
 Version 0.11 *(2015-08-11)*
 ------
 * Fix: No longer persists an empty list of states if the filter excludes everything.

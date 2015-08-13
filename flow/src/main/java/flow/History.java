@@ -218,10 +218,19 @@ public final class History implements Iterable<Object> {
     }
 
     public Object peek() {
-      return history.peek().state;
+      final Entry peek = history.peek();
+      return peek == null ? null : peek.state;
     }
 
+    public boolean isEmpty() {
+      return peek() == null;
+    }
+
+    /** @throws IllegalStateException if empty */
     public Object pop() {
+      if (isEmpty()) {
+        throw new IllegalStateException("Cannot pop from an empty builder");
+      }
       Entry entry = history.pop();
       entryMemory.put(entry.state, entry);
       return entry.state;
