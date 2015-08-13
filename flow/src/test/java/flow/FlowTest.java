@@ -24,6 +24,7 @@ import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
 import static java.util.Arrays.asList;
 import static org.fest.assertions.api.Assertions.assertThat;
+import static org.fest.assertions.api.Fail.fail;
 
 public class FlowTest {
   static class Uno {
@@ -286,5 +287,27 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
+  }
+
+  @Test public void emptyBuilderPeekIsNullable() {
+    assertThat(History.emptyBuilder().peek()).isNull();
+  }
+
+  @Test public void emptyBuilderPopThrows() {
+    try {
+      History.emptyBuilder().pop();
+      fail("Should throw");
+    } catch (IllegalStateException e) {
+      // pass
+    }
+  }
+
+  @Test public void isEmpty() {
+    final History.Builder builder = History.emptyBuilder();
+    assertThat(builder.isEmpty()).isTrue();
+    builder.push("foo");
+    assertThat(builder.isEmpty()).isFalse();
+    builder.pop();
+    assertThat(builder.isEmpty()).isTrue();
   }
 }
