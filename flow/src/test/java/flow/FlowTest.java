@@ -23,8 +23,8 @@ import org.junit.Test;
 import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
 import static java.util.Arrays.asList;
-import static org.fest.assertions.api.Assertions.assertThat;
-import static org.fest.assertions.api.Fail.fail;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 public class FlowTest {
   static class Uno {

@@ -19,13 +19,13 @@ package flow;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import org.fest.assertions.api.Assertions;
 import org.junit.Test;
 
 import static flow.Flow.Direction.FORWARD;
 import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
-import static org.fest.assertions.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Fail.fail;
 
 public class ReentranceTest {
 
@@ -144,7 +144,7 @@ public class ReentranceTest {
     } catch (IllegalStateException e) {
       return;
     }
-    Assertions.fail("Second call to onComplete() should have thrown.");
+    fail("Second call to onComplete() should have thrown.");
   }
 
   @Test public void bootstrapTraversal() {

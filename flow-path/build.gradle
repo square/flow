@@ -20,7 +20,7 @@ android {
 dependencies {
   compile project(':flow')
   testCompile 'junit:junit:4.10'
-  testCompile 'org.easytesting:fest-assert-core:2.0M10'
+  testCompile 'org.assertj:assertj-core:1.7.1'
 }
 
 
