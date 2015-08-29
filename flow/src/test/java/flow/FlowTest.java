@@ -15,6 +15,7 @@
  */
 package flow;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
@@ -309,5 +310,12 @@ public class FlowTest {
     assertThat(builder.isEmpty()).isFalse();
     builder.pop();
     assertThat(builder.isEmpty()).isTrue();
+  }
+
+  @Test public void historyIndexAccess() {
+    History history = History.emptyBuilder().addAll(asList("able", "baker", "charlie")).build();
+    assertThat(history.peek(0)).isEqualTo("charlie");
+    assertThat(history.peek(1)).isEqualTo("baker");
+    assertThat(history.peek(2)).isEqualTo("able");
   }
 }

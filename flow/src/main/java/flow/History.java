@@ -20,13 +20,13 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.util.SparseArray;
 import android.view.View;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Deque;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import static flow.Preconditions.checkArgument;
@@ -43,7 +43,7 @@ public final class History implements Iterable<Object> {
   public static History from(Parcelable parcelable, StateParceler parceler) {
     Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
-    Deque<Entry> entries = new ArrayDeque<>(entryBundles.size());
+    List<Entry> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
       Object object = parceler.unwrap(entryBundle.getParcelable("OBJECT"));
       Entry entry = new Entry(object);
@@ -53,14 +53,14 @@ public final class History implements Iterable<Object> {
     return new History(entries);
   }
 
-  private final Deque<Entry> history;
+  private final List<Entry> history;
 
   /** Get a {@link Parcelable} of this history using the supplied {@link StateParceler}. */
   public Parcelable getParcelable(StateParceler parceler) {
     Bundle historyBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
     for (Entry entry : history) {
-     entryBundles.add(entry.getBundle(parceler));
+      entryBundles.add(entry.getBundle(parceler));
     }
     historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return historyBundle;
@@ -77,9 +77,9 @@ public final class History implements Iterable<Object> {
   public Parcelable getParcelable(StateParceler parceler, Filter filter) {
     Bundle historyBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
-    Iterator<Entry> it = history.descendingIterator();
-    while (it.hasNext()) {
-      Entry entry = it.next();
+    ListIterator<Entry> it = history.listIterator();
+    while (it.hasPrevious()) {
+      Entry entry = it.previous();
       if (filter.apply(entry.state)) {
         entryBundles.add(entry.getBundle(parceler));
       }
@@ -101,18 +101,17 @@ public final class History implements Iterable<Object> {
     return emptyBuilder().push(object).build();
   }
 
-  private History(Deque<Entry> history) {
+  private History(List<Entry> history) {
     checkArgument(history != null && !history.isEmpty(), "History may not be empty");
     this.history = history;
   }
 
-  @SuppressWarnings("UnusedDeclaration")
-  @Override public Iterator<Object> iterator() {
+  public <T> Iterator<T> reverseIterator() {
     return new ReadIterator<>(history.iterator());
   }
 
-  public <T> Iterator<T> reverseIterator() {
-    return new ReadIterator<>(history.descendingIterator());
+  @SuppressWarnings("UnusedDeclaration") @Override public Iterator<Object> iterator() {
+    return new ReadIterator<>(new ReverseIterator<>(history));
   }
 
   public int size() {
@@ -121,20 +120,26 @@ public final class History implements Iterable<Object> {
 
   public <T> T top() {
     //noinspection unchecked
-    return (T) history.peek().state;
+    return (T) peek(0);
+  }
+
+  public <T> T peek(int index) {
+    //noinspection unchecked
+    return history.isEmpty() ? null : (T) history.get(history.size() - index - 1).state;
   }
 
   public ViewState currentViewState() {
-    return history.peek();
+    return history.isEmpty() ? null : history.get(history.size() - 1);
   }
 
   /**
    * Get a builder to modify a copy of this history.
    *
-   * The builder returned will retain all internal information related to the states in the history,
+   * The builder returned will retain all internal information related to the states in the
+   * history,
    * including any associated View state. It is safe to remove states from the builder and push
    * them back on; nothing will be lost in those operations.
-   * */
+   */
   public Builder buildUpon() {
     return new Builder(history);
   }
@@ -170,32 +175,28 @@ public final class History implements Iterable<Object> {
       return bundle;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Entry entry = (Entry) o;
       return (state.equals(entry.state));
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
       return state.hashCode();
     }
   }
 
   public static final class Builder {
-    private final Deque<Entry> history;
+    private final List<Entry> history;
     private final Map<Object, Entry> entryMemory = new LinkedHashMap<>();
 
     private Builder(Collection<Entry> history) {
-      this.history = new ArrayDeque<>(history);
+      this.history = new ArrayList<>(history);
     }
 
     public Builder clear() {
-      while (!history.isEmpty()) {
-        pop();
-      }
+      history.clear();
       return this;
     }
 
@@ -204,12 +205,12 @@ public final class History implements Iterable<Object> {
       if (entry == null) {
         entry = new Entry(object);
       }
-      history.push(entry);
+      history.add(entry);
       entryMemory.remove(object);
       return this;
     }
 
-    public Builder addAll(Collection<Object> c) {
+    public Builder addAll(Collection<?> c) {
       for (Object object : c) {
         push(object);
       }
@@ -218,12 +219,11 @@ public final class History implements Iterable<Object> {
     }
 
     public Object peek() {
-      final Entry peek = history.peek();
-      return peek == null ? null : peek.state;
+      return history.isEmpty() ? null : history.get(history.size() - 1).state;
     }
 
     public boolean isEmpty() {
-      return peek() == null;
+      return history.isEmpty();
     }
 
     /** @throws IllegalStateException if empty */
@@ -231,13 +231,33 @@ public final class History implements Iterable<Object> {
       if (isEmpty()) {
         throw new IllegalStateException("Cannot pop from an empty builder");
       }
-      Entry entry = history.pop();
+      Entry entry = history.remove(history.size() - 1);
       entryMemory.put(entry.state, entry);
       return entry.state;
     }
 
     public History build() {
       return new History(history);
+    }
+  }
+
+  public static class ReverseIterator<T> implements Iterator<T> {
+    private final ListIterator<T> wrapped;
+
+    public ReverseIterator(List<T> list) {
+      wrapped = list.listIterator(list.size());
+    }
+
+    @Override public boolean hasNext() {
+      return wrapped.hasPrevious();
+    }
+
+    @Override public T next() {
+      return wrapped.previous();
+    }
+
+    @Override public void remove() {
+      wrapped.remove();
     }
   }
 
