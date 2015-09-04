@@ -21,6 +21,7 @@ import android.os.Parcelable;
 import android.util.SparseArray;
 import android.view.View;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -145,7 +146,7 @@ public final class History implements Iterable<Object> {
   }
 
   @Override public String toString() {
-    return history.toString();
+    return Arrays.deepToString(history.toArray());
   }
 
   private static final class Entry implements ViewState {
@@ -184,6 +185,10 @@ public final class History implements Iterable<Object> {
 
     @Override public int hashCode() {
       return state.hashCode();
+    }
+
+    @Override public String toString() {
+      return state.toString();
     }
   }
 
@@ -238,6 +243,10 @@ public final class History implements Iterable<Object> {
 
     public History build() {
       return new History(history);
+    }
+
+    @Override public String toString() {
+      return Arrays.deepToString(history.toArray());
     }
   }
 
