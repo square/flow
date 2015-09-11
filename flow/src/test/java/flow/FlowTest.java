@@ -105,9 +105,8 @@ public class FlowTest {
       @Override public void dispatch(Traversal traversal, TraversalCallback onComplete) {
         assertThat(firstHistory).hasSameSizeAs(flow.getHistory());
         Iterator<Object> original = firstHistory.iterator();
-        Iterator<Object> current = flow.getHistory().iterator();
-        while (current.hasNext()) {
-          assertThat(current.next()).isEqualTo(original.next());
+        for (Object o : flow.getHistory()) {
+          assertThat(o).isEqualTo(original.next());
         }
         onComplete.onTraversalCompleted();
       }
@@ -134,9 +133,25 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
+  @Test public void forwardIterator() {
+    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(able, baker, charlie));
+    History history = History.emptyBuilder().addAll(paths).build();
+    for (Object o : history) {
+      assertThat(o).isSameAs(paths.remove(paths.size()-1));
+    }
+  }
+
+  @Test public void reverseIterator() {
+    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(able, baker, charlie));
+    History history = History.emptyBuilder().addAll(paths).build();
+    Iterator<Object> i = history.reverseIterator();
+    while (i.hasNext()) {
+      assertThat(i.next()).isSameAs(paths.remove(0));
+    }
+  }
+
   @Test public void setHistoryWorks() {
-    History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(history);
     FlowDispatcher dispatcher = new FlowDispatcher();
     flow.setDispatcher(dispatcher);
@@ -176,8 +191,7 @@ public class FlowTest {
   }
 
   @Test public void setObjectToMissingObjectPushes() {
-    History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(2);
@@ -198,8 +212,7 @@ public class FlowTest {
   }
 
   @Test public void setObjectKeepsOriginal() {
-    History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(2);
@@ -241,7 +254,6 @@ public class FlowTest {
     assertThat(lastStack.top()).isSameAs(able);
   }
 
-
   static class Picky {
     final String value;
 
@@ -249,8 +261,7 @@ public class FlowTest {
       this.value = value;
     }
 
-    @Override
-    public boolean equals(Object o) {
+    @Override public boolean equals(Object o) {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
 
@@ -258,8 +269,7 @@ public class FlowTest {
       return value.equals(picky.value);
     }
 
-    @Override
-    public int hashCode() {
+    @Override public int hashCode() {
       return value.hashCode();
     }
   }

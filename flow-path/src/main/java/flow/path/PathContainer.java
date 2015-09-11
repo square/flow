@@ -26,7 +26,6 @@ import flow.ViewState;
  * container views to be largely declarative.
  */
 public abstract class PathContainer {
-
   private static final ViewState NULL_VIEW_STATE = new NullViewState();
 
   /**
@@ -64,31 +63,48 @@ public abstract class PathContainer {
 
   private final int tagKey;
 
+  /**
+   * @param tagKey an id used to store bookkeeping info on container views via {@link
+   * View#setTag(int, Object)}
+   */
   protected PathContainer(int tagKey) {
     this.tagKey = tagKey;
   }
 
   public final void executeTraversal(PathContainerView view, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
+    final View oldChild = view.getCurrentChild();
+    ViewGroup containerView = view.getContainerView();
     ViewState viewState = traversal.destination.currentViewState();
-    doShowPath(view, traversal.destination.<Path>top(), traversal.direction, viewState, callback);
+    doShowPath(traversal.destination.<Path>top(), containerView, oldChild, traversal.direction,
+        viewState, callback);
+  }
+
+  /**
+   * Replaces the contents of a given {@link ViewGroup} with a new view inflated from
+   * a {@link Flow.Traversal}.
+   */
+  public final void executeFlowTraversal(ViewGroup container, Flow.Traversal traversal,
+      final Flow.TraversalCallback callback) {
+    final View oldChild = container.getChildAt(0);
+    ViewState viewState = traversal.destination.currentViewState();
+    doShowPath(traversal.destination.<Path>top(), container, oldChild, traversal.direction,
+        viewState, callback);
   }
 
   /**
    * Replace the current view and show the given path. Allows display of {@link Path}s other
    * than in response to Flow dispatches.
    */
-  public void setPath(PathContainerView view, Path path, Flow.Direction direction,
+  public void setPath(ViewGroup container, Path path, Flow.Direction direction,
       Flow.TraversalCallback callback) {
-    doShowPath(view, path, direction, NULL_VIEW_STATE, callback);
+    doShowPath(path, container, container.getChildAt(0), direction, NULL_VIEW_STATE, callback);
   }
 
-  private void doShowPath(PathContainerView view, Path path, Flow.Direction direction,
+  private void doShowPath(Path path, ViewGroup container, View oldChild, Flow.Direction direction,
       ViewState viewState, Flow.TraversalCallback callback) {
-    final View oldChild = view.getCurrentChild();
     Path oldPath;
-    ViewGroup containerView = view.getContainerView();
-    TraversalState traversalState = ensureTag(containerView);
+    TraversalState traversalState = ensureTag(container);
 
     // See if we already have the direct child we want, and if so short circuit the traversal.
     if (oldChild != null) {
@@ -101,7 +117,7 @@ public abstract class PathContainer {
     }
 
     traversalState.setNextEntry(path, viewState);
-    performTraversal(containerView, traversalState, direction, callback);
+    performTraversal(container, traversalState, direction, callback);
   }
 
   protected abstract void performTraversal(ViewGroup container, TraversalState traversalState,
