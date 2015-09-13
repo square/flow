@@ -15,8 +15,6 @@
 package flow.path;
 
 final class Preconditions {
-  private Preconditions() {
-  }
 
   /**
    * Ensures that an object reference passed as a parameter to the calling method is not null.
@@ -42,9 +40,7 @@ final class Preconditions {
     }
   }
 
-  static void checkState(boolean expression, String errorMessage, Object... args) {
-    if (!expression) {
-      throw new IllegalStateException(String.format(errorMessage, args));
-    }
+  private Preconditions() {
+    throw new AssertionError();
   }
 }

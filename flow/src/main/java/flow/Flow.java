@@ -21,7 +21,6 @@ import android.view.View;
 import java.util.Iterator;
 
 import static flow.Preconditions.checkNotNull;
-import static java.lang.String.format;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
@@ -115,8 +114,7 @@ public final class Flow {
     }
 
     if (pendingTraversal.state != TraversalState.DISPATCHED) {
-      throw new AssertionError(
-          format("Hanging traversal in unexpected state " + pendingTraversal.state));
+      throw new AssertionError("Hanging traversal in unexpected state " + pendingTraversal.state);
     }
   }
 
@@ -308,7 +306,7 @@ public final class Flow {
     }
 
     void dispatch(History nextHistory, Direction direction) {
-      this.nextHistory = checkNotNull(nextHistory, "nextBackstack");
+      this.nextHistory = checkNotNull(nextHistory, "nextHistory");
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
       }
