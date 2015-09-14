@@ -24,6 +24,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import static flow.path.Preconditions.checkArgument;
+import static flow.path.Preconditions.checkNotNull;
+
 public final class PathContext extends ContextWrapper {
   private static final String SERVICE_NAME = "PATH_CONTEXT";
   private final Path path;
@@ -31,13 +34,13 @@ public final class PathContext extends ContextWrapper {
 
   PathContext(Context baseContext, Path path, Map<Path, Context> contexts) {
     super(baseContext);
-    Preconditions.checkArgument(baseContext != null, "Leaf context may not be null.");
-    Preconditions.checkArgument(path.elements().size() == contexts.size(),
+    checkNotNull(baseContext, "leaf context must not be null");
+    checkArgument(path.elements().size() == contexts.size(),
         "Path and context map are not the same size, path has %d elements and there are %d contexts",
         path.elements().size(), contexts.size());
     if (!path.isRoot()) {
       Path leafPath = path.elements().get(path.elements().size() - 1);
-      Preconditions.checkArgument(baseContext == contexts.get(leafPath),
+      checkArgument(baseContext == contexts.get(leafPath),
           "For a non-root Path, baseContext must be Path leaf's context.");
     }
     this.path = path;
@@ -97,7 +100,7 @@ public final class PathContext extends ContextWrapper {
 
   @SuppressWarnings("ResourceType")
   public static PathContext get(Context context) {
-    return Preconditions.checkNotNull((PathContext) context.getSystemService(SERVICE_NAME),
+    return checkNotNull((PathContext) context.getSystemService(SERVICE_NAME),
         "Expected to find a PathContext but did not.");
   }
 

@@ -21,6 +21,8 @@ import android.view.ViewGroup;
 import flow.Flow;
 import flow.ViewState;
 
+import static flow.path.Preconditions.checkNotNull;
+
 /**
  * Handles swapping paths within a container view, as well as flow mechanics, allowing supported
  * container views to be largely declarative.
@@ -108,8 +110,8 @@ public abstract class PathContainer {
 
     // See if we already have the direct child we want, and if so short circuit the traversal.
     if (oldChild != null) {
-      oldPath = Preconditions.checkNotNull(traversalState.toPath,
-          "Container view has child %s with no path", oldChild.toString());
+      oldPath = checkNotNull(traversalState.toPath, "Container view has child %s with no path",
+          oldChild.toString());
       if (oldPath.equals(path)) {
         callback.onTraversalCompleted();
         return;

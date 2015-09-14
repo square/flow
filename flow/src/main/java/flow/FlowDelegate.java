@@ -1,10 +1,25 @@
+/*
+ * Copyright 2015 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package flow;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 
-import static flow.Preconditions.checkArgument;
+import static flow.Preconditions.checkNotNull;
 
 /**
  * Manages a Flow within an Activity.  Make sure that each method is called from the corresponding
@@ -90,7 +105,7 @@ public final class FlowDelegate {
   public static FlowDelegate onCreate(NonConfigurationInstance nonConfigurationInstance,
       Intent intent, Bundle savedInstanceState, StateParceler parceler, History defaultHistory,
       Flow.Dispatcher dispatcher) {
-    checkArgument(parceler != null, "parceler may not be null");
+    checkNotNull(parceler, "parceler");
     final Flow flow;
     if (nonConfigurationInstance != null) {
       flow = nonConfigurationInstance.flow;
@@ -106,7 +121,7 @@ public final class FlowDelegate {
   }
 
   public void onNewIntent(Intent intent) {
-    checkArgument(intent != null, "intent may not be null");
+    checkNotNull(intent, "intent");
     if (intent.hasExtra(HISTORY_KEY)) {
       History history = History.from(intent.getParcelableExtra(HISTORY_KEY), parceler);
       flow.setHistory(history, Flow.Direction.REPLACE);
@@ -137,7 +152,7 @@ public final class FlowDelegate {
   }
 
   public void onSaveInstanceState(Bundle outState) {
-    checkArgument(outState != null, "outState may not be null");
+    checkNotNull(outState, "outState");
     Parcelable parcelable = flow.getHistory().getParcelable(parceler, new History.Filter() {
       @Override public boolean apply(Object state) {
         return !state.getClass().isAnnotationPresent(NotPersistent.class);

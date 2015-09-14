@@ -15,8 +15,6 @@
 package flow;
 
 final class Preconditions {
-  private Preconditions() {
-  }
 
   /**
    * Ensures that an object reference passed as a parameter to the calling method is not null.
@@ -25,9 +23,9 @@ final class Preconditions {
    * @return the non-null reference that was validated
    * @throws NullPointerException if {@code reference} is null
    */
-  static <T> T checkNotNull(T reference, String errorMessage, Object... args) {
+  static <T> T checkNotNull(T reference, String name) {
     if (reference == null) {
-      throw new NullPointerException(String.format(errorMessage, args));
+      throw new NullPointerException(name + " must not be null");
     }
 
     return reference;
@@ -36,15 +34,13 @@ final class Preconditions {
   /**
    * @throws java.lang.IllegalArgumentException if condition is false.
    */
-  static void checkArgument(boolean condition, String errorMessage, Object... args) {
+  static void checkArgument(boolean condition, String errorMessage) {
     if (!condition) {
-      throw new IllegalArgumentException(String.format(errorMessage, args));
+      throw new IllegalArgumentException(errorMessage);
     }
   }
 
-  static void checkState(boolean expression, String errorMessage, Object... args) {
-    if (!expression) {
-      throw new IllegalStateException(String.format(errorMessage, args));
-    }
+  private Preconditions() {
+    throw new AssertionError();
   }
 }

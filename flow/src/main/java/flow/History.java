@@ -108,11 +108,11 @@ public final class History implements Iterable<Object> {
   }
 
   public <T> Iterator<T> reverseIterator() {
-    return new ReadIterator<>(history.iterator());
+    return new ReadStateIterator<>(history.iterator());
   }
 
   @SuppressWarnings("UnusedDeclaration") @Override public Iterator<Object> iterator() {
-    return new ReadIterator<>(new ReverseIterator<>(history));
+    return new ReadStateIterator<>(new ReverseIterator<>(history));
   }
 
   public int size() {
@@ -219,7 +219,6 @@ public final class History implements Iterable<Object> {
       for (Object object : c) {
         push(object);
       }
-
       return this;
     }
 
@@ -250,10 +249,10 @@ public final class History implements Iterable<Object> {
     }
   }
 
-  public static class ReverseIterator<T> implements Iterator<T> {
+  private static class ReverseIterator<T> implements Iterator<T> {
     private final ListIterator<T> wrapped;
 
-    public ReverseIterator(List<T> list) {
+    ReverseIterator(List<T> list) {
       wrapped = list.listIterator(list.size());
     }
 
@@ -270,10 +269,10 @@ public final class History implements Iterable<Object> {
     }
   }
 
-  private static class ReadIterator<T> implements Iterator<T> {
+  private static class ReadStateIterator<T> implements Iterator<T> {
     private final Iterator<Entry> iterator;
 
-    public ReadIterator(Iterator<Entry> iterator) {
+    ReadStateIterator(Iterator<Entry> iterator) {
       this.iterator = iterator;
     }
 
