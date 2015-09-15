@@ -246,6 +246,29 @@ public final class History implements Iterable<Object> {
       return entry.state;
     }
 
+    /**
+     * Pops the history until the given state is at the top.
+     *
+     * @throws IllegalArgumentException if the given state isn't in the history.
+     * */
+    public Builder popTo(Object state) {
+      while (!isEmpty() && !peek().equals(state)) {
+        pop();
+      }
+      checkArgument(!isEmpty(), String.format("%s not found in history", state));
+      return this;
+    }
+
+    public Builder pop(int count) {
+      final int size = history.size();
+      checkArgument(count <= size,
+          String.format("Cannot pop %d elements, history only has %d", count, size));
+      while (count-- > 0) {
+        pop();
+      }
+      return this;
+    }
+
     public History build() {
       return new History(history);
     }

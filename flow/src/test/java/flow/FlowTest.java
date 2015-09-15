@@ -92,6 +92,53 @@ public class FlowTest {
     }
   }
 
+  @Test public void builderCanPopTo() {
+    History.Builder builder = History.emptyBuilder();
+    builder.push(able);
+    builder.push(baker);
+    builder.push(charlie);
+    builder.popTo(able);
+    assertThat(builder.peek()).isSameAs(able);
+  }
+
+  @Test public void builderPopToExplodesOnMissingState() {
+    History.Builder builder = History.emptyBuilder();
+    builder.push(able);
+    builder.push(baker);
+    builder.push(charlie);
+    try {
+      builder.popTo(new Object());
+      fail("Missing state object, should have thrown");
+    } catch (IllegalArgumentException ignored) {
+      // Correct!
+    }
+  }
+
+  @Test public void builderCanPopCount() {
+    History.Builder builder = History.emptyBuilder();
+    builder.push(able);
+    builder.push(baker);
+    builder.push(charlie);
+    builder.pop(1);
+    assertThat(builder.peek()).isSameAs(baker);
+    builder.pop(2);
+    assertThat(builder.isEmpty());
+  }
+
+  @Test public void builderPopExplodesIfCountIsTooLarge() {
+    History.Builder builder = History.emptyBuilder();
+    builder.push(able);
+    builder.push(baker);
+    builder.push(charlie);
+    try {
+      builder.pop(4);
+      fail("Count is too large, should have thrown");
+    } catch (IllegalArgumentException ignored) {
+      // Success!
+    }
+
+  }
+
   @Test public void historyChangesAfterListenerCall() {
     final History firstHistory = History.single(new Uno());
 
