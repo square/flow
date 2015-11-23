@@ -20,7 +20,14 @@ android {
 dependencies {
   compile project(':flow')
   testCompile 'junit:junit:4.10'
+  // Note: Only assertj 1.x works on Android. 2.x and higher rely on JRE 7 classes.
   testCompile 'org.assertj:assertj-core:1.7.1'
+  testCompile 'org.robolectric:robolectric:3.0'
+
+  // Makes travis tolerate robolectric
+  // http://www.scriptscoop.net/t/16bc09ba348e/noclassdeffounderror-when-trying-to-test-android-app-with-gradle-robol.html
+  // https://issues.gradle.org/browse/GRADLE-3243
+  testCompile 'org.apache.maven:maven-ant-tasks:2.1.3'
 }
 
 

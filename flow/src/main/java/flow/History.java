@@ -207,7 +207,12 @@ public final class History implements Iterable<Object> {
     }
 
     public Builder clear() {
-      history.clear();
+      // Clear by popping everything (rather than just calling history.clear()) to
+      // fill up entryMemory. Otherwise we drop view state on the floor.
+      while (!isEmpty()) {
+        pop();
+      }
+
       return this;
     }
 
