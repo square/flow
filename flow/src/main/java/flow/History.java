@@ -141,11 +141,10 @@ public final class History implements Iterable<Object> {
 
   /**
    * Get a builder to modify a copy of this history.
-   *
+   * <p>
    * The builder returned will retain all internal information related to the states in the
-   * history,
-   * including any associated View state. It is safe to remove states from the builder and push
-   * them back on; nothing will be lost in those operations.
+   * history, including any associated View state. It is safe to remove states from the
+   * builder and push them back on; nothing will be lost in those operations.
    */
   public Builder buildUpon() {
     return new Builder(history);
@@ -206,11 +205,27 @@ public final class History implements Iterable<Object> {
       this.history = new ArrayList<>(history);
     }
 
+    /**
+     * Removes all states from this builder. But note that if this builder was created
+     * via {@link #buildUpon()}, any view state associated with the cleared
+     * states will be preserved, and restored if they are {@link #push pushed}
+     * back in.
+     */
     public Builder clear() {
-      history.clear();
+      // Clear by popping everything (rather than just calling history.clear()) to
+      // fill up entryMemory. Otherwise we drop view state on the floor.
+      while (!isEmpty()) {
+        pop();
+      }
+
       return this;
     }
 
+    /**
+     * Adds a state to the builder. If this builder was created via {@link #buildUpon()},
+     * and the pushed state was previously {@link #pop() popped} or {@link #clear cleared}
+     * from the builder, associated view state will be restored.
+     */
     public Builder push(Object object) {
       Entry entry = entryMemory.get(object);
       if (entry == null) {
@@ -221,6 +236,9 @@ public final class History implements Iterable<Object> {
       return this;
     }
 
+    /**
+     * {@link #push Pushes} all of the states in the collection onto this builder.
+     */
     public Builder addAll(Collection<?> c) {
       for (Object object : c) {
         push(object);
@@ -236,7 +254,14 @@ public final class History implements Iterable<Object> {
       return history.isEmpty();
     }
 
-    /** @throws IllegalStateException if empty */
+    /**
+     * Removes the last state added. Note that if this builder was created
+     * via {@link #buildUpon()}, any view state associated with the popped
+     * state will be preserved, and restored if it is {@link #push pushed}
+     * back in.
+     *
+     * @throws IllegalStateException if empty
+     */
     public Object pop() {
       if (isEmpty()) {
         throw new IllegalStateException("Cannot pop from an empty builder");
@@ -250,7 +275,7 @@ public final class History implements Iterable<Object> {
      * Pops the history until the given state is at the top.
      *
      * @throws IllegalArgumentException if the given state isn't in the history.
-     * */
+     */
     public Builder popTo(Object state) {
       while (!isEmpty() && !peek().equals(state)) {
         pop();
