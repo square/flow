@@ -24,7 +24,7 @@ import static flow.Preconditions.checkNotNull;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
-  private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
+  public static final String SERVICE_NAME = "flow.Flow.FLOW_SERVICE";
 
   public static Flow get(View view) {
     return get(view.getContext());
@@ -32,11 +32,11 @@ public final class Flow {
 
   public static Flow get(Context context) {
     //noinspection ResourceType
-    return (Flow) context.getSystemService(FLOW_SERVICE);
+    return (Flow) context.getSystemService(SERVICE_NAME);
   }
 
   public static boolean isFlowSystemService(String name) {
-    return FLOW_SERVICE.equals(name);
+    return SERVICE_NAME.equals(name);
   }
 
   public enum Direction {
