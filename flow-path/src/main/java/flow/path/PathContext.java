@@ -88,13 +88,17 @@ public final class PathContext extends ContextWrapper {
   public void destroyNotIn(PathContext path, PathContextFactory factory) {
     Iterator<Path> aElements = this.path.elements().iterator();
     Iterator<Path> bElements = path.path.elements().iterator();
-    while (aElements.hasNext() && bElements.hasNext()) {
-      Path aElement = aElements.next();
-      Path bElement = bElements.next();
-      if (!aElement.equals(bElement)) {
+    while(aElements.hasNext() && bElements.hasNext()) {
+        Path aElement = aElements.next();
+        Path bElement = bElements.next();
+        if(!aElement.equals(bElement)) {
+            factory.tearDownContext(contexts.get(aElement));
+            break;
+        }
+    }
+    while(aElements.hasNext()) {
+        Path aElement = aElements.next();
         factory.tearDownContext(contexts.get(aElement));
-        break;
-      }
     }
   }
 
