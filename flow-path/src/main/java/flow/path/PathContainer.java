@@ -117,6 +117,18 @@ public abstract class PathContainer {
         return;
       }
     }
+    
+    if(traversal.direction == Flow.Direction.FORWARD) {
+        Iterator<Object> destinationPaths = traversal.destination.reverseIterator();
+        int i = 1; // 0 is ROOT in PathContext, we need to merge destination paths after the ROOT without adding self-duplication
+        while(_destinationPaths.hasNext()) {
+            Path destinationPath = (Path) destinationPaths.next();
+            if(destinationPath != path) {
+                path.elements().add(i, destinationPath);
+            }
+            i++;
+        }
+    }
 
     traversalState.setNextEntry(path, viewState);
     performTraversal(container, traversalState, direction, callback);
