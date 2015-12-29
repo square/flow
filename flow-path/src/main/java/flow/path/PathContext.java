@@ -89,16 +89,16 @@ public final class PathContext extends ContextWrapper {
     Iterator<Path> aElements = this.path.elements().iterator();
     Iterator<Path> bElements = path.path.elements().iterator();
     while(aElements.hasNext() && bElements.hasNext()) {
-        Path aElement = aElements.next();
-        Path bElement = bElements.next();
-        if(!aElement.equals(bElement)) {
-            factory.tearDownContext(contexts.get(aElement));
-            break;
-        }
+      Path aElement = aElements.next();
+      Path bElement = bElements.next();
+      if(!aElement.equals(bElement)) {
+        factory.tearDownContext(contexts.get(aElement));
+        break;
+      }
     }
     while(aElements.hasNext()) {
-        Path aElement = aElements.next();
-        factory.tearDownContext(contexts.get(aElement));
+      Path aElement = aElements.next();
+      factory.tearDownContext(contexts.get(aElement));
     }
   }
 
