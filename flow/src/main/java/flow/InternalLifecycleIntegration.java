@@ -70,6 +70,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   History defaultHistory;
   Flow.Dispatcher dispatcher;
   Intent intent;
+  private boolean dispatcherSet;
 
   public InternalLifecycleIntegration() {
     super();
@@ -95,15 +96,21 @@ public final class InternalLifecycleIntegration extends Fragment {
       }
       flow = new Flow(selectHistory(intent, savedHistory, defaultHistory, parceler));
     }
+    flow.setDispatcher(dispatcher);
+    dispatcherSet = true;
   }
 
   @Override public void onResume() {
     super.onResume();
-    flow.setDispatcher(dispatcher);
+    if (!dispatcherSet) {
+      flow.setDispatcher(dispatcher);
+      dispatcherSet = true;
+    }
   }
 
   @Override public void onPause() {
     flow.removeDispatcher(dispatcher);
+    dispatcherSet = false;
     super.onPause();
   }
 
