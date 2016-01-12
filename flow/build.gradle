@@ -23,7 +23,6 @@ dependencies {
   compile 'com.android.support:support-annotations:22.2.1'
 }
 
-
 android.libraryVariants.all { variant ->
   def name = variant.buildType.name
   if (!BuilderConstants.DEBUG.equals(name)) {
