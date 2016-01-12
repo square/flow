@@ -19,6 +19,7 @@ package flow;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.view.View;
 import java.util.Iterator;
 
@@ -73,11 +74,11 @@ public final class Flow {
 
   public static final class Traversal {
     /** May be null if this is a traversal into the start state. */
-    public final History origin;
+    @Nullable public final History origin;
     public final History destination;
     public final Direction direction;
 
-    private Traversal(History from, History to, Direction direction) {
+    private Traversal(@Nullable History from, History to, Direction direction) {
       this.origin = from;
       this.destination = to;
       this.direction = direction;
@@ -120,7 +121,11 @@ public final class Flow {
       // Nothing is happening;
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
-      setHistory(history, Direction.REPLACE);
+      move(new PendingTraversal() {
+          @Override void doExecute() {
+            bootstrap(history);
+          }
+        });
       return;
     }
 
@@ -320,6 +325,14 @@ public final class Flow {
       if (dispatcher != null && pendingTraversal != null) {
         pendingTraversal.execute();
       }
+    }
+
+    void bootstrap(History history) {
+      this.nextHistory = checkNotNull(history, "history");
+      if (dispatcher == null) {
+        throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
+      }
+      dispatcher.dispatch(new Traversal(null, nextHistory, Direction.REPLACE), this);
     }
 
     void dispatch(History nextHistory, Direction direction) {
