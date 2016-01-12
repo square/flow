@@ -127,16 +127,16 @@ public final class History implements Iterable<Object> {
   /** Returns the app state at the provided index in history. 0 is the oldest entry. */
   public <T> T peek(int index) {
     //noinspection unchecked
-    return history.isEmpty() ? null : (T) history.get(history.size() - index - 1).state;
+    return (T) history.get(history.size() - index - 1).state;
   }
 
   /** Returns the {@link ViewState} at the provided index in history. 0 is the oldest entry. */
   public ViewState peekViewState(int index) {
-    return history.isEmpty() ? null : history.get(history.size() - index - 1);
+    return history.get(history.size() - index - 1);
   }
 
-  public ViewState currentViewState() {
-    return history.isEmpty() ? null : history.get(history.size() - 1);
+  public ViewState topViewState() {
+    return peekViewState(0);
   }
 
   /**

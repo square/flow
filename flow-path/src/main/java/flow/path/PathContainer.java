@@ -77,7 +77,7 @@ public abstract class PathContainer {
       final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
     ViewGroup containerView = view.getContainerView();
-    ViewState viewState = traversal.destination.currentViewState();
+    ViewState viewState = traversal.destination.topViewState();
     doShowPath(traversal.destination.<Path>top(), containerView, oldChild, traversal.direction,
         viewState, callback);
   }
@@ -89,7 +89,7 @@ public abstract class PathContainer {
   public final void executeFlowTraversal(ViewGroup container, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     final View oldChild = container.getChildAt(0);
-    ViewState viewState = traversal.destination.currentViewState();
+    ViewState viewState = traversal.destination.topViewState();
     doShowPath(traversal.destination.<Path>top(), container, oldChild, traversal.direction,
         viewState, callback);
   }
