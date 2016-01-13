@@ -42,10 +42,6 @@ public final class Flow {
     return new Installer(baseContext, activity);
   }
 
-  public static boolean onBackPressed(Activity activity) {
-    return get(activity).goBack();
-  }
-
   public static void setHistoryExtra(Intent intent, History history, StateParceler parceler) {
     intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
   }

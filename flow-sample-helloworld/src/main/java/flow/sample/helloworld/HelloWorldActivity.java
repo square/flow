@@ -12,7 +12,7 @@ public class HelloWorldActivity extends Activity {
   }
 
   @Override public void onBackPressed() {
-    if (!Flow.onBackPressed(this)) {
+    if (!Flow.get(this).goBack()) {
       super.onBackPressed();
     }
   }
