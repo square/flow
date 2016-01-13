@@ -113,7 +113,7 @@ public final class Flow {
    * Traversal Traversal} is currently in progress with a previous Dispatcher, that Traversal will
    * not be affected.
    */
-  void setDispatcher(Dispatcher dispatcher) {
+  public void setDispatcher(Dispatcher dispatcher) {
     this.dispatcher = checkNotNull(dispatcher, "dispatcher");
 
     if (pendingTraversal == null || //
@@ -146,7 +146,7 @@ public final class Flow {
    * No further {@link Traversal Traversals}, including Traversals currently enqueued, will execute
    * until a new dispatcher is set.
    */
-  void removeDispatcher(Dispatcher dispatcher) {
+  public void removeDispatcher(Dispatcher dispatcher) {
     // This mechanism protects against out of order calls to this method and setDispatcher
     // (e.g. if an outgoing activity is paused after an incoming one resumes).
     if (this.dispatcher == checkNotNull(dispatcher, "dispatcher")) this.dispatcher = null;
