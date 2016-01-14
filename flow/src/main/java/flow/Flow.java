@@ -16,27 +16,41 @@
 
 package flow;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.support.annotation.Nullable;
 import android.view.View;
 import java.util.Iterator;
 
+import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkNotNull;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
-  private static final String FLOW_SERVICE = "flow.Flow.FLOW_SERVICE";
+  static final String HISTORY_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   public static Flow get(View view) {
     return get(view.getContext());
   }
 
   public static Flow get(Context context) {
-    //noinspection ResourceType
-    return (Flow) context.getSystemService(FLOW_SERVICE);
+    return InternalContextWrapper.getFlow(context);
   }
 
-  public static boolean isFlowSystemService(String name) {
-    return FLOW_SERVICE.equals(name);
+  public static Installer configure(Context baseContext, Activity activity) {
+    return new Installer(baseContext, activity);
+  }
+
+  public static void setHistoryExtra(Intent intent, History history, StateParceler parceler) {
+    intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
+  }
+
+  public static void onNewIntent(Intent intent, Activity activity) {
+    checkArgument(intent != null, "intent may not be null");
+    if (intent.hasExtra(HISTORY_KEY)) {
+      InternalLifecycleIntegration.find(activity).onNewIntent(intent);
+    }
   }
 
   public enum Direction {
@@ -56,11 +70,11 @@ public final class Flow {
 
   public static final class Traversal {
     /** May be null if this is a traversal into the start state. */
-    public final History origin;
+    @Nullable public final History origin;
     public final History destination;
     public final Direction direction;
 
-    private Traversal(History from, History to, Direction direction) {
+    private Traversal(@Nullable History from, History to, Direction direction) {
       this.origin = from;
       this.destination = to;
       this.direction = direction;
@@ -103,7 +117,11 @@ public final class Flow {
       // Nothing is happening;
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
-      setHistory(history, Direction.REPLACE);
+      move(new PendingTraversal() {
+          @Override void doExecute() {
+            bootstrap(history);
+          }
+        });
       return;
     }
 
@@ -305,6 +323,14 @@ public final class Flow {
       }
     }
 
+    void bootstrap(History history) {
+      this.nextHistory = checkNotNull(history, "history");
+      if (dispatcher == null) {
+        throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
+      }
+      dispatcher.dispatch(new Traversal(null, nextHistory, Direction.REPLACE), this);
+    }
+
     void dispatch(History nextHistory, Direction direction) {
       this.nextHistory = checkNotNull(nextHistory, "nextHistory");
       if (dispatcher == null) {
@@ -322,7 +348,8 @@ public final class Flow {
     }
 
     /**
-     * Must be synchronous and end with a call to {@link #dispatch} or {@link #onTraversalCompleted()}.
+     * Must be synchronous and end with a call to {@link #dispatch} or {@link
+     * #onTraversalCompleted()}.
      */
     abstract void doExecute();
   }

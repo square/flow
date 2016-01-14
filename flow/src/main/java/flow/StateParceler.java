@@ -23,6 +23,6 @@ import android.os.Parcelable;
  * {@link android.os.Parcelable}.
  */
 public interface StateParceler {
-  Parcelable wrap(Object instance);
-  Object unwrap(Parcelable parcelable);
+  Parcelable toParcelable(Object state);
+  Object toState(Parcelable parcelable);
 }

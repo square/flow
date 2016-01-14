@@ -46,7 +46,7 @@ public final class History implements Iterable<Object> {
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     List<Entry> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object object = parceler.unwrap(entryBundle.getParcelable("OBJECT"));
+      Object object = parceler.toState(entryBundle.getParcelable("OBJECT"));
       Entry entry = new Entry(object);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
@@ -127,16 +127,16 @@ public final class History implements Iterable<Object> {
   /** Returns the app state at the provided index in history. 0 is the oldest entry. */
   public <T> T peek(int index) {
     //noinspection unchecked
-    return history.isEmpty() ? null : (T) history.get(history.size() - index - 1).state;
+    return (T) history.get(history.size() - index - 1).state;
   }
 
   /** Returns the {@link ViewState} at the provided index in history. 0 is the oldest entry. */
   public ViewState peekViewState(int index) {
-    return history.isEmpty() ? null : history.get(history.size() - index - 1);
+    return history.get(history.size() - index - 1);
   }
 
-  public ViewState currentViewState() {
-    return history.isEmpty() ? null : history.get(history.size() - 1);
+  public ViewState topViewState() {
+    return peekViewState(0);
   }
 
   /**
@@ -176,7 +176,7 @@ public final class History implements Iterable<Object> {
 
     Bundle getBundle(StateParceler parceler) {
       Bundle bundle = new Bundle();
-      bundle.putParcelable("OBJECT", parceler.wrap(state));
+      bundle.putParcelable("OBJECT", parceler.toParcelable(state));
       bundle.putSparseParcelableArray("VIEW_STATE", viewState);
       return bundle;
     }

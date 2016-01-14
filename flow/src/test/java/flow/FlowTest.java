@@ -15,17 +15,13 @@
  */
 package flow;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
-import java.util.List;
 import org.junit.Test;
 
 import static flow.Flow.Traversal;
 import static flow.Flow.TraversalCallback;
-import static java.util.Arrays.asList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.fail;
 
 public class FlowTest {
   static class Uno {
@@ -77,68 +73,6 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  @Test public void builderCanPushPeekAndPopObjects() {
-    History.Builder builder = History.emptyBuilder();
-
-    List<TestState> objects = asList(able, baker, charlie);
-    for (Object object : objects) {
-      builder.push(object);
-    }
-
-    for (int i = objects.size() - 1; i >= 0; i--) {
-      Object object = objects.get(i);
-      assertThat(builder.peek()).isSameAs(object);
-      assertThat(builder.pop()).isSameAs(object);
-    }
-  }
-
-  @Test public void builderCanPopTo() {
-    History.Builder builder = History.emptyBuilder();
-    builder.push(able);
-    builder.push(baker);
-    builder.push(charlie);
-    builder.popTo(able);
-    assertThat(builder.peek()).isSameAs(able);
-  }
-
-  @Test public void builderPopToExplodesOnMissingState() {
-    History.Builder builder = History.emptyBuilder();
-    builder.push(able);
-    builder.push(baker);
-    builder.push(charlie);
-    try {
-      builder.popTo(new Object());
-      fail("Missing state object, should have thrown");
-    } catch (IllegalArgumentException ignored) {
-      // Correct!
-    }
-  }
-
-  @Test public void builderCanPopCount() {
-    History.Builder builder = History.emptyBuilder();
-    builder.push(able);
-    builder.push(baker);
-    builder.push(charlie);
-    builder.pop(1);
-    assertThat(builder.peek()).isSameAs(baker);
-    builder.pop(2);
-    assertThat(builder.isEmpty());
-  }
-
-  @Test public void builderPopExplodesIfCountIsTooLarge() {
-    History.Builder builder = History.emptyBuilder();
-    builder.push(able);
-    builder.push(baker);
-    builder.push(charlie);
-    try {
-      builder.pop(4);
-      fail("Count is too large, should have thrown");
-    } catch (IllegalArgumentException ignored) {
-      // Success!
-    }
-
-  }
-
   @Test public void historyChangesAfterListenerCall() {
     final History firstHistory = History.single(new Uno());
 
@@ -178,23 +112,6 @@ public class FlowTest {
     assertThat(lastStack.top()).isEqualTo(able);
 
     assertThat(flow.goBack()).isFalse();
-  }
-
-  @Test public void forwardIterator() {
-    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(able, baker, charlie));
-    History history = History.emptyBuilder().addAll(paths).build();
-    for (Object o : history) {
-      assertThat(o).isSameAs(paths.remove(paths.size()-1));
-    }
-  }
-
-  @Test public void reverseIterator() {
-    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(able, baker, charlie));
-    History history = History.emptyBuilder().addAll(paths).build();
-    Iterator<Object> i = history.reverseIterator();
-    while (i.hasNext()) {
-      assertThat(i.next()).isSameAs(paths.remove(0));
-    }
   }
 
   @Test public void setHistoryWorks() {
@@ -347,32 +264,4 @@ public class FlowTest {
     assertThat(flow.goBack()).isFalse();
   }
 
-  @Test public void emptyBuilderPeekIsNullable() {
-    assertThat(History.emptyBuilder().peek()).isNull();
-  }
-
-  @Test public void emptyBuilderPopThrows() {
-    try {
-      History.emptyBuilder().pop();
-      fail("Should throw");
-    } catch (IllegalStateException e) {
-      // pass
-    }
-  }
-
-  @Test public void isEmpty() {
-    final History.Builder builder = History.emptyBuilder();
-    assertThat(builder.isEmpty()).isTrue();
-    builder.push("foo");
-    assertThat(builder.isEmpty()).isFalse();
-    builder.pop();
-    assertThat(builder.isEmpty()).isTrue();
-  }
-
-  @Test public void historyIndexAccess() {
-    History history = History.emptyBuilder().addAll(asList("able", "baker", "charlie")).build();
-    assertThat(history.peek(0)).isEqualTo("charlie");
-    assertThat(history.peek(1)).isEqualTo("baker");
-    assertThat(history.peek(2)).isEqualTo("able");
-  }
 }
