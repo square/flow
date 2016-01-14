@@ -7,15 +7,14 @@ buildscript {
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion 23
-  buildToolsVersion '23.0.2'
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
   defaultConfig {
     applicationId "flow.sample.basic"
-    minSdkVersion 15
-    targetSdkVersion 23
-    versionCode 1
-    versionName "1.0"
+
+    minSdkVersion rootProject.ext.minSdkVersion
+    versionName VERSION_NAME
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
 

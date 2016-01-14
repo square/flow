@@ -3,8 +3,8 @@ ext.deps = [
 ]
 
 ext.minSdkVersion = 14
-ext.compileSdkVersion = 21
-ext.buildToolsVersion = '21.1.2'
+ext.compileSdkVersion = 23
+ext.buildToolsVersion = '23.0.1'
 
 task wrapper(type: Wrapper) {
   gradleVersion = '2.3'
