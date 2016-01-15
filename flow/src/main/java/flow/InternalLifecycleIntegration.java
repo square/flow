@@ -134,13 +134,13 @@ public final class InternalLifecycleIntegration extends Fragment {
 
   private static History selectHistory(Intent intent, History saved,
       History defaultHistory, @Nullable StateParceler parceler) {
+    if (saved != null) {
+      return saved;
+    }
     if (intent != null && intent.hasExtra(Flow.HISTORY_KEY)) {
       checkNotNull(parceler,
           "Intent has a Flow history extra, but Flow was not installed with a StateParceler");
       return History.from(intent.getParcelableExtra(Flow.HISTORY_KEY), parceler);
-    }
-    if (saved != null) {
-      return saved;
     }
     return defaultHistory;
   }
