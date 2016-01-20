@@ -86,8 +86,10 @@ public abstract class Path {
     private LayoutInflater inflater;
 
     static LocalPathWrapper get(Context context) {
-      //noinspection ResourceType
-      return (LocalPathWrapper) context.getSystemService(LOCAL_WRAPPER_SERVICE);
+      @SuppressWarnings("WrongConstant")
+      LocalPathWrapper wrapper =
+          (LocalPathWrapper) context.getSystemService(LOCAL_WRAPPER_SERVICE);
+      return wrapper;
     }
 
     final Object localScreen;

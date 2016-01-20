@@ -8,8 +8,9 @@ final class InternalContextWrapper extends ContextWrapper {
   private static final String FLOW_SERVICE = "flow.InternalContextWrapper.FLOW_SERVICE";
 
   static Flow getFlow(Context context) {
-    //noinspection ResourceType
-    return (Flow) context.getSystemService(FLOW_SERVICE);
+    @SuppressWarnings("WrongConstant")
+    Flow systemService = (Flow) context.getSystemService(FLOW_SERVICE);
+    return systemService;
   }
 
   private final Activity activity;
