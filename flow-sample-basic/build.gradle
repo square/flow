@@ -41,6 +41,6 @@ dependencies {
 //noinspection GroovyAssignabilityCheck
 configurations.all {
   resolutionStrategy {
-    force 'com.android.support:support-annotations:22.2.1'
+    force 'com.android.support:support-annotations:23.1.1'
   }
 }

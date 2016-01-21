@@ -98,9 +98,10 @@ public final class PathContext extends ContextWrapper {
     }
   }
 
-  @SuppressWarnings("ResourceType")
   public static PathContext get(Context context) {
-    return checkNotNull((PathContext) context.getSystemService(SERVICE_NAME),
+    @SuppressWarnings("WrongConstant")
+    PathContext pathContext = (PathContext) context.getSystemService(SERVICE_NAME);
+    return checkNotNull(pathContext,
         "Expected to find a PathContext but did not.");
   }
 
