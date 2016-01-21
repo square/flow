@@ -25,7 +25,7 @@ final class BasicDispatcher implements Flow.Dispatcher {
 
     if (traversal.origin != null) {
       if (frame.getChildCount() > 0) {
-        traversal.origin.topViewState().save(frame.getChildAt(0));
+        traversal.origin.topSaveState().save(frame.getChildAt(0));
         frame.removeAllViews();
       }
     }
@@ -46,7 +46,7 @@ final class BasicDispatcher implements Flow.Dispatcher {
         .inflate(layout, frame, false);
 
     frame.addView(incomingView);
-    traversal.destination.topViewState().restore(incomingView);
+    traversal.destination.topSaveState().restore(incomingView);
 
     callback.onTraversalCompleted();
   }

@@ -145,14 +145,14 @@ public class HistoryTest {
       View view = mock(View.class);
       Parcelable viewState = mock(Parcelable.class);
       mockSaveViewState(view, viewState);
-      history.peekViewState(i).save(view);
+      history.peekSaveState(i).save(view);
     }
 
     History rebuiltHistory = history.buildUpon().clear().addAll(states).build();
 
     for (int i = 0; i < history.size(); i++) {
-      assertEquals("Wrong view state at position " + i, history.peekViewState(i),
-          rebuiltHistory.peekViewState(i));
+      assertEquals("Wrong view state at position " + i, history.peekSaveState(i),
+          rebuiltHistory.peekSaveState(i));
     }
   }
 

@@ -18,6 +18,7 @@ package flow;
 
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.Nullable;
 import android.util.SparseArray;
 import android.view.View;
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.Map;
 
 import static flow.Preconditions.checkArgument;
@@ -44,6 +46,7 @@ public final class History implements Iterable<Object> {
   public static History from(Parcelable parcelable, StateParceler parceler) {
     Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
+    if (entryBundles == null) throw new AssertionError("Parcelable does not contain history");
     List<Entry> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
       Object object = parceler.toState(entryBundle.getParcelable("OBJECT"));
@@ -81,7 +84,7 @@ public final class History implements Iterable<Object> {
     ListIterator<Entry> it = history.listIterator();
     while (it.hasPrevious()) {
       Entry entry = it.previous();
-      if (filter.apply(entry.state)) {
+      if (filter.apply(entry.flowState)) {
         entryBundles.add(entry.getBundle(parceler));
       }
     }
@@ -124,19 +127,21 @@ public final class History implements Iterable<Object> {
     return (T) peek(0);
   }
 
-  /** Returns the app state at the provided index in history. 0 is the oldest entry. */
+  /** Returns the app state at the provided index in history. 0 is the newest entry. */
   public <T> T peek(int index) {
     //noinspection unchecked
-    return (T) history.get(history.size() - index - 1).state;
+    return (T) history.get(history.size() - index - 1).flowState;
   }
 
-  /** Returns the {@link ViewState} at the provided index in history. 0 is the oldest entry. */
-  public ViewState peekViewState(int index) {
+  /**
+   * Returns the {@link Saved} at the provided index in history. 0 is the newest entry.
+   */
+  public Saved peekSaveState(int index) {
     return history.get(history.size() - index - 1);
   }
 
-  public ViewState topViewState() {
-    return peekViewState(0);
+  public Saved topSaveState() {
+    return peekSaveState(0);
   }
 
   /**
@@ -154,12 +159,12 @@ public final class History implements Iterable<Object> {
     return Arrays.deepToString(history.toArray());
   }
 
-  private static final class Entry implements ViewState {
-    final Object state;
-    SparseArray<Parcelable> viewState;
+  private static final class Entry extends Saved {
+    final Object flowState;
+    @Nullable SparseArray<Parcelable> viewState;
 
-    Entry(Object state) {
-      this.state = state;
+    Entry(Object flowState) {
+      this.flowState = flowState;
     }
 
     @Override public void save(View view) {
@@ -176,8 +181,9 @@ public final class History implements Iterable<Object> {
 
     Bundle getBundle(StateParceler parceler) {
       Bundle bundle = new Bundle();
-      bundle.putParcelable("OBJECT", parceler.toParcelable(state));
+      bundle.putParcelable("OBJECT", parceler.toParcelable(flowState));
       bundle.putSparseParcelableArray("VIEW_STATE", viewState);
+      bundle.putBundle("BUNDLE", bundle);
       return bundle;
     }
 
@@ -185,15 +191,15 @@ public final class History implements Iterable<Object> {
       if (this == o) return true;
       if (o == null || getClass() != o.getClass()) return false;
       Entry entry = (Entry) o;
-      return (state.equals(entry.state));
+      return (flowState.equals(entry.flowState));
     }
 
     @Override public int hashCode() {
-      return state.hashCode();
+      return flowState.hashCode();
     }
 
     @Override public String toString() {
-      return state.toString();
+      return flowState.toString();
     }
   }
 
@@ -247,7 +253,7 @@ public final class History implements Iterable<Object> {
     }
 
     public Object peek() {
-      return history.isEmpty() ? null : history.get(history.size() - 1).state;
+      return history.isEmpty() ? null : history.get(history.size() - 1).flowState;
     }
 
     public boolean isEmpty() {
@@ -267,8 +273,8 @@ public final class History implements Iterable<Object> {
         throw new IllegalStateException("Cannot pop from an empty builder");
       }
       Entry entry = history.remove(history.size() - 1);
-      entryMemory.put(entry.state, entry);
-      return entry.state;
+      entryMemory.put(entry.flowState, entry);
+      return entry.flowState;
     }
 
     /**
@@ -277,6 +283,7 @@ public final class History implements Iterable<Object> {
      * @throws IllegalArgumentException if the given state isn't in the history.
      */
     public Builder popTo(Object state) {
+      //noinspection ConstantConditions
       while (!isEmpty() && !peek().equals(state)) {
         pop();
       }
@@ -287,7 +294,7 @@ public final class History implements Iterable<Object> {
     public Builder pop(int count) {
       final int size = history.size();
       checkArgument(count <= size,
-          String.format("Cannot pop %d elements, history only has %d", count, size));
+          String.format((Locale) null, "Cannot pop %d elements, history only has %d", count, size));
       while (count-- > 0) {
         pop();
       }
@@ -336,7 +343,7 @@ public final class History implements Iterable<Object> {
 
     @Override public T next() {
       //noinspection unchecked
-      return (T) iterator.next().state;
+      return (T) iterator.next().flowState;
     }
 
     @Override public void remove() {

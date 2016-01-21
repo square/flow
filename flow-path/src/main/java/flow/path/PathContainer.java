@@ -19,7 +19,7 @@ package flow.path;
 import android.view.View;
 import android.view.ViewGroup;
 import flow.Flow;
-import flow.ViewState;
+import flow.Saved;
 
 import static flow.path.Preconditions.checkNotNull;
 
@@ -28,22 +28,21 @@ import static flow.path.Preconditions.checkNotNull;
  * container views to be largely declarative.
  */
 public abstract class PathContainer {
-  private static final ViewState NULL_VIEW_STATE = new NullViewState();
 
   /**
    * Provides information about the current or most recent Traversal handled by the container.
    */
   protected static final class TraversalState {
     private Path fromPath;
-    private ViewState fromViewState;
+    private Saved fromSaved;
     private Path toPath;
-    private ViewState toViewState;
+    private Saved toSaved;
 
-    public void setNextEntry(Path path, ViewState viewState) {
+    public void setNextEntry(Path path, Saved saved) {
       this.fromPath = this.toPath;
-      this.fromViewState = this.toViewState;
+      this.fromSaved = this.toSaved;
       this.toPath = path;
-      this.toViewState = viewState;
+      this.toSaved = saved;
     }
 
     public Path fromPath() {
@@ -55,11 +54,11 @@ public abstract class PathContainer {
     }
 
     public void saveViewState(View view) {
-      fromViewState.save(view);
+      fromSaved.save(view);
     }
 
     public void restoreViewState(View view) {
-      toViewState.restore(view);
+      toSaved.restore(view);
     }
   }
 
@@ -77,9 +76,9 @@ public abstract class PathContainer {
       final Flow.TraversalCallback callback) {
     final View oldChild = view.getCurrentChild();
     ViewGroup containerView = view.getContainerView();
-    ViewState viewState = traversal.destination.topViewState();
+    Saved saved = traversal.destination.topSaveState();
     doShowPath(traversal.destination.<Path>top(), containerView, oldChild, traversal.direction,
-        viewState, callback);
+        saved, callback);
   }
 
   /**
@@ -89,9 +88,8 @@ public abstract class PathContainer {
   public final void executeFlowTraversal(ViewGroup container, Flow.Traversal traversal,
       final Flow.TraversalCallback callback) {
     final View oldChild = container.getChildAt(0);
-    ViewState viewState = traversal.destination.topViewState();
-    doShowPath(traversal.destination.<Path>top(), container, oldChild, traversal.direction,
-        viewState, callback);
+    Saved saved = traversal.destination.topSaveState();
+    doShowPath(traversal.destination.<Path>top(), container, oldChild, traversal.direction, saved, callback);
   }
 
   /**
@@ -100,11 +98,11 @@ public abstract class PathContainer {
    */
   public void setPath(ViewGroup container, Path path, Flow.Direction direction,
       Flow.TraversalCallback callback) {
-    doShowPath(path, container, container.getChildAt(0), direction, NULL_VIEW_STATE, callback);
+    doShowPath(path, container, container.getChildAt(0), direction, Saved.NULL, callback);
   }
 
   private void doShowPath(Path path, ViewGroup container, View oldChild, Flow.Direction direction,
-      ViewState viewState, Flow.TraversalCallback callback) {
+      Saved saved, Flow.TraversalCallback callback) {
     Path oldPath;
     TraversalState traversalState = ensureTag(container);
 
@@ -118,7 +116,7 @@ public abstract class PathContainer {
       }
     }
 
-    traversalState.setNextEntry(path, viewState);
+    traversalState.setNextEntry(path, saved);
     performTraversal(container, traversalState, direction, callback);
   }
 
@@ -132,13 +130,5 @@ public abstract class PathContainer {
       container.setTag(tagKey, traversalState);
     }
     return traversalState;
-  }
-
-  private static final class NullViewState implements ViewState {
-    @Override public void save(View view) {
-    }
-
-    @Override public void restore(View view) {
-    }
   }
 }
