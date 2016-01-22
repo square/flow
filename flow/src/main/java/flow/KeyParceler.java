@@ -19,10 +19,10 @@ package flow;
 import android.os.Parcelable;
 
 /**
- * Used by History to convert your state objects to and from instances of
+ * Used by History to convert your key objects to and from instances of
  * {@link android.os.Parcelable}.
  */
-public interface StateParceler {
-  Parcelable toParcelable(Object state);
-  Object toState(Parcelable parcelable);
+public interface KeyParceler {
+  Parcelable toParcelable(Object key);
+  Object toKey(Parcelable parcelable);
 }

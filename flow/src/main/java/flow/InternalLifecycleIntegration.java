@@ -22,7 +22,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   }
 
   static void install(Application app, final Activity activity,
-      @Nullable final StateParceler parceler, final History defaultHistory,
+      @Nullable final KeyParceler parceler, final History defaultHistory,
       final Flow.Dispatcher dispatcher) {
     app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
           @Override public void onActivityCreated(Activity a, Bundle savedInstanceState) {
@@ -66,7 +66,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   }
 
   Flow flow;
-  @Nullable StateParceler parceler;
+  @Nullable KeyParceler parceler;
   History defaultHistory;
   Flow.Dispatcher dispatcher;
   Intent intent;
@@ -81,7 +81,7 @@ public final class InternalLifecycleIntegration extends Fragment {
     if (intent.hasExtra(Flow.HISTORY_KEY)) {
       History history = History.from(intent.getParcelableExtra(Flow.HISTORY_KEY),
           checkNotNull(parceler,
-              "Intent has a Flow history extra, but Flow was not installed with a StateParceler"));
+              "Intent has a Flow history extra, but Flow was not installed with a KeyParceler"));
       flow.setHistory(history, Flow.Direction.REPLACE);
     }
   }
@@ -92,7 +92,7 @@ public final class InternalLifecycleIntegration extends Fragment {
       History savedHistory = null;
       if (savedInstanceState != null && savedInstanceState.containsKey(Flow.HISTORY_KEY)) {
         savedHistory = History.from(savedInstanceState.getParcelable(Flow.HISTORY_KEY),
-            checkNotNull(parceler, "no StateParceler installed"));
+            checkNotNull(parceler, "no KeyParceler installed"));
       }
       flow = new Flow(selectHistory(intent, savedHistory, defaultHistory, parceler));
     }
@@ -133,13 +133,13 @@ public final class InternalLifecycleIntegration extends Fragment {
   }
 
   private static History selectHistory(Intent intent, History saved,
-      History defaultHistory, @Nullable StateParceler parceler) {
+      History defaultHistory, @Nullable KeyParceler parceler) {
     if (saved != null) {
       return saved;
     }
     if (intent != null && intent.hasExtra(Flow.HISTORY_KEY)) {
       checkNotNull(parceler,
-          "Intent has a Flow history extra, but Flow was not installed with a StateParceler");
+          "Intent has a Flow history extra, but Flow was not installed with a KeyParceler");
       return History.from(intent.getParcelableExtra(Flow.HISTORY_KEY), parceler);
     }
     return defaultHistory;

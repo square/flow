@@ -42,7 +42,7 @@ public final class Flow {
     return new Installer(baseContext, activity);
   }
 
-  public static void setHistoryExtra(Intent intent, History history, StateParceler parceler) {
+  public static void setHistoryExtra(Intent intent, History history, KeyParceler parceler) {
     intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
   }
 
@@ -160,24 +160,24 @@ public final class Flow {
   }
 
   /**
-   * Updates the history such that the given object is at the top and dispatches the updated
+   * Updates the history such that the given key is at the top and dispatches the updated
    * history.
    *
-   * If newTop is already at the top of the history, the history will be unchanged, but it will
+   * If newTopKey is already at the top of the history, the history will be unchanged, but it will
    * be dispatched with direction {@link Direction#REPLACE}.
    *
-   * If newTop is already on the history but not at the top, the stack will pop until newTop is
-   * at the top, and the dispatch direction will be {@link Direction#BACKWARD}.
+   * If newTopKey is already on the history but not at the top, the stack will pop until newTopKey
+   * is at the top, and the dispatch direction will be {@link Direction#BACKWARD}.
    *
-   * If newTop is not already on the history, it will be pushed and the dispatch direction will be
-   * {@link Direction#FORWARD}.
+   * If newTopKey is not already on the history, it will be pushed and the dispatch direction will
+   * be {@link Direction#FORWARD}.
    *
-   * Objects equality is always checked using {@link Object#equals(Object)}.
+   * Objects' equality is always checked using {@link Object#equals(Object)}.
    */
-  public void set(final Object newTop) {
+  public void set(final Object newTopKey) {
     move(new PendingTraversal() {
       @Override void doExecute() {
-        if (newTop.equals(history.top())) {
+        if (newTopKey.equals(history.top())) {
           dispatch(history, Direction.REPLACE);
           return;
         }
@@ -190,7 +190,7 @@ public final class Flow {
           Object entry = it.next();
 
           // If we find newTop on the stack, pop back to it.
-          if (entry.equals(newTop)) {
+          if (entry.equals(newTopKey)) {
             for (int i = 0; i < history.size() - count; i++) {
               preservedInstance = builder.pop();
             }
@@ -208,7 +208,7 @@ public final class Flow {
           dispatch(newHistory, Direction.BACKWARD);
         } else {
           // newTop was not on the history. Push it on and dispatch.
-          builder.push(newTop);
+          builder.push(newTopKey);
           newHistory = builder.build();
           dispatch(newHistory, Direction.FORWARD);
         }
@@ -217,7 +217,7 @@ public final class Flow {
   }
 
   /**
-   * Go back one screen.
+   * Go back one key.
    *
    * @return false if going back is not possible.
    */

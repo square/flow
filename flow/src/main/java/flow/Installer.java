@@ -9,8 +9,8 @@ public final class Installer {
 
   private final Context baseContext;
   private final Activity activity;
-  private StateParceler parceler;
-  private Object defaultState;
+  private KeyParceler parceler;
+  private Object defaultKey;
   private Flow.Dispatcher dispatcher;
 
   public Installer(Context baseContext, Activity activity) {
@@ -18,7 +18,7 @@ public final class Installer {
     this.activity = activity;
   }
 
-  public Installer stateParceler(@Nullable StateParceler parceler) {
+  public Installer keyParceler(@Nullable KeyParceler parceler) {
     this.parceler = parceler;
     return this;
   }
@@ -28,8 +28,8 @@ public final class Installer {
     return this;
   }
 
-  public Installer defaultState(@Nullable Object defaultState) {
-    this.defaultState = defaultState;
+  public Installer defaultKey(@Nullable Object defaultKey) {
+    this.defaultKey = defaultKey;
     return this;
   }
 
@@ -38,7 +38,7 @@ public final class Installer {
       throw new IllegalStateException("Flow is already installed in this Activity.");
     }
     final Flow.Dispatcher dis = dispatcher == null ? new DefaultDispatcher(activity) : dispatcher;
-    final Object defState = defaultState == null ? "Hello, World!" : defaultState;
+    final Object defState = defaultKey == null ? "Hello, World!" : defaultKey;
 
     final History defaultHistory =
         History.single(defState);

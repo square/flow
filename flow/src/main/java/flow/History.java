@@ -18,9 +18,6 @@ package flow;
 
 import android.os.Bundle;
 import android.os.Parcelable;
-import android.support.annotation.Nullable;
-import android.util.SparseArray;
-import android.view.View;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -39,53 +36,54 @@ import static flow.Preconditions.checkArgument;
  */
 public final class History implements Iterable<Object> {
   public interface Filter {
-    boolean apply(Object state);
+    boolean apply(Object key);
   }
 
-  /** Restore a saved history from a {@link Parcelable} using the supplied {@link StateParceler}. */
-  public static History from(Parcelable parcelable, StateParceler parceler) {
+  /** Restore a saved history from a {@link Parcelable} using the supplied {@link KeyParceler}. */
+  public static History from(Parcelable parcelable, KeyParceler parceler) {
     Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     if (entryBundles == null) throw new AssertionError("Parcelable does not contain history");
-    List<Entry> entries = new ArrayList<>(entryBundles.size());
+    List<State> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object object = parceler.toState(entryBundle.getParcelable("OBJECT"));
-      Entry entry = new Entry(object);
+      Object object = parceler.toKey(entryBundle.getParcelable("OBJECT"));
+      final Object key = object;
+      State entry = new State(key);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
     }
     return new History(entries);
   }
 
-  private final List<Entry> history;
+  private final List<State> history;
 
-  /** Get a {@link Parcelable} of this history using the supplied {@link StateParceler}. */
-  public Parcelable getParcelable(StateParceler parceler) {
+  /** Get a {@link Parcelable} of this history using the supplied {@link KeyParceler}. */
+  public Parcelable getParcelable(KeyParceler parceler) {
     Bundle historyBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
-    for (Entry entry : history) {
-      entryBundles.add(entry.getBundle(parceler));
+    for (State entry : history) {
+      entryBundles.add(entry.toBundle(parceler));
     }
     historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return historyBundle;
   }
 
   /**
-   * Get a {@link Parcelable} of this history using the supplied {@link StateParceler}, filtered
+   * Get a {@link Parcelable} of this history using the supplied {@link KeyParceler}, filtered
    * by the supplied {@link Filter}.
    *
-   * The filter is invoked on each state in the stack in reverse order
+   * The filter is invoked on each key in the stack in reverse order
    *
-   * @return null if all states are filtered out.
+   * @return null if all keys are filtered out.
    */
-  public Parcelable getParcelable(StateParceler parceler, Filter filter) {
+  public Parcelable getParcelable(KeyParceler parceler, Filter filter) {
     Bundle historyBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
-    ListIterator<Entry> it = history.listIterator();
+    ListIterator<State> it = history.listIterator();
     while (it.hasPrevious()) {
-      Entry entry = it.previous();
-      if (filter.apply(entry.flowState)) {
-        entryBundles.add(entry.getBundle(parceler));
+      State entry = it.previous();
+      if (filter.apply(entry.getKey())) {
+        entryBundles.add(entry.toBundle(parceler));
       }
     }
     if (entryBundles.isEmpty()) {
@@ -97,15 +95,15 @@ public final class History implements Iterable<Object> {
   }
 
   public static Builder emptyBuilder() {
-    return new Builder(Collections.<Entry>emptyList());
+    return new Builder(Collections.<State>emptyList());
   }
 
-  /** Create a history that contains a single object. */
-  public static History single(Object object) {
-    return emptyBuilder().push(object).build();
+  /** Create a history that contains a single key. */
+  public static History single(Object key) {
+    return emptyBuilder().push(key).build();
   }
 
-  private History(List<Entry> history) {
+  private History(List<State> history) {
     checkArgument(history != null && !history.isEmpty(), "History may not be empty");
     this.history = history;
   }
@@ -124,32 +122,32 @@ public final class History implements Iterable<Object> {
 
   public <T> T top() {
     //noinspection unchecked
-    return (T) peek(0);
+    return (T) peekSaveState(0).getKey();
   }
 
   /** Returns the app state at the provided index in history. 0 is the newest entry. */
   public <T> T peek(int index) {
     //noinspection unchecked
-    return (T) history.get(history.size() - index - 1).flowState;
+    return (T) peekSaveState(index).getKey();
   }
 
   /**
-   * Returns the {@link Saved} at the provided index in history. 0 is the newest entry.
+   * Returns the {@link State} at the provided index in history. 0 is the newest entry.
    */
-  public Saved peekSaveState(int index) {
+  public State peekSaveState(int index) {
     return history.get(history.size() - index - 1);
   }
 
-  public Saved topSaveState() {
+  public State topSaveState() {
     return peekSaveState(0);
   }
 
   /**
    * Get a builder to modify a copy of this history.
    * <p>
-   * The builder returned will retain all internal information related to the states in the
-   * history, including any associated View state. It is safe to remove states from the
-   * builder and push them back on; nothing will be lost in those operations.
+   * The builder returned will retain all internal information related to the keys in the
+   * history, including their states. It is safe to remove keys from the builder and push them back
+   * on; nothing will be lost in those operations.
    */
   public Builder buildUpon() {
     return new Builder(history);
@@ -159,63 +157,19 @@ public final class History implements Iterable<Object> {
     return Arrays.deepToString(history.toArray());
   }
 
-  private static final class Entry extends Saved {
-    final Object flowState;
-    @Nullable SparseArray<Parcelable> viewState;
-
-    Entry(Object flowState) {
-      this.flowState = flowState;
-    }
-
-    @Override public void save(View view) {
-      SparseArray<Parcelable> state = new SparseArray<>();
-      view.saveHierarchyState(state);
-      viewState = state;
-    }
-
-    @Override public void restore(View view) {
-      if (viewState != null) {
-        view.restoreHierarchyState(viewState);
-      }
-    }
-
-    Bundle getBundle(StateParceler parceler) {
-      Bundle bundle = new Bundle();
-      bundle.putParcelable("OBJECT", parceler.toParcelable(flowState));
-      bundle.putSparseParcelableArray("VIEW_STATE", viewState);
-      bundle.putBundle("BUNDLE", bundle);
-      return bundle;
-    }
-
-    @Override public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-      Entry entry = (Entry) o;
-      return (flowState.equals(entry.flowState));
-    }
-
-    @Override public int hashCode() {
-      return flowState.hashCode();
-    }
-
-    @Override public String toString() {
-      return flowState.toString();
-    }
-  }
-
   public static final class Builder {
-    private final List<Entry> history;
-    private final Map<Object, Entry> entryMemory = new LinkedHashMap<>();
+    private final List<State> history;
+    private final Map<Object, State> entryMemory = new LinkedHashMap<>();
 
-    private Builder(Collection<Entry> history) {
+    private Builder(Collection<State> history) {
       this.history = new ArrayList<>(history);
     }
 
     /**
-     * Removes all states from this builder. But note that if this builder was created
-     * via {@link #buildUpon()}, any view state associated with the cleared
-     * states will be preserved, and restored if they are {@link #push pushed}
-     * back in.
+     * Removes all keys from this builder. But note that if this builder was created
+     * via {@link #buildUpon()}, any state associated with the cleared
+     * keys will be preserved and will be restored if they are {@link #push pushed}
+     * back on.
      */
     public Builder clear() {
       // Clear by popping everything (rather than just calling history.clear()) to
@@ -228,32 +182,33 @@ public final class History implements Iterable<Object> {
     }
 
     /**
-     * Adds a state to the builder. If this builder was created via {@link #buildUpon()},
-     * and the pushed state was previously {@link #pop() popped} or {@link #clear cleared}
-     * from the builder, associated view state will be restored.
+     * Adds a key to the builder. If this builder was created via {@link #buildUpon()},
+     * and the pushed key was previously {@link #pop() popped} or {@link #clear cleared}
+     * from the builder, the key's associated state will be restored.
      */
-    public Builder push(Object object) {
-      Entry entry = entryMemory.get(object);
+    public Builder push(Object key) {
+      State entry = entryMemory.get(key);
       if (entry == null) {
-        entry = new Entry(object);
+        final Object key1 = key;
+        entry = new State(key1);
       }
       history.add(entry);
-      entryMemory.remove(object);
+      entryMemory.remove(key);
       return this;
     }
 
     /**
-     * {@link #push Pushes} all of the states in the collection onto this builder.
+     * {@link #push Pushes} all of the keys in the collection onto this builder.
      */
     public Builder addAll(Collection<?> c) {
-      for (Object object : c) {
-        push(object);
+      for (Object key : c) {
+        push(key);
       }
       return this;
     }
 
     public Object peek() {
-      return history.isEmpty() ? null : history.get(history.size() - 1).flowState;
+      return history.isEmpty() ? null : history.get(history.size() - 1).getKey();
     }
 
     public boolean isEmpty() {
@@ -272,9 +227,9 @@ public final class History implements Iterable<Object> {
       if (isEmpty()) {
         throw new IllegalStateException("Cannot pop from an empty builder");
       }
-      Entry entry = history.remove(history.size() - 1);
-      entryMemory.put(entry.flowState, entry);
-      return entry.flowState;
+      State entry = history.remove(history.size() - 1);
+      entryMemory.put(entry.getKey(), entry);
+      return entry.getKey();
     }
 
     /**
@@ -331,9 +286,9 @@ public final class History implements Iterable<Object> {
   }
 
   private static class ReadStateIterator<T> implements Iterator<T> {
-    private final Iterator<Entry> iterator;
+    private final Iterator<State> iterator;
 
-    ReadStateIterator(Iterator<Entry> iterator) {
+    ReadStateIterator(Iterator<State> iterator) {
       this.iterator = iterator;
     }
 
@@ -343,7 +298,7 @@ public final class History implements Iterable<Object> {
 
     @Override public T next() {
       //noinspection unchecked
-      return (T) iterator.next().flowState;
+      return (T) iterator.next().getKey();
     }
 
     @Override public void remove() {

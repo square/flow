@@ -28,7 +28,7 @@ public class BasicSampleTest {
   @Rule public ActivityTestRule rule = new ActivityTestRule<>(BasicSampleActivity.class);
 
   /** Verifies that the app is in its default state on a cold start. */
-  @Test public void defaultStateIsUsed() {
+  @Test public void defaultKeyIsUsed() {
     onView(withId(R.id.basic_activity_frame))
         .check(matches(hasDescendant(isAssignableFrom(WelcomeView.class))));
   }
