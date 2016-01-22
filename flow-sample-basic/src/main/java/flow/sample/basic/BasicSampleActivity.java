@@ -15,8 +15,8 @@ public class BasicSampleActivity extends Activity {
   @Override protected void attachBaseContext(Context baseContext) {
     baseContext = Flow.configure(baseContext, this) //
         .dispatcher(new BasicDispatcher(this)) //
-        .defaultState(new WelcomeScreen()) //
-        .stateParceler(new BasicStateParceler()) //
+        .defaultKey(new WelcomeScreen()) //
+        .keyParceler(new BasicKeyParceler()) //
         .install();
     super.attachBaseContext(baseContext);
   }
