@@ -7,8 +7,7 @@ import android.util.SparseArray;
 import android.view.View;
 
 public class State {
-
-  /** Creates a Saved instance that has no state and is effectively immutable. */
+  /** Creates a State instance that has no state and is effectively immutable. */
   public static State empty(final Object key) {
     return new EmptyState(key);
   }

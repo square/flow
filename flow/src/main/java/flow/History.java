@@ -46,8 +46,7 @@ public final class History implements Iterable<Object> {
     if (entryBundles == null) throw new AssertionError("Parcelable does not contain history");
     List<State> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object object = parceler.toKey(entryBundle.getParcelable("OBJECT"));
-      final Object key = object;
+      Object key = parceler.toKey(entryBundle.getParcelable("OBJECT"));
       State entry = new State(key);
       entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
       entries.add(entry);
