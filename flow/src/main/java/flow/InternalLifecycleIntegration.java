@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package flow;
 
 import android.app.Activity;
@@ -23,49 +39,52 @@ public final class InternalLifecycleIntegration extends Fragment {
 
   static void install(Application app, final Activity activity,
       @Nullable final KeyParceler parceler, final History defaultHistory,
-      final Flow.Dispatcher dispatcher) {
+      final Flow.Dispatcher dispatcher, final KeyManager keyManager) {
     app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
-          @Override public void onActivityCreated(Activity a, Bundle savedInstanceState) {
-            if (a == activity) {
-              InternalLifecycleIntegration fragment = find(activity);
-              boolean newFragment = fragment == null;
-              if (newFragment) {
-                fragment = new InternalLifecycleIntegration();
-              }
-              fragment.defaultHistory = defaultHistory;
-              fragment.dispatcher = dispatcher;
-              fragment.parceler = parceler;
-              if (newFragment) {
-                activity.getFragmentManager()
-                    .beginTransaction()
-                    .add(fragment, TAG)
-                    .commit();
-              }
-            }
+      @Override public void onActivityCreated(Activity a, Bundle savedInstanceState) {
+        if (a == activity) {
+          InternalLifecycleIntegration fragment = find(activity);
+          final boolean newFragment = fragment == null;
+          if (newFragment) {
+            fragment = new InternalLifecycleIntegration();
+            fragment.defaultHistory = defaultHistory;
+            fragment.parceler = parceler;
+            fragment.keyManager = keyManager;
           }
+          // We always replace the dispatcher because it frequently references the Activity.
+          fragment.dispatcher = dispatcher;
+          if (newFragment) {
+            activity.getFragmentManager() //
+                .beginTransaction() //
+                .add(fragment, TAG) //
+                .commit();
+          }
+          a.getApplication().unregisterActivityLifecycleCallbacks(this);
+        }
+      }
 
-          @Override public void onActivityStarted(Activity activity) {
-          }
+      @Override public void onActivityStarted(Activity activity) {
+      }
 
-          @Override public void onActivityResumed(Activity activity) {
-          }
+      @Override public void onActivityResumed(Activity activity) {
+      }
 
-          @Override public void onActivityPaused(Activity activity) {
-          }
+      @Override public void onActivityPaused(Activity activity) {
+      }
 
-          @Override public void onActivityStopped(Activity activity) {
-          }
+      @Override public void onActivityStopped(Activity activity) {
+      }
 
-          @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
-          }
+      @Override public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+      }
 
-          @Override public void onActivityDestroyed(Activity activity) {
-            activity.getApplication().unregisterActivityLifecycleCallbacks(this);
-          }
-        });
+      @Override public void onActivityDestroyed(Activity a) {
+      }
+    });
   }
 
   Flow flow;
+  KeyManager keyManager;
   @Nullable KeyParceler parceler;
   History defaultHistory;
   Flow.Dispatcher dispatcher;
@@ -94,7 +113,8 @@ public final class InternalLifecycleIntegration extends Fragment {
         savedHistory = History.from(savedInstanceState.getParcelable(Flow.HISTORY_KEY),
             checkNotNull(parceler, "no KeyParceler installed"));
       }
-      flow = new Flow(selectHistory(intent, savedHistory, defaultHistory, parceler));
+      History history = selectHistory(intent, savedHistory, defaultHistory, parceler);
+      flow = new Flow(keyManager, history);
     }
     flow.setDispatcher(dispatcher);
     dispatcherSet = true;
@@ -112,6 +132,11 @@ public final class InternalLifecycleIntegration extends Fragment {
     flow.removeDispatcher(dispatcher);
     dispatcherSet = false;
     super.onPause();
+  }
+
+  @Override public void onDestroy() {
+    keyManager.tearDown(flow.getHistory().top());
+    super.onDestroy();
   }
 
   @Override public void onSaveInstanceState(Bundle outState) {
@@ -132,8 +157,8 @@ public final class InternalLifecycleIntegration extends Fragment {
     }
   }
 
-  private static History selectHistory(Intent intent, History saved,
-      History defaultHistory, @Nullable KeyParceler parceler) {
+  private static History selectHistory(Intent intent, History saved, History defaultHistory,
+      @Nullable KeyParceler parceler) {
     if (saved != null) {
       return saved;
     }

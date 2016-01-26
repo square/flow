@@ -21,7 +21,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.annotation.Nullable;
 import android.view.View;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkNotNull;
@@ -36,6 +38,18 @@ public final class Flow {
 
   public static Flow get(Context context) {
     return InternalContextWrapper.getFlow(context);
+  }
+
+  public static <T> T getKey(Context context) {
+    return FlowContextWrapper.get(context).services.getKey();
+  }
+
+  public static <T> T getKey(View view) {
+    return getKey(view.getContext());
+  }
+
+  public static <T> T getService(String serviceName, Context context) {
+    return FlowContextWrapper.get(context).services.getService(serviceName);
   }
 
   public static Installer configure(Context baseContext, Activity activity) {
@@ -81,11 +95,23 @@ public final class Flow {
     @Nullable public final History origin;
     public final History destination;
     public final Direction direction;
+    private final KeyManager keyManager;
 
-    private Traversal(@Nullable History from, History to, Direction direction) {
+    private Traversal(@Nullable History from, History to, Direction direction,
+        KeyManager keyManager) {
       this.origin = from;
       this.destination = to;
       this.direction = direction;
+      this.keyManager = keyManager;
+    }
+
+    /**
+     * Creates a Context for the given key.
+     *
+     * Contexts can be created only for keys at the top of the origin and destination Histories.
+     */
+    public Context createContext(Object key, Context baseContext) {
+      return new FlowContextWrapper(keyManager.findServices(key), baseContext);
     }
   }
 
@@ -103,8 +129,11 @@ public final class Flow {
   private History history;
   private Dispatcher dispatcher;
   private PendingTraversal pendingTraversal;
+  private List<Object> tearDownKeys = new ArrayList<>();
+  private final KeyManager keyManager;
 
-  public Flow(History history) {
+  Flow(KeyManager keyManager, History history) {
+    this.keyManager = keyManager;
     this.history = history;
   }
 
@@ -126,10 +155,10 @@ public final class Flow {
       // OR, there is an outstanding callback and nothing will happen after it;
       // So enqueue a bootstrap traversal.
       move(new PendingTraversal() {
-          @Override void doExecute() {
-            bootstrap(history);
-          }
-        });
+        @Override void doExecute() {
+          bootstrap(history);
+        }
+      });
       return;
     }
 
@@ -320,23 +349,31 @@ public final class Flow {
             state == TraversalState.FINISHED ? "onComplete already called for this transition"
                 : "transition not yet dispatched!");
       }
-      // Is not set by noop transitions.
+      // Is not set by noop and bootstrap transitions.
       if (nextHistory != null) {
+        tearDownKeys.add(history.top());
         history = nextHistory;
       }
       state = TraversalState.FINISHED;
       pendingTraversal = next;
-      if (dispatcher != null && pendingTraversal != null) {
+
+      if (pendingTraversal == null) {
+        final Iterator<Object> it = tearDownKeys.iterator();
+        while (it.hasNext()) {
+          keyManager.tearDown(it.next());
+          it.remove();
+        }
+      } else if (dispatcher != null) {
         pendingTraversal.execute();
       }
     }
 
     void bootstrap(History history) {
-      this.nextHistory = checkNotNull(history, "history");
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
       }
-      dispatcher.dispatch(new Traversal(null, nextHistory, Direction.REPLACE), this);
+      keyManager.setUp(history.top());
+      dispatcher.dispatch(new Traversal(null, history, Direction.REPLACE, keyManager), this);
     }
 
     void dispatch(History nextHistory, Direction direction) {
@@ -344,7 +381,8 @@ public final class Flow {
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
       }
-      dispatcher.dispatch(new Traversal(getHistory(), nextHistory, direction), this);
+      keyManager.setUp(nextHistory.top());
+      dispatcher.dispatch(new Traversal(getHistory(), nextHistory, direction, keyManager), this);
     }
 
     final void execute() {

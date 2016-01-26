@@ -41,15 +41,12 @@ public final class History implements Iterable<Object> {
 
   /** Restore a saved history from a {@link Parcelable} using the supplied {@link KeyParceler}. */
   public static History from(Parcelable parcelable, KeyParceler parceler) {
-    Bundle bundle = (Bundle) parcelable; // TODO(loganj): assert/throw
+    Bundle bundle = (Bundle) parcelable;
     ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
     if (entryBundles == null) throw new AssertionError("Parcelable does not contain history");
     List<State> entries = new ArrayList<>(entryBundles.size());
     for (Bundle entryBundle : entryBundles) {
-      Object key = parceler.toKey(entryBundle.getParcelable("OBJECT"));
-      State entry = new State(key);
-      entry.viewState = entryBundle.getSparseParcelableArray("VIEW_STATE");
-      entries.add(entry);
+      entries.add(State.fromBundle(entryBundle, parceler));
     }
     return new History(entries);
   }
@@ -62,6 +59,9 @@ public final class History implements Iterable<Object> {
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
     for (State entry : history) {
       entryBundles.add(entry.toBundle(parceler));
+    }
+    if (entryBundles.isEmpty()) {
+      return null;
     }
     historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return historyBundle;
@@ -79,8 +79,8 @@ public final class History implements Iterable<Object> {
     Bundle historyBundle = new Bundle();
     ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
     ListIterator<State> it = history.listIterator();
-    while (it.hasPrevious()) {
-      State entry = it.previous();
+    while (it.hasNext()) {
+      State entry = it.next();
       if (filter.apply(entry.getKey())) {
         entryBundles.add(entry.toBundle(parceler));
       }
@@ -88,7 +88,6 @@ public final class History implements Iterable<Object> {
     if (entryBundles.isEmpty()) {
       return null;
     }
-    Collections.reverse(entryBundles);
     historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
     return historyBundle;
   }
