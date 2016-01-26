@@ -42,15 +42,23 @@ public final class Flow {
     return new Installer(baseContext, activity);
   }
 
-  public static void setHistoryExtra(Intent intent, History history, KeyParceler parceler) {
+  /** Adds a history as an extra to an Intent. */
+  public static void addHistory(Intent intent, History history, KeyParceler parceler) {
     intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
   }
 
-  public static void onNewIntent(Intent intent, Activity activity) {
+  /**
+   * Handles an Intent carrying a History extra.
+   *
+   * @return true if the Intent contains a History and it was handled.
+   */
+  public static boolean onNewIntent(Intent intent, Activity activity) {
     checkArgument(intent != null, "intent may not be null");
     if (intent.hasExtra(HISTORY_KEY)) {
       InternalLifecycleIntegration.find(activity).onNewIntent(intent);
+      return true;
     }
+    return false;
   }
 
   public enum Direction {
