@@ -1,4 +1,3 @@
 include ':flow'
-include ':flow-path'
 include ':flow-sample-helloworld'
 include ':flow-sample-basic'

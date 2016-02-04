@@ -14,18 +14,19 @@
  * limitations under the License.
  */
 
-package flow.path;
+package flow;
 
-import android.content.Context;
-import android.view.ViewGroup;
-import flow.Flow;
+public abstract class ServicesFactory {
+  /**
+   * Sets up any services associated with the key, and make them accessible via the context.
+   * Typically this means returning a new context that wraps the given one.
+   */
+  public abstract void bindServices(Services.Binder services);
 
-public interface PathContainerView extends Flow.Dispatcher {
-  ViewGroup getCurrentChild();
-
-  ViewGroup getContainerView();
-
-  Context getContext();
-
-  void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback);
+  /**
+   * Tears down any services previously bound by {@link #bindServices}. Note that the Services
+   * instance given here may be a wrapper around an instance that this factory created.
+   */
+  public void tearDown(Services services) {
+  }
 }

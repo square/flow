@@ -1,7 +1,22 @@
+/*
+ * Copyright 2016 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package flow.sample.basic;
 
 import android.app.Activity;
-import android.content.Context;
 import android.support.annotation.LayoutRes;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -39,10 +54,7 @@ final class BasicDispatcher implements Flow.Dispatcher {
       throw new AssertionError("Unrecognized screen " + dest);
     }
 
-    Context screenContext = new Screens.ContextWrapper(frame.getContext(), dest);
-
-    View incomingView = LayoutInflater.from(frame.getContext()) //
-        .cloneInContext(screenContext) //
+    View incomingView = LayoutInflater.from(traversal.createContext(dest, activity)) //
         .inflate(layout, frame, false);
 
     frame.addView(incomingView);

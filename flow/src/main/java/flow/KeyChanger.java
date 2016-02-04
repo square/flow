@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Square Inc.
+ * Copyright 2016 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package flow.path;
+package flow;
 
 import android.content.Context;
+import android.support.annotation.Nullable;
 
-public interface PathContextFactory {
-  /**
-   * Set up any services defined by this screen, and make them accessible via the context.
-   * Typically this means returning a new context that wraps the given one.
-   */
-  Context setUpContext(Path path, Context parentContext);
+public abstract class KeyChanger {
 
-  /**
-   * Tear down any services previously started by {@link #setUpContext(Path, Context)}. Note that
-   * the Context instance given here may be a wrapper around an instance that this factory
-   * created.
-   */
-  void tearDownContext(Context context);
+  // TODO(#125): finalize signature and allow external implementations
+  KeyChanger() {
+  }
+
+  public abstract void changeKey(@Nullable State outgoingState, State incomingState,
+      Flow.Direction direction, Context incomingStateContext, Flow.TraversalCallback callback);
 }

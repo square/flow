@@ -1,3 +1,19 @@
+/*
+ * Copyright 2016 Square Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package flow;
 
 import android.os.Bundle;
@@ -10,6 +26,14 @@ public class State {
   /** Creates a State instance that has no state and is effectively immutable. */
   public static State empty(final Object key) {
     return new EmptyState(key);
+  }
+
+  static State fromBundle(Bundle savedState, KeyParceler parceler) {
+    Object key = parceler.toKey(savedState.getParcelable("KEY"));
+    State state = new State(key);
+    state.viewState = savedState.getSparseParcelableArray("VIEW_STATE");
+    state.bundle = savedState.getBundle("BUNDLE");
+    return state;
   }
 
   private final Object key;
@@ -47,11 +71,11 @@ public class State {
   }
 
   Bundle toBundle(KeyParceler parceler) {
-    Bundle bundle = new Bundle();
-    bundle.putParcelable("KEY", parceler.toParcelable(getKey()));
-    bundle.putSparseParcelableArray("VIEW_STATE", viewState);
-    bundle.putBundle("BUNDLE", bundle);
-    return bundle;
+    Bundle outState = new Bundle();
+    outState.putParcelable("KEY", parceler.toParcelable(getKey()));
+    outState.putSparseParcelableArray("VIEW_STATE", viewState);
+    outState.putBundle("BUNDLE", bundle);
+    return outState;
   }
 
   @Override public boolean equals(Object o) {
