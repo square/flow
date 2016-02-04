@@ -25,19 +25,17 @@ import java.util.List;
 import java.util.Map;
 
 class KeyManager {
-
-  private static final Object ROOT = new Object() {
+  static final Object ROOT_KEY = new Object() {
     @Override public String toString() {
       return KeyManager.class.getSimpleName() + ".ROOT";
     }
   };
-
   private final Map<Object, CountedServices> nodes = new LinkedHashMap<>();
   private final List<ServicesFactory> servicesFactories = new ArrayList<>();
 
   KeyManager(List<ServicesFactory> servicesFactories) {
     this.servicesFactories.addAll(servicesFactories);
-    nodes.put(ROOT, new CountedServices(Services.ROOT));
+    nodes.put(ROOT_KEY, new CountedServices(Services.ROOT));
   }
 
   Services findServices(Object key) {
@@ -50,10 +48,10 @@ class KeyManager {
 
   void setUp(Object key) {
     Log.d(getClass().getSimpleName(), "setting up key " + key);
-    Services parent = nodes.get(ROOT).services;
-    if (key instanceof Path) {
-      Path path = (Path) key;
-      List<?> elements = path.elements();
+    Services parent = nodes.get(ROOT_KEY).services;
+    if (key instanceof TreeKey) {
+      TreeKey treeKey = (TreeKey) key;
+      List<?> elements = treeKey.getKeyPath();
       // We walk down the elements, reusing existing nodes for the elements we encounter.  As soon
       // as we encounter an element that doesn't already have a node, we stop.
       // Note: we will always have at least one shared element, the root.
@@ -69,10 +67,10 @@ class KeyManager {
 
   void tearDown(Object key) {
     Log.d(getClass().getSimpleName(), "tearing down key " + key);
-    if (key instanceof Path) {
-      Path path = (Path) key;
+    if (key instanceof TreeKey) {
+      TreeKey treeKey = (TreeKey) key;
       boolean tornDown = false;
-      for (Object element : path.elements()) {
+      for (Object element : treeKey.getKeyPath()) {
         if (tornDown) {
           nodes.remove(element);
         } else {
@@ -104,7 +102,7 @@ class KeyManager {
   private boolean decrementAndMaybeRemoveKey(Object key) {
     CountedServices node = nodes.get(key);
     node.uses--;
-    if (key != ROOT && node.uses == 0) {
+    if (key != ROOT_KEY && node.uses == 0) {
       int count = servicesFactories.size();
       for (int i = count - 1; i >= 0; i--) {
         servicesFactories.get(i).tearDown(node.services);
