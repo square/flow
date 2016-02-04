@@ -18,7 +18,6 @@ package flow;
 
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.util.Log;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -47,15 +46,23 @@ class KeyManager {
   }
 
   void setUp(Object key) {
-    Log.d(getClass().getSimpleName(), "setting up key " + key);
     Services parent = nodes.get(ROOT_KEY).services;
-    if (key instanceof TreeKey) {
+    if (key instanceof MultiKey) {
+      for (Object part : ((MultiKey) key).getKeys()) {
+        setUp(part);
+      }
+    } else if (key instanceof TreeKey) {
       TreeKey treeKey = (TreeKey) key;
       List<?> elements = treeKey.getKeyPath();
       // We walk down the elements, reusing existing nodes for the elements we encounter.  As soon
       // as we encounter an element that doesn't already have a node, we stop.
       // Note: we will always have at least one shared element, the root.
-      for (Object element : elements) {
+      final int elementCount = elements.size();
+      for (int i = 0; i < elementCount; i++) {
+        Object element = elements.get(i);
+        if (element instanceof MultiKey) {
+          throw new AssertionError("TreeKeys may not contain MultiKeys");
+        }
         CountedServices node = ensureNode(parent, element);
         node.uses++;
         parent = node.services;
@@ -66,11 +73,19 @@ class KeyManager {
   }
 
   void tearDown(Object key) {
-    Log.d(getClass().getSimpleName(), "tearing down key " + key);
-    if (key instanceof TreeKey) {
+    if (key instanceof MultiKey) {
+      final List<Object> parts = ((MultiKey) key).getKeys();
+      final int count = parts.size();
+      for (int i = count - 1; i >= 0; i--) {
+        tearDown(parts.get(count));
+      }
+    } else if (key instanceof TreeKey) {
       TreeKey treeKey = (TreeKey) key;
       boolean tornDown = false;
       for (Object element : treeKey.getKeyPath()) {
+        if (element instanceof MultiKey) {
+          throw new AssertionError("TreeKeys may not contain MultiKeys");
+        }
         if (tornDown) {
           nodes.remove(element);
         } else {
