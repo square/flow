@@ -69,8 +69,7 @@ public final class Installer {
     }
     Flow.Dispatcher dispatcher = this.dispatcher;
     if (dispatcher == null) {
-      dispatcher = KeyDispatcher.configure(activity) //
-          .withKeyChanger(new DefaultKeyChanger(activity)) //
+      dispatcher = KeyDispatcher.configure(activity, new DefaultKeyChanger(activity)) //
           .build();
     }
     final Object defState = defaultKey == null ? "Hello, World!" : defaultKey;

@@ -20,11 +20,6 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 
 public abstract class KeyChanger {
-
-  // TODO(#125): finalize signature and allow external implementations
-  KeyChanger() {
-  }
-
   public abstract void changeKey(@Nullable State outgoingState, State incomingState,
       Flow.Direction direction, Context incomingStateContext, Flow.TraversalCallback callback);
 }
