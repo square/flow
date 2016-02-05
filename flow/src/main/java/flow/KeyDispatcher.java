@@ -32,13 +32,9 @@ public final class KeyDispatcher implements Flow.Dispatcher {
     private final Activity activity;
     @Nullable private KeyChanger keyChanger;
 
-    public Builder(Activity activity) {
+    private Builder(Activity activity, KeyChanger keyChanger) {
       this.activity = activity;
-    }
-
-    public Builder withKeyChanger(KeyChanger changer) {
-      this.keyChanger = checkNotNull(changer, "KeyChanger may not be null");
-      return this;
+      this.keyChanger = checkNotNull(keyChanger, "KeyChanger may not be null");
     }
 
     public Flow.Dispatcher build() {
@@ -48,8 +44,8 @@ public final class KeyDispatcher implements Flow.Dispatcher {
     }
   }
 
-  public static Builder configure(Activity activity) {
-    return new Builder(activity);
+  public static Builder configure(Activity activity, KeyChanger changer) {
+    return new Builder(activity, changer);
   }
 
   private final Activity activity;
