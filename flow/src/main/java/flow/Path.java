@@ -20,20 +20,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents an absolute path in the logical information tree of an app, from the root of the tree
- * to a leaf, which is typically associated with app "screen" or "state". Each element in a path
- * typically represents a scope, narrowing and adding information from root to leaf.
+ * Convenience implementation of {@link TreeKey}.
+ *
+ * Subclasses can override {@link #build(Builder)} to easily construct a key list based on class
+ * hierarchy.
  */
-// TODO(#127): Should be an interface! Kotlin data classes in particular will need it to be.
-public abstract class Path {
-  static final Path ROOT = new Path() {
-  };
-  private transient List<Path> elements;
+public abstract class Path implements TreeKey {
+  private transient List<Object> elements;
 
   protected void build(@SuppressWarnings("UnusedParameters") Builder builder) {
   }
 
-  final List<Path> elements() {
+  @Override public List<Object> getKeyPath() {
     if (elements == null) {
       Builder builder = new Builder();
       build(builder);
@@ -46,23 +44,15 @@ public abstract class Path {
     return elements;
   }
 
-  final boolean isRoot() {
-    return this == ROOT;
-  }
-
   public static final class Builder {
-    private final List<Path> elements = new ArrayList<>();
+    private final List<Object> elements = new ArrayList<>();
 
-    Builder() {
-      elements.add(ROOT);
+    public void append(Object key) {
+      elements.add(key);
     }
 
-    public void append(Path path) {
-      elements.add(path);
-    }
-
-    private boolean isNotTail(Path path) {
-      return !path.equals(elements.get(elements.size() - 1));
+    private boolean isNotTail(TreeKey treeKey) {
+      return !treeKey.equals(elements.get(elements.size() - 1));
     }
   }
 }
