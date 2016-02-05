@@ -51,6 +51,7 @@ class KeyManager {
       for (Object part : ((MultiKey) key).getKeys()) {
         setUp(part);
       }
+      ensureNode(parent, key).uses++;
     } else if (key instanceof TreeKey) {
       TreeKey treeKey = (TreeKey) key;
       List<?> elements = treeKey.getKeyPath();
@@ -74,6 +75,7 @@ class KeyManager {
 
   void tearDown(Object key) {
     if (key instanceof MultiKey) {
+      tearDown(key);
       final List<Object> parts = ((MultiKey) key).getKeys();
       final int count = parts.size();
       for (int i = count - 1; i >= 0; i--) {
