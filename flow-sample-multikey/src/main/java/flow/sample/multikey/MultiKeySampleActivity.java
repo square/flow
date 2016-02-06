@@ -43,9 +43,8 @@ public class MultiKeySampleActivity extends AppCompatActivity {
 
       final Object showThis = incomingState.getKey();
       if (showThis instanceof DialogScreen) {
-        final DialogScreen dialogScreen = (DialogScreen) showThis;
-        mainContent = dialogScreen.mainContent;
-        dialogContent = dialogScreen.dialogContent;
+        mainContent = ((DialogScreen) showThis).mainContent;
+        dialogContent = showThis;
       } else {
         mainContent = showThis;
         dialogContent = null;
@@ -55,7 +54,7 @@ public class MultiKeySampleActivity extends AppCompatActivity {
       if (mainContent instanceof ScreenOne) {
         mainView.setOnClickListener(new View.OnClickListener() {
           @Override public void onClick(View view) {
-            getFlow().set(new DialogScreen(mainContent, new DialogContent()));
+            getFlow().set(new DialogScreen(mainContent));
           }
         });
       } else {

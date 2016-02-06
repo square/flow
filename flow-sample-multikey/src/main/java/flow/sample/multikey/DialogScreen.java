@@ -1,19 +1,21 @@
 package flow.sample.multikey;
 
 import flow.MultiKey;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public final class DialogScreen implements MultiKey {
   final Object mainContent;
-  final Object dialogContent;
 
-  public DialogScreen(Object mainContent, Object dialogContent) {
+  public DialogScreen(Object mainContent) {
     this.mainContent = mainContent;
-    this.dialogContent = dialogContent;
+  }
+
+  @Override public String toString() {
+    return "Do you really want to see screen two?";
   }
 
   @Override public List<Object> getKeys() {
-    return Arrays.asList(mainContent, dialogContent);
+    return Collections.singletonList(mainContent);
   }
 }
