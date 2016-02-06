@@ -19,6 +19,10 @@ package flow;
 import android.app.Activity;
 import android.content.Context;
 import android.support.annotation.Nullable;
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 import static flow.Preconditions.checkNotNull;
 
@@ -65,14 +69,30 @@ public final class KeyDispatcher implements Flow.Dispatcher {
     // TODO(#126): this short-circuit may belong in Flow, since every Dispatcher we have implements it.
     if (inKey.equals(outKey)) {
       callback.onTraversalCompleted();
-    } else {
-      changeKey(outState, inState, traversal.direction, traversal.createContext(inKey, activity),
-          callback);
+      return;
     }
+
+    Map<Object, Context> contexts;
+    if (inKey instanceof MultiKey) {
+      final List<Object> keys = ((MultiKey) inKey).getKeys();
+      final int count = keys.size();
+      contexts = new LinkedHashMap<>(count);
+      for (int i = 0; i < count; i++) {
+        final Object key = keys.get(i);
+        contexts.put(key, traversal.createContext(key, activity));
+      }
+      Context context = traversal.createContext(inKey, activity);
+      contexts.put(inKey, context);
+      contexts = Collections.unmodifiableMap(contexts);
+    } else {
+      contexts = Collections.singletonMap(inKey, traversal.createContext(inKey, activity));
+    }
+    changeKey(outState, inState, traversal.direction, contexts, callback);
   }
 
   public void changeKey(@Nullable State outgoingState, State incomingState,
-      Flow.Direction direction, Context incomingContext, final Flow.TraversalCallback callback) {
-    keyChanger.changeKey(outgoingState, incomingState, direction, incomingContext, callback);
+      Flow.Direction direction, Map<Object, Context> incomingContexts,
+      final Flow.TraversalCallback callback) {
+    keyChanger.changeKey(outgoingState, incomingState, direction, incomingContexts, callback);
   }
 }

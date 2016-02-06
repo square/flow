@@ -13,6 +13,7 @@ import flow.Flow;
 import flow.KeyChanger;
 import flow.KeyDispatcher;
 import flow.State;
+import java.util.Map;
 
 /**
  * Demonstrates MultiKeys, e.g. screens with dialogs.
@@ -36,25 +37,26 @@ public class MultiKeySampleActivity extends AppCompatActivity {
     Dialog visibleDialog;
 
     @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-        Flow.Direction direction, Context incomingStateContext, Flow.TraversalCallback callback) {
+        Flow.Direction direction, Map<Object, Context> incomingContexts,
+        Flow.TraversalCallback callback) {
 
-      final Object mainContent;
-      final Object dialogContent;
+      final Object mainKey;
+      final Object dialogKey;
 
       final Object showThis = incomingState.getKey();
       if (showThis instanceof DialogScreen) {
-        mainContent = ((DialogScreen) showThis).mainContent;
-        dialogContent = showThis;
+        mainKey = ((DialogScreen) showThis).mainContent;
+        dialogKey = showThis;
       } else {
-        mainContent = showThis;
-        dialogContent = null;
+        mainKey = showThis;
+        dialogKey = null;
       }
 
-      final TextView mainView = new TextView(MultiKeySampleActivity.this);
-      if (mainContent instanceof ScreenOne) {
+      final TextView mainView = new TextView(incomingContexts.get(mainKey));
+      if (mainKey instanceof ScreenOne) {
         mainView.setOnClickListener(new View.OnClickListener() {
           @Override public void onClick(View view) {
-            getFlow().set(new DialogScreen(mainContent));
+            getFlow().set(new DialogScreen(mainKey));
           }
         });
       } else {
@@ -64,13 +66,13 @@ public class MultiKeySampleActivity extends AppCompatActivity {
           }
         });
       }
-      mainView.setText(mainContent.toString());
+      mainView.setText(mainKey.toString());
 
       setContentView(mainView);
 
       dismissOldDialog();
-      if (dialogContent != null) {
-        visibleDialog = new AlertDialog.Builder(MultiKeySampleActivity.this) //
+      if (dialogKey != null) {
+        visibleDialog = new AlertDialog.Builder(incomingContexts.get(dialogKey)) //
             .setNegativeButton("No", new DialogInterface.OnClickListener() {
               @Override public void onClick(DialogInterface dialogInterface, int i) {
                 getFlow().goBack();
@@ -95,7 +97,7 @@ public class MultiKeySampleActivity extends AppCompatActivity {
                 //getFlow().setHistory(newHistory.build(), Flow.Direction.FORWARD);
               }
             }) //
-            .setTitle(dialogContent.toString()) //
+            .setTitle(dialogKey.toString()) //
             .show();
 
         // Prevent logging of android.view.WindowLeaked.
