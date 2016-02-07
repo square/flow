@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.sample.tree.model;
 
-/**
- * Convenience base class for keys. All instances of a given subclass are equal.
- */
-public abstract class ClassKey {
+public final class ContactEditor {
+  public final String id;
+  public String name;
+  public String email;
 
-  @Override public boolean equals(Object o) {
-    return this == o || (o != null && getClass() == o.getClass());
+  public ContactEditor(Contact contact) {
+    this.id = contact.id;
+    this.name = contact.name;
+    this.email = contact.email;
   }
 
-  @Override public int hashCode() {
-    return getClass().hashCode();
+  public Contact toContact() {
+    return new Contact(id, name, email);
   }
 }

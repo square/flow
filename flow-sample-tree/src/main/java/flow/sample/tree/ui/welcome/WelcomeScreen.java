@@ -14,18 +14,13 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.sample.tree.ui.welcome;
 
-/**
- * Convenience base class for keys. All instances of a given subclass are equal.
- */
-public abstract class ClassKey {
+import flow.ClassKey;
 
-  @Override public boolean equals(Object o) {
-    return this == o || (o != null && getClass() == o.getClass());
-  }
+public final class WelcomeScreen extends ClassKey {
 
-  @Override public int hashCode() {
-    return getClass().hashCode();
+  @Override public String toString() {
+    return "Welcome!\nClick to continue.";
   }
 }

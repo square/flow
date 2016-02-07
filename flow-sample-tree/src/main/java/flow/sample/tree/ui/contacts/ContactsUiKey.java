@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.sample.tree.ui.contacts;
 
-/**
- * Convenience base class for keys. All instances of a given subclass are equal.
- */
-public abstract class ClassKey {
+import flow.ClassKey;
 
-  @Override public boolean equals(Object o) {
-    return this == o || (o != null && getClass() == o.getClass());
-  }
-
-  @Override public int hashCode() {
-    return getClass().hashCode();
-  }
+public final class ContactsUiKey extends ClassKey {
 }

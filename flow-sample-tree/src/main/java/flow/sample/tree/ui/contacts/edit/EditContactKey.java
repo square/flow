@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package flow;
+package flow.sample.tree.ui.contacts.edit;
 
-/**
- * Convenience base class for keys. All instances of a given subclass are equal.
- */
-public abstract class ClassKey {
+import flow.TreeKey;
+import flow.sample.tree.ui.contacts.ContactsUiKey;
 
-  @Override public boolean equals(Object o) {
-    return this == o || (o != null && getClass() == o.getClass());
+public final class EditContactKey extends ContactKey implements TreeKey {
+
+  EditContactKey(String contactId) {
+    super(contactId);
   }
 
-  @Override public int hashCode() {
-    return getClass().hashCode();
+  @Override public Object getParentKey() {
+    return new ContactsUiKey();
   }
 }
