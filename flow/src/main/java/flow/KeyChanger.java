@@ -18,8 +18,10 @@ package flow;
 
 import android.content.Context;
 import android.support.annotation.Nullable;
+import java.util.Map;
 
 public abstract class KeyChanger {
   public abstract void changeKey(@Nullable State outgoingState, State incomingState,
-      Flow.Direction direction, Context incomingStateContext, Flow.TraversalCallback callback);
+      Flow.Direction direction, Map<Object, Context> incomingContexts,
+      Flow.TraversalCallback callback);
 }
