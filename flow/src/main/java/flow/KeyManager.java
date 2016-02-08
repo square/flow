@@ -34,6 +34,7 @@ class KeyManager {
 
   KeyManager(List<ServicesFactory> servicesFactories) {
     this.servicesFactories.addAll(servicesFactories);
+    setUp(ROOT_KEY);
     nodes.put(ROOT_KEY, new CountedServices(Services.ROOT));
   }
 
@@ -54,20 +55,10 @@ class KeyManager {
       ensureNode(parent, key).uses++;
     } else if (key instanceof TreeKey) {
       TreeKey treeKey = (TreeKey) key;
-      List<?> elements = treeKey.getKeyPath();
-      // We walk down the elements, reusing existing nodes for the elements we encounter.  As soon
-      // as we encounter an element that doesn't already have a node, we stop.
-      // Note: we will always have at least one shared element, the root.
-      final int elementCount = elements.size();
-      for (int i = 0; i < elementCount; i++) {
-        Object element = elements.get(i);
-        if (element instanceof MultiKey) {
-          throw new AssertionError("TreeKeys may not contain MultiKeys");
-        }
-        CountedServices node = ensureNode(parent, element);
-        node.uses++;
-        parent = node.services;
-      }
+      final Object parentKey = treeKey.getParentKey();
+      setUp(parentKey);
+      parent = nodes.get(parentKey).services;
+      ensureNode(parent, key).uses++;
     } else {
       ensureNode(parent, key).uses++;
     }
@@ -82,18 +73,9 @@ class KeyManager {
         tearDown(parts.get(i));
       }
     } else if (key instanceof TreeKey) {
+      decrementAndMaybeRemoveKey(key);
       TreeKey treeKey = (TreeKey) key;
-      boolean tornDown = false;
-      for (Object element : treeKey.getKeyPath()) {
-        if (element instanceof MultiKey) {
-          throw new AssertionError("TreeKeys may not contain MultiKeys");
-        }
-        if (tornDown) {
-          nodes.remove(element);
-        } else {
-          tornDown = decrementAndMaybeRemoveKey(element);
-        }
-      }
+      tearDown(treeKey.getParentKey());
     } else {
       decrementAndMaybeRemoveKey(key);
     }
