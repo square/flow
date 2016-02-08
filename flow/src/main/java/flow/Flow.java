@@ -46,16 +46,23 @@ public final class Flow {
     return InternalContextWrapper.getFlow(context);
   }
 
-  public static <T> T getKey(Context context) {
-    return FlowContextWrapper.get(context).services.getKey();
+  /** @return null if context has no Flow key embedded. */
+  @Nullable public static <T> T getKey(Context context) {
+    final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
+    if (wrapper == null) return null;
+    return wrapper.services.getKey();
   }
 
-  public static <T> T getKey(View view) {
+  /** @return null if view's Context has no Flow key embedded. */
+  @Nullable public static <T> T getKey(View view) {
     return getKey(view.getContext());
   }
 
-  public static <T> T getService(String serviceName, Context context) {
-    return FlowContextWrapper.get(context).services.getService(serviceName);
+  /** @return null if context does not contain the named service. */
+  @Nullable public static <T> T getService(String serviceName, Context context) {
+    final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
+    if (wrapper == null) return null;
+    return wrapper.services.getService(serviceName);
   }
 
   public static Installer configure(Context baseContext, Activity activity) {
