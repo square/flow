@@ -34,7 +34,7 @@ public final class KeyDispatcher implements Flow.Dispatcher {
 
   public static final class Builder {
     private final Activity activity;
-    @Nullable private KeyChanger keyChanger;
+    private final KeyChanger keyChanger;
 
     private Builder(Activity activity, KeyChanger keyChanger) {
       this.activity = activity;
