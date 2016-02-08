@@ -30,6 +30,12 @@ import static flow.Preconditions.checkNotNull;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
+  static final Object ROOT_KEY = new Object() {
+    @Override public String toString() {
+      return Flow.class.getName() + ".ROOT_KEY";
+    }
+  };
+
   static final String HISTORY_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   public static Flow get(View view) {

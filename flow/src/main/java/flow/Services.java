@@ -23,22 +23,18 @@ import java.util.Map;
 
 import static flow.Preconditions.checkNotNull;
 
-public final class Services {
-  static final Services ROOT = new Services(null, Collections.<String, Object>emptyMap());
-  static final String KEY_SERVICE = "flow_local_key_service";
+public class Services {
+  static final Services ROOT_SERVICES =
+      new Services(Flow.ROOT_KEY, null, Collections.<String, Object>emptyMap());
 
-  public static final class Binder {
+  public static final class Binder extends Services {
     private final Map<String, Object> services = new LinkedHashMap<>();
     private final Services base;
 
-    private Binder(Services base) {
-      checkNotNull(base, "only Services.ROOT should have a null base");
+    private Binder(Services base, Object key) {
+      super(key, base, Collections.<String, Object>emptyMap());
+      checkNotNull(base, "only root Services should have a null base");
       this.base = base;
-    }
-
-    public <T> T getKey() {
-      @SuppressWarnings("unchecked") T key = (T) services.get(KEY_SERVICE);
-      return key;
     }
 
     public Binder bind(String serviceName, Object service) {
@@ -47,15 +43,17 @@ public final class Services {
     }
 
     Services build() {
-      return new Services(base, services);
+      return new Services(getKey(), base, services);
     }
   }
 
+  private final Object key;
   @Nullable private final Services delegate;
   private final Map<String, Object> localServices = new LinkedHashMap<>();
 
-  private Services(@Nullable Services delegate, Map<String, Object> localServices) {
+  private Services(Object key, @Nullable Services delegate, Map<String, Object> localServices) {
     this.delegate = delegate;
+    this.key = key;
     this.localServices.putAll(localServices);
   }
 
@@ -70,10 +68,11 @@ public final class Services {
   }
 
   public <T> T getKey() {
-    return getService(Services.KEY_SERVICE);
+    //noinspection unchecked
+    return (T) this.key;
   }
 
-  Binder extend() {
-    return new Binder(this);
+  Binder extend(Object key) {
+    return new Binder(this, key);
   }
 }
