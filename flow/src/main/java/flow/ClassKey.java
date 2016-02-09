@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 Square Inc.
+ * Copyright 2016 Square Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,16 @@
 
 package flow;
 
-public abstract class ServicesFactory {
-  /**
-   * Sets up any services associated with the key, and make them accessible via the context.
-   * Typically this means returning a new context that wraps the given one.
-   */
-  public abstract void bindServices(Services.Binder services);
+/**
+ * Convenience base class for keys. All instances of a given subclass are equal.
+ */
+public abstract class ClassKey {
 
-  /**
-   * Tears down any services previously bound by {@link #bindServices}. Note that the Services
-   * instance given here may be a wrapper around an instance that this factory created.
-   */
-  public void tearDownServices(Services services) {
+  @Override public boolean equals(Object o) {
+    return this == o || (o != null && getClass() == o.getClass());
+  }
+
+  @Override public int hashCode() {
+    return getClass().hashCode();
   }
 }

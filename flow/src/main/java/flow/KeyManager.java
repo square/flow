@@ -34,8 +34,7 @@ class KeyManager {
 
   KeyManager(List<ServicesFactory> servicesFactories) {
     this.servicesFactories.addAll(servicesFactories);
-    setUp(ROOT_KEY);
-    nodes.put(ROOT_KEY, new CountedServices(Services.ROOT));
+    nodes.put(ROOT_KEY, new CountedServices(Services.ROOT_SERVICES));
   }
 
   Services findServices(Object key) {
@@ -86,7 +85,7 @@ class KeyManager {
     if (node == null) {
       // Bind the local key as a service.
       @SuppressWarnings("ConstantConditions") //
-      Services.Binder binder = parent.extend().bind(Services.KEY_SERVICE, key);
+      Services.Binder binder = parent.extend(key);
       // Add any services from the factories
       int count = servicesFactories.size();
       for (int i = 0; i < count; i++) {
@@ -104,7 +103,7 @@ class KeyManager {
     if (key != ROOT_KEY && node.uses == 0) {
       int count = servicesFactories.size();
       for (int i = count - 1; i >= 0; i--) {
-        servicesFactories.get(i).tearDown(node.services);
+        servicesFactories.get(i).tearDownServices(node.services);
       }
       nodes.remove(key);
       return true;

@@ -30,6 +30,12 @@ import static flow.Preconditions.checkNotNull;
 
 /** Holds the current truth, the history of screens, and exposes operations to change it. */
 public final class Flow {
+  static final Object ROOT_KEY = new Object() {
+    @Override public String toString() {
+      return Flow.class.getName() + ".ROOT_KEY";
+    }
+  };
+
   static final String HISTORY_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   public static Flow get(View view) {
@@ -40,16 +46,23 @@ public final class Flow {
     return InternalContextWrapper.getFlow(context);
   }
 
-  public static <T> T getKey(Context context) {
-    return FlowContextWrapper.get(context).services.getKey();
+  /** @return null if context has no Flow key embedded. */
+  @Nullable public static <T> T getKey(Context context) {
+    final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
+    if (wrapper == null) return null;
+    return wrapper.services.getKey();
   }
 
-  public static <T> T getKey(View view) {
+  /** @return null if view's Context has no Flow key embedded. */
+  @Nullable public static <T> T getKey(View view) {
     return getKey(view.getContext());
   }
 
-  public static <T> T getService(String serviceName, Context context) {
-    return FlowContextWrapper.get(context).services.getService(serviceName);
+  /** @return null if context does not contain the named service. */
+  @Nullable public static <T> T getService(String serviceName, Context context) {
+    final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
+    if (wrapper == null) return null;
+    return wrapper.services.getService(serviceName);
   }
 
   public static Installer configure(Context baseContext, Activity activity) {
