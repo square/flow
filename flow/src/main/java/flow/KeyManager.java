@@ -103,7 +103,7 @@ class KeyManager {
     if (key != ROOT_KEY && node.uses == 0) {
       int count = servicesFactories.size();
       for (int i = count - 1; i >= 0; i--) {
-        servicesFactories.get(i).tearDown(node.services);
+        servicesFactories.get(i).tearDownServices(node.services);
       }
       nodes.remove(key);
       return true;

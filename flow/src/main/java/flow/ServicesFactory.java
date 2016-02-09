@@ -27,6 +27,6 @@ public abstract class ServicesFactory {
    * Tears down any services previously bound by {@link #bindServices}. Note that the Services
    * instance given here may be a wrapper around an instance that this factory created.
    */
-  public void tearDown(Services services) {
+  public void tearDownServices(Services services) {
   }
 }
