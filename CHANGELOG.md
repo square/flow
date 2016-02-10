@@ -1,6 +1,20 @@
 Change Log
 ==========
 
+Version 1.0-alpha *(TBD)*
+--------------------------
+Presented for review and feedback. API should still be considered unstable, docs incomplete, and functionality buggy. All of the above should be mostly resolved before beta.
+
+1.0 brings major functional improvements and API changes. 
+
+* Activity integration has been rewritten and is much simpler. One line to configure and install; one optional line to handle the back button; one optional line to handle new Intent. Flow handles lifecycle internally.
+* Resource management (including shared resources) is now natively supported via TreeKeys-- Path has effectively been absorbed and simplified. Contexts are now managed internally and there's much less nesting of wrappers. 
+* Multiple simultaneous states are now supported via MultiKeys-- Flow now works natively with UIs composed of dialogs, sheets, master-detail views, etc. MultiKeys can be composed of TreeKeys for resource sharing.
+* Persistence has been expanded and simplified. You can now save a Bundle along with view state, and Flow takes care of all the lifecycle.
+* Nested/queued traversals are much safer and more efficient.
+* The `goBack` operation in particular is safer and more predictable.
+* Save state and view state are managed internally and orthogonally to History; you no longer have to take care to avoid losing state when changing History.
+
 Version 0.12 *(2015-08-13)*
 ------
 * Fix: History.Builder#pop is nullable again, and adds History.Builder#isEmpty.
