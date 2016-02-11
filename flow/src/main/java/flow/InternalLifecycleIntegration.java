@@ -44,9 +44,11 @@ public final class InternalLifecycleIntegration extends Fragment {
       @Override public void onActivityCreated(Activity a, Bundle savedInstanceState) {
         if (a == activity) {
           InternalLifecycleIntegration fragment = find(activity);
-          final boolean newFragment = fragment == null;
+          boolean newFragment = fragment == null;
           if (newFragment) {
             fragment = new InternalLifecycleIntegration();
+          }
+          if (fragment.keyManager == null) {
             fragment.defaultHistory = defaultHistory;
             fragment.parceler = parceler;
             fragment.keyManager = keyManager;
