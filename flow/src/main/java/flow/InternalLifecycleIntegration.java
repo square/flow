@@ -37,7 +37,7 @@ public final class InternalLifecycleIntegration extends Fragment {
     return (InternalLifecycleIntegration) activity.getFragmentManager().findFragmentByTag(TAG);
   }
 
-  static void install(Application app, final Activity activity,
+  static void install(final Application app, final Activity activity,
       @Nullable final KeyParceler parceler, final History defaultHistory,
       final Flow.Dispatcher dispatcher, final KeyManager keyManager) {
     app.registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
@@ -59,7 +59,7 @@ public final class InternalLifecycleIntegration extends Fragment {
                 .add(fragment, TAG) //
                 .commit();
           }
-          a.getApplication().unregisterActivityLifecycleCallbacks(this);
+          app.unregisterActivityLifecycleCallbacks(this);
         }
       }
 
