@@ -198,7 +198,7 @@ public final class History implements Iterable<Object> {
     /**
      * {@link #push Pushes} all of the keys in the collection onto this builder.
      */
-    public Builder addAll(Collection<?> c) {
+    public Builder pushAll(Collection<?> c) {
       for (Object key : c) {
         push(key);
       }

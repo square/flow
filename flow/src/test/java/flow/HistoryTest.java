@@ -108,7 +108,7 @@ public class HistoryTest {
 
   @Test public void forwardIterator() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
-    History history = History.emptyBuilder().addAll(paths).build();
+    History history = History.emptyBuilder().pushAll(paths).build();
     for (Object o : history) {
       assertThat(o).isSameAs(paths.remove(paths.size() - 1));
     }
@@ -116,7 +116,7 @@ public class HistoryTest {
 
   @Test public void reverseIterator() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
-    History history = History.emptyBuilder().addAll(paths).build();
+    History history = History.emptyBuilder().pushAll(paths).build();
     Iterator<Object> i = history.reverseIterator();
     while (i.hasNext()) {
       assertThat(i.next()).isSameAs(paths.remove(0));
@@ -146,7 +146,7 @@ public class HistoryTest {
   }
 
   @Test public void historyIndexAccess() {
-    History history = History.emptyBuilder().addAll(asList(ABLE, BAKER, CHARLIE)).build();
+    History history = History.emptyBuilder().pushAll(asList(ABLE, BAKER, CHARLIE)).build();
     assertThat(history.peek(0)).isEqualTo(CHARLIE);
     assertThat(history.peek(1)).isEqualTo(BAKER);
     assertThat(history.peek(2)).isEqualTo(ABLE);
@@ -155,7 +155,7 @@ public class HistoryTest {
   @Test public void builderPreservesViewState() {
     List<TestState> states = asList(ABLE, BAKER, CHARLIE);
 
-    History history = History.emptyBuilder().addAll(states).build();
+    History history = History.emptyBuilder().pushAll(states).build();
 
     for (int i = states.size() - 1; i >= 0; i--) {
       View view = mock(View.class);
