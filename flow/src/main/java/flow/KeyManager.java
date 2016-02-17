@@ -19,6 +19,7 @@ package flow;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,11 +31,39 @@ class KeyManager {
     }
   };
   private final Map<Object, ManagedServices> managedServices = new LinkedHashMap<>();
+  private final Map<Object, State> states = new LinkedHashMap<>();
+
   private final List<ServicesFactory> servicesFactories = new ArrayList<>();
 
   KeyManager(List<ServicesFactory> servicesFactories) {
     this.servicesFactories.addAll(servicesFactories);
     managedServices.put(ROOT_KEY, new ManagedServices(Services.ROOT_SERVICES));
+  }
+
+
+  boolean hasState(Object key) {
+    return states.containsKey(key);
+  }
+
+  void addState(State state) {
+    states.put(state.getKey(), state);
+  }
+
+  State getState(Object key) {
+    State state = states.get(key);
+    if (state == null) {
+      state = new State(key);
+      addState(state);
+    }
+    return state;
+  }
+
+  void clearStatesExcept(List<Object> keep) {
+    Iterator<Object> keys = states.keySet().iterator();
+    while (keys.hasNext()) {
+      final Object key = keys.next();
+      if (!keep.contains(key)) keys.remove();
+    }
   }
 
   Services findServices(Object key) {
