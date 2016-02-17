@@ -16,27 +16,18 @@
 
 package flow;
 
-import android.os.Parcelable;
-import android.util.SparseArray;
-import android.view.View;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Matchers;
-import org.mockito.invocation.InvocationOnMock;
-import org.mockito.stubbing.Answer;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.annotation.Config;
 
 import static java.util.Arrays.asList;
-import static junit.framework.Assert.assertEquals;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
 
 @RunWith(RobolectricTestRunner.class) // Necessary for functional SparseArray
 @Config(manifest = Config.NONE) //
@@ -108,7 +99,7 @@ public class HistoryTest {
 
   @Test public void forwardIterator() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
-    History history = History.emptyBuilder().addAll(paths).build();
+    History history = History.emptyBuilder().pushAll(paths).build();
     for (Object o : history) {
       assertThat(o).isSameAs(paths.remove(paths.size() - 1));
     }
@@ -116,7 +107,7 @@ public class HistoryTest {
 
   @Test public void reverseIterator() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
-    History history = History.emptyBuilder().addAll(paths).build();
+    History history = History.emptyBuilder().pushAll(paths).build();
     Iterator<Object> i = history.reverseIterator();
     while (i.hasNext()) {
       assertThat(i.next()).isSameAs(paths.remove(0));
@@ -146,41 +137,9 @@ public class HistoryTest {
   }
 
   @Test public void historyIndexAccess() {
-    History history = History.emptyBuilder().addAll(asList(ABLE, BAKER, CHARLIE)).build();
+    History history = History.emptyBuilder().pushAll(asList(ABLE, BAKER, CHARLIE)).build();
     assertThat(history.peek(0)).isEqualTo(CHARLIE);
     assertThat(history.peek(1)).isEqualTo(BAKER);
     assertThat(history.peek(2)).isEqualTo(ABLE);
-  }
-
-  @Test public void builderPreservesViewState() {
-    List<TestState> states = asList(ABLE, BAKER, CHARLIE);
-
-    History history = History.emptyBuilder().addAll(states).build();
-
-    for (int i = states.size() - 1; i >= 0; i--) {
-      View view = mock(View.class);
-      Parcelable viewState = mock(Parcelable.class);
-      mockSaveViewState(view, viewState);
-      history.peekSaveState(i).save(view);
-    }
-
-    History rebuiltHistory = history.buildUpon().clear().addAll(states).build();
-
-    for (int i = 0; i < history.size(); i++) {
-      assertEquals("Wrong view state at position " + i, history.peekSaveState(i),
-          rebuiltHistory.peekSaveState(i));
-    }
-  }
-
-  private void mockSaveViewState(View view, final Parcelable viewState) {
-    doAnswer(new Answer() {
-      @Override public Object answer(InvocationOnMock invocation) throws Throwable {
-        @SuppressWarnings("unchecked") //
-            SparseArray<Parcelable> outState =
-            (SparseArray<Parcelable>) invocation.getArguments()[0];
-        outState.put(0, viewState);
-        return null;
-      }
-    }).when(view).saveHierarchyState(Matchers.<SparseArray<Parcelable>>any());
   }
 }

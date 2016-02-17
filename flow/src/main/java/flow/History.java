@@ -16,84 +16,27 @@
 
 package flow;
 
-import android.os.Bundle;
-import android.os.Parcelable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Locale;
-import java.util.Map;
 
 import static flow.Preconditions.checkArgument;
+import static java.util.Collections.unmodifiableList;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
  */
 public final class History implements Iterable<Object> {
-  public interface Filter {
-    boolean apply(Object key);
-  }
 
-  /** Restore a saved history from a {@link Parcelable} using the supplied {@link KeyParceler}. */
-  public static History from(Parcelable parcelable, KeyParceler parceler) {
-    Bundle bundle = (Bundle) parcelable;
-    ArrayList<Bundle> entryBundles = bundle.getParcelableArrayList("ENTRIES");
-    if (entryBundles == null) throw new AssertionError("Parcelable does not contain history");
-    List<State> entries = new ArrayList<>(entryBundles.size());
-    for (Bundle entryBundle : entryBundles) {
-      entries.add(State.fromBundle(entryBundle, parceler));
-    }
-    return new History(entries);
-  }
-
-  private final List<State> history;
-
-  /** Get a {@link Parcelable} of this history using the supplied {@link KeyParceler}. */
-  public Parcelable getParcelable(KeyParceler parceler) {
-    Bundle historyBundle = new Bundle();
-    ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
-    for (State entry : history) {
-      entryBundles.add(entry.toBundle(parceler));
-    }
-    if (entryBundles.isEmpty()) {
-      return null;
-    }
-    historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
-    return historyBundle;
-  }
-
-  /**
-   * Get a {@link Parcelable} of this history using the supplied {@link KeyParceler}, filtered
-   * by the supplied {@link Filter}.
-   *
-   * The filter is invoked on each key in the stack in reverse order
-   *
-   * @return null if all keys are filtered out.
-   */
-  public Parcelable getParcelable(KeyParceler parceler, Filter filter) {
-    Bundle historyBundle = new Bundle();
-    ArrayList<Bundle> entryBundles = new ArrayList<>(history.size());
-    ListIterator<State> it = history.listIterator();
-    while (it.hasNext()) {
-      State entry = it.next();
-      if (filter.apply(entry.getKey())) {
-        entryBundles.add(entry.toBundle(parceler));
-      }
-    }
-    if (entryBundles.isEmpty()) {
-      return null;
-    }
-    historyBundle.putParcelableArrayList("ENTRIES", entryBundles);
-    return historyBundle;
-  }
+  private final List<Object> history;
 
   public static Builder emptyBuilder() {
-    return new Builder(Collections.<State>emptyList());
+    return new Builder(Collections.emptyList());
   }
 
   /** Create a history that contains a single key. */
@@ -101,7 +44,7 @@ public final class History implements Iterable<Object> {
     return emptyBuilder().push(key).build();
   }
 
-  private History(List<State> history) {
+  private History(List<Object> history) {
     checkArgument(history != null && !history.isEmpty(), "History may not be empty");
     this.history = history;
   }
@@ -119,25 +62,18 @@ public final class History implements Iterable<Object> {
   }
 
   public <T> T top() {
-    //noinspection unchecked
-    return (T) peekSaveState(0).getKey();
+    return peek(0);
   }
 
   /** Returns the app state at the provided index in history. 0 is the newest entry. */
   public <T> T peek(int index) {
     //noinspection unchecked
-    return (T) peekSaveState(index).getKey();
+    return (T) history.get(history.size() - index - 1);
   }
 
-  /**
-   * Returns the {@link State} at the provided index in history. 0 is the newest entry.
-   */
-  public State peekSaveState(int index) {
-    return history.get(history.size() - index - 1);
-  }
-
-  public State topSaveState() {
-    return peekSaveState(0);
+  List<Object> asList() {
+    final ArrayList<Object> copy = new ArrayList<>(history);
+    return unmodifiableList(copy);
   }
 
   /**
@@ -156,10 +92,9 @@ public final class History implements Iterable<Object> {
   }
 
   public static final class Builder {
-    private final List<State> history;
-    private final Map<Object, State> entryMemory = new LinkedHashMap<>();
+    private final List<Object> history;
 
-    private Builder(Collection<State> history) {
+    private Builder(Collection<Object> history) {
       this.history = new ArrayList<>(history);
     }
 
@@ -185,20 +120,14 @@ public final class History implements Iterable<Object> {
      * from the builder, the key's associated state will be restored.
      */
     public Builder push(Object key) {
-      State entry = entryMemory.get(key);
-      if (entry == null) {
-        final Object key1 = key;
-        entry = new State(key1);
-      }
-      history.add(entry);
-      entryMemory.remove(key);
+      history.add(key);
       return this;
     }
 
     /**
      * {@link #push Pushes} all of the keys in the collection onto this builder.
      */
-    public Builder addAll(Collection<?> c) {
+    public Builder pushAll(Collection<?> c) {
       for (Object key : c) {
         push(key);
       }
@@ -206,7 +135,7 @@ public final class History implements Iterable<Object> {
     }
 
     public Object peek() {
-      return history.isEmpty() ? null : history.get(history.size() - 1).getKey();
+      return history.isEmpty() ? null : history.get(history.size() - 1);
     }
 
     public boolean isEmpty() {
@@ -225,9 +154,7 @@ public final class History implements Iterable<Object> {
       if (isEmpty()) {
         throw new IllegalStateException("Cannot pop from an empty builder");
       }
-      State entry = history.remove(history.size() - 1);
-      entryMemory.put(entry.getKey(), entry);
-      return entry.getKey();
+      return history.remove(history.size() - 1);
     }
 
     /**
@@ -284,9 +211,9 @@ public final class History implements Iterable<Object> {
   }
 
   private static class ReadStateIterator<T> implements Iterator<T> {
-    private final Iterator<State> iterator;
+    private final Iterator<Object> iterator;
 
-    ReadStateIterator(Iterator<State> iterator) {
+    ReadStateIterator(Iterator<Object> iterator) {
       this.iterator = iterator;
     }
 
@@ -296,7 +223,7 @@ public final class History implements Iterable<Object> {
 
     @Override public T next() {
       //noinspection unchecked
-      return (T) iterator.next().getKey();
+      return (T) iterator.next();
     }
 
     @Override public void remove() {

@@ -23,6 +23,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.support.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.Iterator;
 
 import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkNotNull;
@@ -32,6 +34,9 @@ import static flow.Preconditions.checkNotNull;
  */
 public final class InternalLifecycleIntegration extends Fragment {
   static final String TAG = "flow-lifecycle-integration";
+  static final String PERSISTENCE_KEY =
+      InternalLifecycleIntegration.class.getSimpleName() + "_state";
+  static final String INTENT_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   static InternalLifecycleIntegration find(Activity activity) {
     return (InternalLifecycleIntegration) activity.getFragmentManager().findFragmentByTag(TAG);
@@ -98,12 +103,25 @@ public final class InternalLifecycleIntegration extends Fragment {
     setRetainInstance(true);
   }
 
+  static void addHistoryToIntent(Intent intent, History history, KeyParceler parceler) {
+    Bundle bundle = new Bundle();
+    ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
+    final Iterator<Object> keys = history.reverseIterator();
+    while (keys.hasNext()) {
+      Object key = keys.next();
+      parcelables.add(State.empty(key).toBundle(parceler));
+    }
+    bundle.putParcelableArrayList("FLOW_STATE", parcelables);
+    intent.putExtra(INTENT_KEY, bundle);
+  }
+
   void onNewIntent(Intent intent) {
-    if (intent.hasExtra(Flow.HISTORY_KEY)) {
-      History history = History.from(intent.getParcelableExtra(Flow.HISTORY_KEY),
-          checkNotNull(parceler,
-              "Intent has a Flow history extra, but Flow was not installed with a KeyParceler"));
-      flow.setHistory(history, Flow.Direction.REPLACE);
+    if (intent.hasExtra(INTENT_KEY)) {
+      checkNotNull(parceler,
+          "Intent has a Flow history extra, but Flow was not installed with a KeyParceler");
+      History.Builder builder = History.emptyBuilder();
+      load((Bundle) intent.getParcelableExtra(INTENT_KEY), parceler, builder, keyManager);
+      flow.setHistory(builder.build(), Flow.Direction.REPLACE);
     }
   }
 
@@ -111,11 +129,14 @@ public final class InternalLifecycleIntegration extends Fragment {
     super.onActivityCreated(savedInstanceState);
     if (flow == null) {
       History savedHistory = null;
-      if (savedInstanceState != null && savedInstanceState.containsKey(Flow.HISTORY_KEY)) {
-        savedHistory = History.from(savedInstanceState.getParcelable(Flow.HISTORY_KEY),
-            checkNotNull(parceler, "no KeyParceler installed"));
+      if (savedInstanceState != null && savedInstanceState.containsKey(INTENT_KEY)) {
+        checkNotNull(parceler, "no KeyParceler installed");
+        History.Builder builder = History.emptyBuilder();
+        Bundle bundle = savedInstanceState.getParcelable(INTENT_KEY);
+        load(bundle, parceler, builder, keyManager);
+        savedHistory = builder.build();
       }
-      History history = selectHistory(intent, savedHistory, defaultHistory, parceler);
+      History history = selectHistory(intent, savedHistory, defaultHistory, parceler, keyManager);
       flow = new Flow(keyManager, history);
     }
     flow.setDispatcher(dispatcher);
@@ -148,27 +169,52 @@ public final class InternalLifecycleIntegration extends Fragment {
       return;
     }
 
-    Parcelable parcelable = flow.getHistory().getParcelable(parceler, new History.Filter() {
-      @Override public boolean apply(Object state) {
-        return !state.getClass().isAnnotationPresent(NotPersistent.class);
-      }
-    });
-    if (parcelable != null) {
-      //noinspection ConstantConditions
-      outState.putParcelable(Flow.HISTORY_KEY, parcelable);
+    Bundle bundle = new Bundle();
+    save(bundle, parceler, flow.getHistory(), keyManager);
+    if (!bundle.isEmpty()) {
+      outState.putParcelable(INTENT_KEY, bundle);
     }
   }
 
   private static History selectHistory(Intent intent, History saved, History defaultHistory,
-      @Nullable KeyParceler parceler) {
+      @Nullable KeyParceler parceler, KeyManager keyManager) {
     if (saved != null) {
       return saved;
     }
-    if (intent != null && intent.hasExtra(Flow.HISTORY_KEY)) {
+    if (intent != null && intent.hasExtra(INTENT_KEY)) {
       checkNotNull(parceler,
           "Intent has a Flow history extra, but Flow was not installed with a KeyParceler");
-      return History.from(intent.getParcelableExtra(Flow.HISTORY_KEY), parceler);
+      History.Builder history = History.emptyBuilder();
+      load(intent.<Bundle>getParcelableExtra(INTENT_KEY), parceler, history, keyManager);
+      return history.build();
     }
     return defaultHistory;
   }
+
+  private static void save(Bundle bundle, KeyParceler parceler, History history, KeyManager keyManager) {
+    ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
+    final Iterator<Object> keys = history.reverseIterator();
+    while (keys.hasNext()) {
+      Object key = keys.next();
+      if (!key.getClass().isAnnotationPresent(NotPersistent.class)) {
+        parcelables.add(keyManager.getState(key).toBundle(parceler));
+      }
+    }
+    bundle.putParcelableArrayList(PERSISTENCE_KEY, parcelables);
+  }
+
+  private static void load(Bundle bundle, KeyParceler parceler, History.Builder builder,
+      KeyManager keyManager) {
+    if (!bundle.containsKey(PERSISTENCE_KEY)) return;
+    ArrayList<Parcelable> stateBundles = bundle.getParcelableArrayList(PERSISTENCE_KEY);
+    //noinspection ConstantConditions
+    for (Parcelable stateBundle : stateBundles) {
+      State state = State.fromBundle((Bundle) stateBundle, parceler);
+      builder.push(state.getKey());
+      if (!keyManager.hasState(state.getKey())) {
+        keyManager.addState(state);
+      }
+    }
+  }
+
 }

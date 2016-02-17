@@ -105,9 +105,9 @@ public class FlowTest {
     listener.flow.set(new Dos());
   }
 
-  @Test public void historyAddAllIsPushy() {
+  @Test public void historyPushAllIsPushy() {
     History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie)).build();
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie)).build();
     assertThat(history.size()).isEqualTo(3);
 
     Flow flow = new Flow(keyManager, history);
@@ -123,13 +123,13 @@ public class FlowTest {
   }
 
   @Test public void setHistoryWorks() {
-    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(keyManager, history);
     FlowDispatcher dispatcher = new FlowDispatcher();
     flow.setDispatcher(dispatcher);
 
     History newHistory =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(charlie, delta)).build();
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(charlie, delta)).build();
     flow.setHistory(newHistory, Flow.Direction.FORWARD);
     assertThat(lastDirection).isSameAs(Flow.Direction.FORWARD);
     assertThat(lastStack.top()).isSameAs(delta);
@@ -140,7 +140,7 @@ public class FlowTest {
 
   @Test public void setObjectGoesBack() {
     History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
     Flow flow = new Flow(keyManager, history);
     flow.setDispatcher(new FlowDispatcher());
 
@@ -163,7 +163,7 @@ public class FlowTest {
   }
 
   @Test public void setObjectToMissingObjectPushes() {
-    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(keyManager, history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(2);
@@ -184,7 +184,7 @@ public class FlowTest {
   }
 
   @Test public void setObjectKeepsOriginal() {
-    History history = History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker)).build();
+    History history = History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker)).build();
     Flow flow = new Flow(keyManager, history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(2);
@@ -203,7 +203,7 @@ public class FlowTest {
     TestState charlie = new TestState("Charlie");
     TestState delta = new TestState("Delta");
     History history =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
     Flow flow = new Flow(keyManager, history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(4);
@@ -211,7 +211,7 @@ public class FlowTest {
     TestState echo = new TestState("Echo");
     TestState foxtrot = new TestState("Foxtrot");
     History newHistory =
-        History.emptyBuilder().addAll(Arrays.<Object>asList(able, baker, echo, foxtrot)).build();
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, echo, foxtrot)).build();
     flow.setHistory(newHistory, Flow.Direction.REPLACE);
     assertThat(lastStack.size()).isEqualTo(4);
     assertThat(lastStack.top()).isEqualTo(foxtrot);
@@ -248,7 +248,7 @@ public class FlowTest {
 
   @Test public void setCallsEquals() {
     History history = History.emptyBuilder()
-        .addAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
+        .pushAll(Arrays.<Object>asList(new Picky("Able"), new Picky("Baker"), new Picky("Charlie"),
             new Picky("Delta")))
         .build();
     Flow flow = new Flow(keyManager, history);

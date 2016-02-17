@@ -36,8 +36,6 @@ public final class Flow {
     }
   };
 
-  static final String HISTORY_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
-
   public static Flow get(View view) {
     return get(view.getContext());
   }
@@ -71,7 +69,7 @@ public final class Flow {
 
   /** Adds a history as an extra to an Intent. */
   public static void addHistory(Intent intent, History history, KeyParceler parceler) {
-    intent.putExtra(HISTORY_KEY, history.getParcelable(parceler));
+    InternalLifecycleIntegration.addHistoryToIntent(intent, history, parceler);
   }
 
   /**
@@ -81,7 +79,7 @@ public final class Flow {
    */
   public static boolean onNewIntent(Intent intent, Activity activity) {
     checkArgument(intent != null, "intent may not be null");
-    if (intent.hasExtra(HISTORY_KEY)) {
+    if (intent.hasExtra(InternalLifecycleIntegration.INTENT_KEY)) {
       InternalLifecycleIntegration.find(activity).onNewIntent(intent);
       return true;
     }
@@ -125,6 +123,10 @@ public final class Flow {
      */
     public Context createContext(Object key, Context baseContext) {
       return new FlowContextWrapper(keyManager.findServices(key), baseContext);
+    }
+
+    public State getState(Object key) {
+      return keyManager.getState(key);
     }
   }
 
@@ -376,6 +378,7 @@ public final class Flow {
           keyManager.tearDown(it.next());
           it.remove();
         }
+        keyManager.clearStatesExcept(history.asList());
       } else if (dispatcher != null) {
         pendingTraversal.execute();
       }

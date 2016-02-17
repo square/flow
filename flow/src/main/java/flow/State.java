@@ -37,7 +37,7 @@ public class State {
   }
 
   private final Object key;
-  private Bundle bundle;
+  @Nullable private Bundle bundle;
   @Nullable SparseArray<Parcelable> viewState;
 
   State(Object key) {
@@ -66,15 +66,19 @@ public class State {
     this.bundle = bundle;
   }
 
-  @Nullable public Bundle toBundle() {
+  @Nullable public Bundle getBundle() {
     return bundle;
   }
 
   Bundle toBundle(KeyParceler parceler) {
     Bundle outState = new Bundle();
     outState.putParcelable("KEY", parceler.toParcelable(getKey()));
-    outState.putSparseParcelableArray("VIEW_STATE", viewState);
-    outState.putBundle("BUNDLE", bundle);
+    if (viewState != null && viewState.size() > 0) {
+      outState.putSparseParcelableArray("VIEW_STATE", viewState);
+    }
+    if (bundle != null && !bundle.isEmpty()) {
+      outState.putBundle("BUNDLE", bundle);
+    }
     return outState;
   }
 
@@ -107,7 +111,7 @@ public class State {
     @Override public void setBundle(Bundle bundle) {
     }
 
-    @Nullable @Override public Bundle toBundle() {
+    @Nullable @Override public Bundle getBundle() {
       return null;
     }
   }

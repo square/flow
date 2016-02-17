@@ -61,12 +61,12 @@ public final class KeyDispatcher implements Flow.Dispatcher {
   }
 
   @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
-    State inState = traversal.destination.topSaveState();
+    State inState = traversal.getState(traversal.destination.top());
     Object inKey = inState.getKey();
-    State outState = traversal.origin == null ? null : traversal.origin.topSaveState();
+    State outState = traversal.origin == null ? null : traversal.getState(traversal.origin.top());
     Object outKey = outState == null ? null : outState.getKey();
 
-    // TODO(#126): this short-circuit may belong in Flow, since every Dispatcher we have implements it.
+    // TODO(#126): short-circuit may belong in Flow, since every Dispatcher we have implements it.
     if (inKey.equals(outKey)) {
       callback.onTraversalCompleted();
       return;
