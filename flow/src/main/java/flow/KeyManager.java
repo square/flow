@@ -29,24 +29,24 @@ class KeyManager {
       return KeyManager.class.getSimpleName() + ".ROOT";
     }
   };
-  private final Map<Object, CountedServices> nodes = new LinkedHashMap<>();
+  private final Map<Object, ManagedServices> managedServices = new LinkedHashMap<>();
   private final List<ServicesFactory> servicesFactories = new ArrayList<>();
 
   KeyManager(List<ServicesFactory> servicesFactories) {
     this.servicesFactories.addAll(servicesFactories);
-    nodes.put(ROOT_KEY, new CountedServices(Services.ROOT_SERVICES));
+    managedServices.put(ROOT_KEY, new ManagedServices(Services.ROOT_SERVICES));
   }
 
   Services findServices(Object key) {
-    final CountedServices counted = nodes.get(key);
-    if (counted == null) {
+    final ManagedServices managed = managedServices.get(key);
+    if (managed == null) {
       throw new IllegalStateException("No services currently exists for key " + key);
     }
-    return counted.services;
+    return managed.services;
   }
 
   void setUp(Object key) {
-    Services parent = nodes.get(ROOT_KEY).services;
+    Services parent = managedServices.get(ROOT_KEY).services;
     if (key instanceof MultiKey) {
       for (Object part : ((MultiKey) key).getKeys()) {
         setUp(part);
@@ -56,7 +56,7 @@ class KeyManager {
       TreeKey treeKey = (TreeKey) key;
       final Object parentKey = treeKey.getParentKey();
       setUp(parentKey);
-      parent = nodes.get(parentKey).services;
+      parent = managedServices.get(parentKey).services;
       ensureNode(parent, key).uses++;
     } else {
       ensureNode(parent, key).uses++;
@@ -80,8 +80,8 @@ class KeyManager {
     }
   }
 
-  @NonNull private CountedServices ensureNode(@Nullable Services parent, Object key) {
-    CountedServices node = nodes.get(key);
+  @NonNull private ManagedServices ensureNode(@Nullable Services parent, Object key) {
+    ManagedServices node = managedServices.get(key);
     if (node == null) {
       // Bind the local key as a service.
       @SuppressWarnings("ConstantConditions") //
@@ -91,21 +91,21 @@ class KeyManager {
       for (int i = 0; i < count; i++) {
         servicesFactories.get(i).bindServices(binder);
       }
-      node = new CountedServices(binder.build());
-      nodes.put(key, node);
+      node = new ManagedServices(binder.build());
+      managedServices.put(key, node);
     }
     return node;
   }
 
   private boolean decrementAndMaybeRemoveKey(Object key) {
-    CountedServices node = nodes.get(key);
+    ManagedServices node = managedServices.get(key);
     node.uses--;
     if (key != ROOT_KEY && node.uses == 0) {
       int count = servicesFactories.size();
       for (int i = count - 1; i >= 0; i--) {
         servicesFactories.get(i).tearDownServices(node.services);
       }
-      nodes.remove(key);
+      managedServices.remove(key);
       return true;
     }
     if (node.uses < 0) {
@@ -114,12 +114,12 @@ class KeyManager {
     return false;
   }
 
-  private static final class CountedServices {
+  private static final class ManagedServices {
     final Services services;
     /** Includes uses as a leaf and as a direct parent. */
     int uses = 0;
 
-    private CountedServices(Services services) {
+    private ManagedServices(Services services) {
       this.services = services;
     }
   }
