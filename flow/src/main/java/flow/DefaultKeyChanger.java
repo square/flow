@@ -32,8 +32,8 @@ final class DefaultKeyChanger extends KeyChanger {
   }
 
   @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-      Flow.Direction direction, Map<Object, Context> incomingContexts,
-      Flow.TraversalCallback callback) {
+      Direction direction, Map<Object, Context> incomingContexts,
+      TraversalCallback callback) {
     if (textView == null) {
       textView = new TextView(incomingContexts.get(incomingState.getKey()));
       textView.setGravity(Gravity.CENTER);

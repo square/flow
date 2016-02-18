@@ -16,12 +16,13 @@
 
 package flow;
 
-import android.content.Context;
-import android.support.annotation.Nullable;
-import java.util.Map;
-
-public abstract class KeyChanger {
-  public abstract void changeKey(@Nullable State outgoingState, State incomingState,
-      Direction direction, Map<Object, Context> incomingContexts,
-      TraversalCallback callback);
+/** Supplied by Flow to the Listener, which is responsible for calling onComplete(). */
+public interface TraversalCallback {
+  /**
+   * Must be called exactly once to indicate that the corresponding transition has completed.
+   *
+   * If not called, the history will not be updated and further calls to Flow will not execute.
+   * Calling more than once will result in an exception.
+   */
+  void onTraversalCompleted();
 }

@@ -22,9 +22,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import flow.Flow;
+import flow.Dispatcher;
+import flow.Traversal;
+import flow.TraversalCallback;
 
-final class BasicDispatcher implements Flow.Dispatcher {
+final class BasicDispatcher implements Dispatcher {
 
   private final Activity activity;
 
@@ -32,7 +34,7 @@ final class BasicDispatcher implements Flow.Dispatcher {
     this.activity = activity;
   }
 
-  @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
+  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
     Log.d("BasicDispatcher", "dispatching " + traversal);
     Object dest = traversal.destination.top();
 

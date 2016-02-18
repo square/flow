@@ -23,9 +23,8 @@ import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 
-import static flow.Flow.Direction.FORWARD;
-import static flow.Flow.Traversal;
-import static flow.Flow.TraversalCallback;
+import static flow.Direction.FORWARD;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Fail.fail;
 import static org.mockito.MockitoAnnotations.initMocks;
@@ -42,7 +41,7 @@ public class ReentranceTest {
   }
 
   @Test public void reentrantGo() {
-    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
+    Dispatcher dispatcher = new Dispatcher() {
       @Override public void dispatch(Traversal navigation, TraversalCallback callback) {
         lastStack = navigation.destination;
         Object next = navigation.destination.top();
@@ -61,7 +60,7 @@ public class ReentranceTest {
   }
 
   @Test public void reentrantGoThenBack() {
-    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
+    Dispatcher dispatcher = new Dispatcher() {
       boolean loading = true;
 
       @Override public void dispatch(Traversal navigation, TraversalCallback onComplete) {
@@ -92,7 +91,7 @@ public class ReentranceTest {
 
   @Test public void reentrantForwardThenGo() {
     Flow flow = new Flow(keyManager, History.single(new Catalog()));
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         Object next = traversal.destination.top();
@@ -111,7 +110,7 @@ public class ReentranceTest {
   }
 
   @Test public void reentranceWaitsForCallback() {
-    Flow.Dispatcher dispatcher = new Flow.Dispatcher() {
+    Dispatcher dispatcher = new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         lastCallback = callback;
@@ -139,7 +138,7 @@ public class ReentranceTest {
 
   @Test public void onCompleteThrowsIfCalledTwice() {
     flow = new Flow(keyManager, History.single(new Catalog()));
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         lastCallback = callback;
@@ -158,7 +157,7 @@ public class ReentranceTest {
   @Test public void bootstrapTraversal() {
     flow = new Flow(keyManager, History.single(new Catalog()));
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         callback.onTraversalCompleted();
@@ -173,7 +172,7 @@ public class ReentranceTest {
     flow = new Flow(keyManager, History.single(new Catalog()));
     flow.set(new Detail());
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         dispatchCount.incrementAndGet();
         lastStack = traversal.destination;
@@ -191,7 +190,7 @@ public class ReentranceTest {
     flow.set(new Detail());
     flow.set(new Error());
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastCallback = callback;
       }
@@ -207,7 +206,7 @@ public class ReentranceTest {
   @Test public void clearingDispatcherMidTraversalPauses() {
     flow = new Flow(keyManager, History.single(new Catalog()));
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         flow.set(new Loading());
         flow.removeDispatcher(this);
@@ -217,7 +216,7 @@ public class ReentranceTest {
 
     verifyHistory(flow.getHistory(), new Catalog());
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         callback.onTraversalCompleted();
       }
@@ -228,12 +227,12 @@ public class ReentranceTest {
 
   @Test public void dispatcherSetInMidFlightWaitsForBootstrap() {
     flow = new Flow(keyManager, History.single(new Catalog()));
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastCallback = callback;
       }
     });
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastStack = traversal.destination;
         callback.onTraversalCompleted();
@@ -248,13 +247,13 @@ public class ReentranceTest {
   @Test public void dispatcherSetInMidFlightWithBigQueueNeedsNoBootstrap() {
     final AtomicInteger secondDispatcherCount = new AtomicInteger(0);
     flow = new Flow(keyManager, History.single(new Catalog()));
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         flow.set(new Detail());
         lastCallback = callback;
       }
     });
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         secondDispatcherCount.incrementAndGet();
         lastStack = traversal.destination;
@@ -272,7 +271,7 @@ public class ReentranceTest {
     final AtomicInteger secondDispatcherCount = new AtomicInteger(0);
     flow = new Flow(keyManager, History.single(new Catalog()));
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         lastCallback = callback;
         flow.removeDispatcher(this);
@@ -282,7 +281,7 @@ public class ReentranceTest {
 
     verifyHistory(flow.getHistory(), new Catalog());
 
-    flow.setDispatcher(new Flow.Dispatcher() {
+    flow.setDispatcher(new Dispatcher() {
       @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
         secondDispatcherCount.incrementAndGet();
         callback.onTraversalCompleted();

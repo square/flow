@@ -16,12 +16,13 @@
 
 package flow;
 
-import android.content.Context;
-import android.support.annotation.Nullable;
-import java.util.Map;
-
-public abstract class KeyChanger {
-  public abstract void changeKey(@Nullable State outgoingState, State incomingState,
-      Direction direction, Map<Object, Context> incomingContexts,
-      TraversalCallback callback);
+public interface Dispatcher {
+  /**
+   * Called when the history is about to change.  Note that Flow does not consider the
+   * Traversal to be finished, and will not actually update the history, until the callback is
+   * triggered. Traversals cannot be canceled.
+   *
+   * @param callback Must be called to indicate completion of the traversal.
+   */
+  void dispatch(Traversal traversal, TraversalCallback callback);
 }

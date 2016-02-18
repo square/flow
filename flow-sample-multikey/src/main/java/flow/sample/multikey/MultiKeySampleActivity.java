@@ -9,10 +9,12 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
+import flow.Direction;
 import flow.Flow;
 import flow.KeyChanger;
 import flow.KeyDispatcher;
 import flow.State;
+import flow.TraversalCallback;
 import java.util.Map;
 
 /**
@@ -37,8 +39,8 @@ public class MultiKeySampleActivity extends AppCompatActivity {
     Dialog visibleDialog;
 
     @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-        Flow.Direction direction, Map<Object, Context> incomingContexts,
-        Flow.TraversalCallback callback) {
+        Direction direction, Map<Object, Context> incomingContexts,
+        TraversalCallback callback) {
 
       final Object mainKey;
       final Object dialogKey;
