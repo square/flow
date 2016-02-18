@@ -1,8 +1,8 @@
 Change Log
 ==========
 
-Version 1.0-alpha *(TBD)*
---------------------------
+Version 1.0-alpha *(2016-02-18)*
+--------------------------------
 Presented for review and feedback. API should still be considered unstable, docs incomplete, and functionality buggy. All of the above should be mostly resolved before beta.
 
 1.0 brings major functional improvements and API changes. 
