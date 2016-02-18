@@ -285,26 +285,17 @@ public final class Flow {
   /**
    * Go back one key.
    *
-   * @return false if going back is not possible.
+   * @return false if going back is not possible or a traversal is in progress.
    */
   public boolean goBack() {
     boolean canGoBack = history.size() > 1 || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED);
-    move(new PendingTraversal() {
-      @Override protected void doExecute() {
-        if (history.size() == 1) {
-          // We are not calling the listener, so we must complete this noop transition ourselves.
-          onTraversalCompleted();
-        } else {
-          History.Builder builder = history.buildUpon();
-          builder.pop();
-          History newHistory = builder.build();
-          dispatch(newHistory, Direction.BACKWARD);
-        }
-      }
-    });
-
-    return canGoBack;
+    if (!canGoBack) return false;
+    History.Builder builder = history.buildUpon();
+    builder.pop();
+    final History newHistory = builder.build();
+    setHistory(newHistory, Direction.BACKWARD);
+    return true;
   }
 
   private void move(PendingTraversal pendingTraversal) {
