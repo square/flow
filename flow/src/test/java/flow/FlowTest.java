@@ -36,10 +36,10 @@ public class FlowTest {
   static class Tres {
   }
 
-  final TestState able = new TestState("Able");
-  final TestState baker = new TestState("Baker");
-  final TestState charlie = new TestState("Charlie");
-  final TestState delta = new TestState("Delta");
+  final TestKey able = new TestKey("Able");
+  final TestKey baker = new TestKey("Baker");
+  final TestKey charlie = new TestKey("Charlie");
+  final TestKey delta = new TestKey("Delta");
 
   @Mock KeyManager keyManager;
   History lastStack;
@@ -189,8 +189,8 @@ public class FlowTest {
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(2);
 
-    flow.set(new TestState("Able"));
-    assertThat(lastStack.top()).isEqualTo(new TestState("Able"));
+    flow.set(new TestKey("Able"));
+    assertThat(lastStack.top()).isEqualTo(new TestKey("Able"));
     assertThat(lastStack.top() == able).isTrue();
     assertThat(lastStack.top()).isSameAs(able);
     assertThat(lastStack.size()).isEqualTo(1);
@@ -205,7 +205,7 @@ public class FlowTest {
     assertThat(history.size()).isEqualTo(3);
 
     flow.replaceHistory(delta, Flow.Direction.REPLACE);
-    assertThat(lastStack.top()).isEqualTo(new TestState("Delta"));
+    assertThat(lastStack.top()).isEqualTo(new TestKey("Delta"));
     assertThat(lastStack.top() == delta).isTrue();
     assertThat(lastStack.top()).isSameAs(delta);
     assertThat(lastStack.size()).isEqualTo(1);
@@ -220,7 +220,7 @@ public class FlowTest {
     assertThat(history.size()).isEqualTo(3);
 
     flow.replaceTop(delta, Flow.Direction.REPLACE);
-    assertThat(lastStack.top()).isEqualTo(new TestState("Delta"));
+    assertThat(lastStack.top()).isEqualTo(new TestKey("Delta"));
     assertThat(lastStack.top() == delta).isTrue();
     assertThat(lastStack.top()).isSameAs(delta);
     assertThat(lastStack.size()).isEqualTo(3);
@@ -228,18 +228,18 @@ public class FlowTest {
   }
 
   @SuppressWarnings("deprecation") @Test public void setHistoryKeepsOriginals() {
-    TestState able = new TestState("Able");
-    TestState baker = new TestState("Baker");
-    TestState charlie = new TestState("Charlie");
-    TestState delta = new TestState("Delta");
+    TestKey able = new TestKey("Able");
+    TestKey baker = new TestKey("Baker");
+    TestKey charlie = new TestKey("Charlie");
+    TestKey delta = new TestKey("Delta");
     History history =
         History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie, delta)).build();
     Flow flow = new Flow(keyManager, history);
     flow.setDispatcher(new FlowDispatcher());
     assertThat(history.size()).isEqualTo(4);
 
-    TestState echo = new TestState("Echo");
-    TestState foxtrot = new TestState("Foxtrot");
+    TestKey echo = new TestKey("Echo");
+    TestKey foxtrot = new TestKey("Foxtrot");
     History newHistory =
         History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, echo, foxtrot)).build();
     flow.setHistory(newHistory, Flow.Direction.REPLACE);

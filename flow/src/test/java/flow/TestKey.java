@@ -16,10 +16,10 @@
 
 package flow;
 
-class TestState {
+class TestKey {
   final String name;
 
-  TestState(String name) {
+  TestKey(String name) {
     this.name = name;
   }
 
@@ -27,8 +27,8 @@ class TestState {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
-    TestState screen = (TestState) o;
-    return name.equals(screen.name);
+    TestKey key = (TestKey) o;
+    return name.equals(key.name);
   }
 
   @Override
