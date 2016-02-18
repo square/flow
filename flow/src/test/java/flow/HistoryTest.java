@@ -32,14 +32,14 @@ import static org.assertj.core.api.Fail.fail;
 @RunWith(RobolectricTestRunner.class) // Necessary for functional SparseArray
 @Config(manifest = Config.NONE) //
 public class HistoryTest {
-  private static final TestState ABLE = new TestState("able");
-  private static final TestState BAKER = new TestState("baker");
-  private static final TestState CHARLIE = new TestState("charlie");
+  private static final TestKey ABLE = new TestKey("able");
+  private static final TestKey BAKER = new TestKey("baker");
+  private static final TestKey CHARLIE = new TestKey("charlie");
 
   @Test public void builderCanPushPeekAndPopObjects() {
     History.Builder builder = History.emptyBuilder();
 
-    List<TestState> objects = asList(ABLE, BAKER, CHARLIE);
+    List<TestKey> objects = asList(ABLE, BAKER, CHARLIE);
     for (Object object : objects) {
       builder.push(object);
     }

@@ -296,35 +296,35 @@ public class ReentranceTest {
     verifyHistory(flow.getHistory(), new Loading(), new Catalog());
   }
 
-  static class Catalog extends TestState {
+  static class Catalog extends TestKey {
     Catalog() {
       super("catalog");
     }
   }
 
-  static class Detail extends TestState {
+  static class Detail extends TestKey {
     Detail() {
       super("detail");
     }
   }
 
-  static class Loading extends TestState {
+  static class Loading extends TestKey {
     Loading() {
       super("loading");
     }
   }
 
-  static class Error extends TestState {
+  static class Error extends TestKey {
     Error() {
       super("error");
     }
   }
 
-  private void verifyHistory(History history, Object... screens) {
-    List<Object> actualScreens = new ArrayList<>(history.size());
+  private void verifyHistory(History history, Object... keys) {
+    List<Object> actualKeys = new ArrayList<>(history.size());
     for (Object entry : history) {
-      actualScreens.add(entry);
+      actualKeys.add(entry);
     }
-    assertThat(actualScreens).containsExactly(screens);
+    assertThat(actualKeys).containsExactly(keys);
   }
 }
