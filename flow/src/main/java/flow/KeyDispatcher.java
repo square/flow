@@ -30,7 +30,7 @@ import static flow.Preconditions.checkNotNull;
  * A simple Dispatcher that only pays attention to the top keys on the incoming and outgoing
  * histories, and only executes a change if those top keys are not equal.
  */
-public final class KeyDispatcher implements Flow.Dispatcher {
+public final class KeyDispatcher implements Dispatcher {
 
   public static final class Builder {
     private final Activity activity;
@@ -41,7 +41,7 @@ public final class KeyDispatcher implements Flow.Dispatcher {
       this.keyChanger = checkNotNull(keyChanger, "KeyChanger may not be null");
     }
 
-    public Flow.Dispatcher build() {
+    public Dispatcher build() {
       final KeyChanger keyChanger =
           this.keyChanger == null ? new DefaultKeyChanger(activity) : this.keyChanger;
       return new KeyDispatcher(activity, keyChanger);
@@ -60,7 +60,7 @@ public final class KeyDispatcher implements Flow.Dispatcher {
     this.keyChanger = keyChanger;
   }
 
-  @Override public void dispatch(Flow.Traversal traversal, Flow.TraversalCallback callback) {
+  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
     State inState = traversal.getState(traversal.destination.top());
     Object inKey = inState.getKey();
     State outState = traversal.origin == null ? null : traversal.getState(traversal.origin.top());
@@ -91,8 +91,8 @@ public final class KeyDispatcher implements Flow.Dispatcher {
   }
 
   public void changeKey(@Nullable State outgoingState, State incomingState,
-      Flow.Direction direction, Map<Object, Context> incomingContexts,
-      final Flow.TraversalCallback callback) {
+      Direction direction, Map<Object, Context> incomingContexts,
+      final TraversalCallback callback) {
     keyChanger.changeKey(outgoingState, incomingState, direction, incomingContexts, callback);
   }
 }

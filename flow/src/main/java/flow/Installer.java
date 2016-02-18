@@ -30,7 +30,7 @@ public final class Installer {
   private final List<ServicesFactory> contextFactories = new ArrayList<>();
   private KeyParceler parceler;
   private Object defaultKey;
-  private Flow.Dispatcher dispatcher;
+  private Dispatcher dispatcher;
 
   public Installer(Context baseContext, Activity activity) {
     this.baseContext = baseContext;
@@ -42,7 +42,7 @@ public final class Installer {
     return this;
   }
 
-  public Installer dispatcher(@Nullable Flow.Dispatcher dispatcher) {
+  public Installer dispatcher(@Nullable Dispatcher dispatcher) {
     this.dispatcher = dispatcher;
     return this;
   }
@@ -67,7 +67,7 @@ public final class Installer {
     if (InternalLifecycleIntegration.find(activity) != null) {
       throw new IllegalStateException("Flow is already installed in this Activity.");
     }
-    Flow.Dispatcher dispatcher = this.dispatcher;
+    Dispatcher dispatcher = this.dispatcher;
     if (dispatcher == null) {
       dispatcher = KeyDispatcher.configure(activity, new DefaultKeyChanger(activity)) //
           .build();

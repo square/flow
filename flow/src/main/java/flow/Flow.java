@@ -86,61 +86,6 @@ public final class Flow {
     return false;
   }
 
-  public enum Direction {
-    FORWARD, BACKWARD, REPLACE
-  }
-
-  /** Supplied by Flow to the Listener, which is responsible for calling onComplete(). */
-  public interface TraversalCallback {
-    /**
-     * Must be called exactly once to indicate that the corresponding transition has completed.
-     *
-     * If not called, the history will not be updated and further calls to Flow will not execute.
-     * Calling more than once will result in an exception.
-     */
-    void onTraversalCompleted();
-  }
-
-  public static final class Traversal {
-    /** May be null if this is a traversal into the start state. */
-    @Nullable public final History origin;
-    public final History destination;
-    public final Direction direction;
-    private final KeyManager keyManager;
-
-    private Traversal(@Nullable History from, History to, Direction direction,
-        KeyManager keyManager) {
-      this.origin = from;
-      this.destination = to;
-      this.direction = direction;
-      this.keyManager = keyManager;
-    }
-
-    /**
-     * Creates a Context for the given key.
-     *
-     * Contexts can be created only for keys at the top of the origin and destination Histories.
-     */
-    public Context createContext(Object key, Context baseContext) {
-      return new FlowContextWrapper(keyManager.findServices(key), baseContext);
-    }
-
-    public State getState(Object key) {
-      return keyManager.getState(key);
-    }
-  }
-
-  public interface Dispatcher {
-    /**
-     * Called when the history is about to change.  Note that Flow does not consider the
-     * Traversal to be finished, and will not actually update the history, until the callback is
-     * triggered. Traversals cannot be canceled.
-     *
-     * @param callback Must be called to indicate completion of the traversal.
-     */
-    void dispatch(Traversal traversal, TraversalCallback callback);
-  }
-
   private History history;
   private Dispatcher dispatcher;
   private PendingTraversal pendingTraversal;

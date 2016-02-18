@@ -23,10 +23,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
+import flow.Direction;
 import flow.Flow;
 import flow.KeyChanger;
 import flow.KeyDispatcher;
 import flow.State;
+import flow.TraversalCallback;
 import flow.sample.tree.ui.contacts.edit.EditEmailScreen;
 import flow.sample.tree.ui.contacts.edit.EditNameScreen;
 import flow.sample.tree.ui.contacts.list.ListContactsScreen;
@@ -53,8 +55,8 @@ public class TreeSampleActivity extends AppCompatActivity {
   private final class Changer extends KeyChanger {
 
     @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-        Flow.Direction direction, Map<Object, Context> incomingContexts,
-        Flow.TraversalCallback callback) {
+        Direction direction, Map<Object, Context> incomingContexts,
+        TraversalCallback callback) {
 
       Object key = incomingState.getKey();
       Context context = incomingContexts.get(key);
