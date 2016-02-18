@@ -197,6 +197,36 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Flow.Direction.BACKWARD);
   }
 
+  @Test public void replaceHistoryResultsInLengthOneHistory() {
+    History history =
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie)).build();
+    Flow flow = new Flow(keyManager, history);
+    flow.setDispatcher(new FlowDispatcher());
+    assertThat(history.size()).isEqualTo(3);
+
+    flow.replaceHistory(delta, Flow.Direction.REPLACE);
+    assertThat(lastStack.top()).isEqualTo(new TestState("Delta"));
+    assertThat(lastStack.top() == delta).isTrue();
+    assertThat(lastStack.top()).isSameAs(delta);
+    assertThat(lastStack.size()).isEqualTo(1);
+    assertThat(lastDirection).isEqualTo(Flow.Direction.REPLACE);
+  }
+
+  @Test public void replaceTopDoesNotAlterHistoryLength() {
+    History history =
+        History.emptyBuilder().pushAll(Arrays.<Object>asList(able, baker, charlie)).build();
+    Flow flow = new Flow(keyManager, history);
+    flow.setDispatcher(new FlowDispatcher());
+    assertThat(history.size()).isEqualTo(3);
+
+    flow.replaceTop(delta, Flow.Direction.REPLACE);
+    assertThat(lastStack.top()).isEqualTo(new TestState("Delta"));
+    assertThat(lastStack.top() == delta).isTrue();
+    assertThat(lastStack.top()).isSameAs(delta);
+    assertThat(lastStack.size()).isEqualTo(3);
+    assertThat(lastDirection).isEqualTo(Flow.Direction.REPLACE);
+  }
+
   @SuppressWarnings("deprecation") @Test public void setHistoryKeepsOriginals() {
     TestState able = new TestState("Able");
     TestState baker = new TestState("Baker");
@@ -271,5 +301,4 @@ public class FlowTest {
 
     assertThat(flow.goBack()).isFalse();
   }
-
 }
