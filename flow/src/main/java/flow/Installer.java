@@ -19,6 +19,7 @@ package flow;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,22 +33,22 @@ public final class Installer {
   private Object defaultKey;
   private Dispatcher dispatcher;
 
-  public Installer(Context baseContext, Activity activity) {
+  Installer(Context baseContext, Activity activity) {
     this.baseContext = baseContext;
     this.activity = activity;
   }
 
-  public Installer keyParceler(@Nullable KeyParceler parceler) {
+  @NonNull public Installer keyParceler(@Nullable KeyParceler parceler) {
     this.parceler = parceler;
     return this;
   }
 
-  public Installer dispatcher(@Nullable Dispatcher dispatcher) {
+  @NonNull public Installer dispatcher(@Nullable Dispatcher dispatcher) {
     this.dispatcher = dispatcher;
     return this;
   }
 
-  public Installer defaultKey(@Nullable Object defaultKey) {
+  @NonNull public Installer defaultKey(@Nullable Object defaultKey) {
     this.defaultKey = defaultKey;
     return this;
   }
@@ -58,12 +59,12 @@ public final class Installer {
    * May be called multiple times. Factories are called in the order given during setup, and
    * in reverse order during teardown.
    */
-  public Installer addServicesFactory(ServicesFactory factory) {
+  @NonNull public Installer addServicesFactory(@NonNull ServicesFactory factory) {
     contextFactories.add(factory);
     return this;
   }
 
-  public Context install() {
+  @NonNull public Context install() {
     if (InternalLifecycleIntegration.find(activity) != null) {
       throw new IllegalStateException("Flow is already installed in this Activity.");
     }

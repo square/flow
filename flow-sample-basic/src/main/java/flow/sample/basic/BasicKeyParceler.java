@@ -17,6 +17,7 @@
 package flow.sample.basic;
 
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import flow.KeyParceler;
 
 /**
@@ -26,11 +27,11 @@ import flow.KeyParceler;
  * auto-parcel, or parceler.
  * */
 final class BasicKeyParceler implements KeyParceler {
-  @Override public Parcelable toParcelable(Object key) {
+  @NonNull @Override public Parcelable toParcelable(@NonNull Object key) {
     return (Parcelable) key;
   }
 
-  @Override public Object toKey(Parcelable parcelable) {
+  @NonNull @Override public Object toKey(@NonNull Parcelable parcelable) {
     return parcelable;
   }
 }

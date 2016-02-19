@@ -17,16 +17,18 @@
 package flow;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 
 public final class Traversal {
   /** May be null if this is a traversal into the start state. */
   @Nullable public final History origin;
-  public final History destination;
-  public final Direction direction;
+  @NonNull public final History destination;
+  @NonNull public final Direction direction;
   private final KeyManager keyManager;
 
-  Traversal(@Nullable History from, History to, Direction direction, KeyManager keyManager) {
+  Traversal(@Nullable History from, @NonNull History to, @NonNull Direction direction,
+      KeyManager keyManager) {
     this.origin = from;
     this.destination = to;
     this.direction = direction;
@@ -38,11 +40,11 @@ public final class Traversal {
    *
    * Contexts can be created only for keys at the top of the origin and destination Histories.
    */
-  public Context createContext(Object key, Context baseContext) {
+  @NonNull public Context createContext(@NonNull Object key, @NonNull Context baseContext) {
     return new FlowContextWrapper(keyManager.findServices(key), baseContext);
   }
 
-  public State getState(Object key) {
+  @NonNull public State getState(@NonNull Object key) {
     return keyManager.getState(key);
   }
 }

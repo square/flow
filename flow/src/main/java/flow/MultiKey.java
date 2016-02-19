@@ -16,6 +16,7 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
 import java.util.List;
 
 /**
@@ -24,5 +25,5 @@ import java.util.List;
  * Component keys may be ordinary objects, {@link TreeKey}s, or MultiKeys.
  */
 public interface MultiKey {
-  List<Object> getKeys();
+  @NonNull List<Object> getKeys();
 }

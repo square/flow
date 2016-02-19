@@ -16,17 +16,19 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
+
 public abstract class ServicesFactory {
   /**
    * Sets up any services associated with the key, and make them accessible via the context.
    * Typically this means returning a new context that wraps the given one.
    */
-  public abstract void bindServices(Services.Binder services);
+  public abstract void bindServices(@NonNull Services.Binder services);
 
   /**
    * Tears down any services previously bound by {@link #bindServices}. Note that the Services
    * instance given here may be a wrapper around an instance that this factory created.
    */
-  public void tearDownServices(Services services) {
+  public void tearDownServices(@NonNull Services services) {
   }
 }
