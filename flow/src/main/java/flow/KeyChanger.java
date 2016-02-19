@@ -20,8 +20,7 @@ import android.content.Context;
 import android.support.annotation.Nullable;
 import java.util.Map;
 
-public abstract class KeyChanger {
-  public abstract void changeKey(@Nullable State outgoingState, State incomingState,
-      Direction direction, Map<Object, Context> incomingContexts,
-      TraversalCallback callback);
+public interface KeyChanger {
+  void changeKey(@Nullable State outgoingState, State incomingState, Direction direction,
+      Map<Object, Context> incomingContexts, TraversalCallback callback);
 }
