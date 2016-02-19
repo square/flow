@@ -16,6 +16,7 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -37,12 +38,12 @@ public class Services {
       this.base = base;
     }
 
-    public Binder bind(String serviceName, Object service) {
+    @NonNull public Binder bind(@NonNull String serviceName, @NonNull Object service) {
       services.put(serviceName, service);
       return this;
     }
 
-    Services build() {
+    @NonNull Services build() {
       return new Services(getKey(), base, services);
     }
   }
@@ -57,7 +58,7 @@ public class Services {
     this.localServices.putAll(localServices);
   }
 
-  public <T> T getService(String name) {
+  @Nullable public <T> T getService(@NonNull String name) {
     if (localServices.containsKey(name)) {
       @SuppressWarnings("unchecked") //
       final T service = (T) localServices.get(name);
@@ -67,12 +68,12 @@ public class Services {
     return null;
   }
 
-  public <T> T getKey() {
+  @NonNull public <T> T getKey() {
     //noinspection unchecked
     return (T) this.key;
   }
 
-  Binder extend(Object key) {
+  @NonNull Binder extend(@NonNull Object key) {
     return new Binder(this, key);
   }
 }

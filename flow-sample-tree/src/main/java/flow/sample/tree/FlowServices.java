@@ -16,6 +16,7 @@
 
 package flow.sample.tree;
 
+import android.support.annotation.NonNull;
 import flow.Services;
 import flow.ServicesFactory;
 import flow.sample.tree.model.Contact;
@@ -32,7 +33,7 @@ public final class FlowServices extends ServicesFactory {
   // keys. Even better, keep your ServicesFactory lean and simple by using the key to build/lookup
   // a Dagger graph or Mortar scope!
 
-  @Override public void bindServices(Services.Binder services) {
+  @Override public void bindServices(@NonNull Services.Binder services) {
     Object key = services.getKey();
     if (key.equals(new ContactsUiKey())) {
       // Setting up the ContactsUiKey means providing storage for Contacts.

@@ -16,6 +16,8 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
+
 public interface Dispatcher {
   /**
    * Called when the history is about to change.  Note that Flow does not consider the
@@ -24,5 +26,5 @@ public interface Dispatcher {
    *
    * @param callback Must be called to indicate completion of the traversal.
    */
-  void dispatch(Traversal traversal, TraversalCallback callback);
+  void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback);
 }

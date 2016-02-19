@@ -19,6 +19,8 @@ package flow;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.support.annotation.CheckResult;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.View;
 import java.util.ArrayList;
@@ -36,39 +38,41 @@ public final class Flow {
     }
   };
 
-  public static Flow get(View view) {
+  @NonNull public static Flow get(@NonNull View view) {
     return get(view.getContext());
   }
 
-  public static Flow get(Context context) {
+  @NonNull public static Flow get(@NonNull Context context) {
     return InternalContextWrapper.getFlow(context);
   }
 
   /** @return null if context has no Flow key embedded. */
-  @Nullable public static <T> T getKey(Context context) {
+  @Nullable public static <T> T getKey(@NonNull Context context) {
     final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
     if (wrapper == null) return null;
     return wrapper.services.getKey();
   }
 
   /** @return null if view's Context has no Flow key embedded. */
-  @Nullable public static <T> T getKey(View view) {
+  @Nullable public static <T> T getKey(@NonNull View view) {
     return getKey(view.getContext());
   }
 
   /** @return null if context does not contain the named service. */
-  @Nullable public static <T> T getService(String serviceName, Context context) {
+  @Nullable public static <T> T getService(@NonNull String serviceName, @NonNull Context context) {
     final FlowContextWrapper wrapper = FlowContextWrapper.get(context);
     if (wrapper == null) return null;
     return wrapper.services.getService(serviceName);
   }
 
-  public static Installer configure(Context baseContext, Activity activity) {
+  @NonNull
+  public static Installer configure(@NonNull Context baseContext, @NonNull Activity activity) {
     return new Installer(baseContext, activity);
   }
 
   /** Adds a history as an extra to an Intent. */
-  public static void addHistory(Intent intent, History history, KeyParceler parceler) {
+  public static void addHistory(@NonNull Intent intent, @NonNull History history,
+      @NonNull KeyParceler parceler) {
     InternalLifecycleIntegration.addHistoryToIntent(intent, history, parceler);
   }
 
@@ -77,7 +81,9 @@ public final class Flow {
    *
    * @return true if the Intent contains a History and it was handled.
    */
-  public static boolean onNewIntent(Intent intent, Activity activity) {
+  @CheckResult public static boolean onNewIntent(@NonNull Intent intent,
+      @NonNull Activity activity) {
+    //noinspection ConstantConditions
     checkArgument(intent != null, "intent may not be null");
     if (intent.hasExtra(InternalLifecycleIntegration.INTENT_KEY)) {
       InternalLifecycleIntegration.find(activity).onNewIntent(intent);
@@ -97,7 +103,7 @@ public final class Flow {
     this.history = history;
   }
 
-  public History getHistory() {
+  @NonNull public History getHistory() {
     return history;
   }
 
@@ -106,7 +112,7 @@ public final class Flow {
    * Traversal Traversal} is currently in progress with a previous Dispatcher, that Traversal will
    * not be affected.
    */
-  public void setDispatcher(Dispatcher dispatcher) {
+  public void setDispatcher(@NonNull Dispatcher dispatcher) {
     this.dispatcher = checkNotNull(dispatcher, "dispatcher");
 
     if (pendingTraversal == null || //
@@ -139,7 +145,7 @@ public final class Flow {
    * No further {@link Traversal Traversals}, including Traversals currently enqueued, will execute
    * until a new dispatcher is set.
    */
-  public void removeDispatcher(Dispatcher dispatcher) {
+  public void removeDispatcher(@NonNull Dispatcher dispatcher) {
     // This mechanism protects against out of order calls to this method and setDispatcher
     // (e.g. if an outgoing activity is paused after an incoming one resumes).
     if (this.dispatcher == checkNotNull(dispatcher, "dispatcher")) this.dispatcher = null;
@@ -148,7 +154,7 @@ public final class Flow {
   /**
    * Replaces the history with the one given and dispatches in the given direction.
    */
-  public void setHistory(final History history, final Direction direction) {
+  public void setHistory(@NonNull final History history, @NonNull final Direction direction) {
     move(new PendingTraversal() {
       @Override void doExecute() {
         dispatch(preserveEquivalentPrefix(getHistory(), history), direction);
@@ -159,14 +165,14 @@ public final class Flow {
   /**
    * Replaces the history with the given key and dispatches in the given direction.
    */
-  public void replaceHistory(final Object key, final Direction direction) {
+  public void replaceHistory(@NonNull final Object key, @NonNull final Direction direction) {
     setHistory(getHistory().buildUpon().clear().push(key).build(), direction);
   }
 
   /**
    * Replaces the top key of the history with the given key and dispatches in the given direction.
    */
-  public void replaceTop(final Object key, final Direction direction) {
+  public void replaceTop(@NonNull final Object key, @NonNull final Direction direction) {
     setHistory(getHistory().buildUpon().pop(1).push(key).build(), direction);
   }
 
@@ -185,7 +191,7 @@ public final class Flow {
    *
    * Objects' equality is always checked using {@link Object#equals(Object)}.
    */
-  public void set(final Object newTopKey) {
+  public void set(@NonNull final Object newTopKey) {
     move(new PendingTraversal() {
       @Override void doExecute() {
         if (newTopKey.equals(history.top())) {
@@ -232,7 +238,7 @@ public final class Flow {
    *
    * @return false if going back is not possible or a traversal is in progress.
    */
-  public boolean goBack() {
+  @CheckResult public boolean goBack() {
     boolean canGoBack = history.size() > 1 || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED);
     if (!canGoBack) return false;

@@ -16,6 +16,8 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,12 +37,12 @@ public final class History implements Iterable<Object> {
 
   private final List<Object> history;
 
-  public static Builder emptyBuilder() {
+  @NonNull public static Builder emptyBuilder() {
     return new Builder(Collections.emptyList());
   }
 
   /** Create a history that contains a single key. */
-  public static History single(Object key) {
+  @NonNull public static History single(@NonNull Object key) {
     return emptyBuilder().push(key).build();
   }
 
@@ -49,11 +51,11 @@ public final class History implements Iterable<Object> {
     this.history = history;
   }
 
-  public <T> Iterator<T> reverseIterator() {
+  @NonNull public <T> Iterator<T> reverseIterator() {
     return new ReadStateIterator<>(history.iterator());
   }
 
-  @SuppressWarnings("UnusedDeclaration") @Override public Iterator<Object> iterator() {
+  @NonNull @Override public Iterator<Object> iterator() {
     return new ReadStateIterator<>(new ReverseIterator<>(history));
   }
 
@@ -61,17 +63,17 @@ public final class History implements Iterable<Object> {
     return history.size();
   }
 
-  public <T> T top() {
+  @NonNull public <T> T top() {
     return peek(0);
   }
 
   /** Returns the app state at the provided index in history. 0 is the newest entry. */
-  public <T> T peek(int index) {
+  @NonNull public <T> T peek(int index) {
     //noinspection unchecked
     return (T) history.get(history.size() - index - 1);
   }
 
-  List<Object> asList() {
+  @NonNull List<Object> asList() {
     final ArrayList<Object> copy = new ArrayList<>(history);
     return unmodifiableList(copy);
   }
@@ -83,7 +85,7 @@ public final class History implements Iterable<Object> {
    * history, including their states. It is safe to remove keys from the builder and push them back
    * on; nothing will be lost in those operations.
    */
-  public Builder buildUpon() {
+  @NonNull public Builder buildUpon() {
     return new Builder(history);
   }
 
@@ -104,7 +106,7 @@ public final class History implements Iterable<Object> {
      * keys will be preserved and will be restored if they are {@link #push pushed}
      * back on.
      */
-    public Builder clear() {
+    @NonNull public Builder clear() {
       // Clear by popping everything (rather than just calling history.clear()) to
       // fill up entryMemory. Otherwise we drop view state on the floor.
       while (!isEmpty()) {
@@ -119,7 +121,7 @@ public final class History implements Iterable<Object> {
      * and the pushed key was previously {@link #pop() popped} or {@link #clear cleared}
      * from the builder, the key's associated state will be restored.
      */
-    public Builder push(Object key) {
+    @NonNull public Builder push(@NonNull Object key) {
       history.add(key);
       return this;
     }
@@ -127,18 +129,20 @@ public final class History implements Iterable<Object> {
     /**
      * {@link #push Pushes} all of the keys in the collection onto this builder.
      */
-    public Builder pushAll(Collection<?> c) {
+    @NonNull public Builder pushAll(@NonNull Collection<?> c) {
       for (Object key : c) {
+        //noinspection CheckResult
         push(key);
       }
       return this;
     }
 
-    public Object peek() {
+    /** @return null if the history is empty. */
+    @Nullable public Object peek() {
       return history.isEmpty() ? null : history.get(history.size() - 1);
     }
 
-    public boolean isEmpty() {
+    @NonNull public boolean isEmpty() {
       return history.isEmpty();
     }
 
@@ -162,7 +166,7 @@ public final class History implements Iterable<Object> {
      *
      * @throws IllegalArgumentException if the given state isn't in the history.
      */
-    public Builder popTo(Object state) {
+    @NonNull public Builder popTo(@NonNull Object state) {
       //noinspection ConstantConditions
       while (!isEmpty() && !peek().equals(state)) {
         pop();
@@ -171,7 +175,7 @@ public final class History implements Iterable<Object> {
       return this;
     }
 
-    public Builder pop(int count) {
+    @NonNull public Builder pop(int count) {
       final int size = history.size();
       checkArgument(count <= size,
           String.format((Locale) null, "Cannot pop %d elements, history only has %d", count, size));
@@ -181,7 +185,7 @@ public final class History implements Iterable<Object> {
       return this;
     }
 
-    public History build() {
+    @NonNull public History build() {
       return new History(history);
     }
 

@@ -18,6 +18,7 @@ package flow.sample.basic;
 
 import android.app.Activity;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,7 +35,7 @@ final class BasicDispatcher implements Dispatcher {
     this.activity = activity;
   }
 
-  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+  @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
     Log.d("BasicDispatcher", "dispatching " + traversal);
     Object dest = traversal.destination.top();
 

@@ -18,6 +18,7 @@ package flow;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -60,7 +61,7 @@ public final class KeyDispatcher implements Dispatcher {
     this.keyChanger = keyChanger;
   }
 
-  @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+  @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
     State inState = traversal.getState(traversal.destination.top());
     Object inKey = inState.getKey();
     State outState = traversal.origin == null ? null : traversal.getState(traversal.origin.top());

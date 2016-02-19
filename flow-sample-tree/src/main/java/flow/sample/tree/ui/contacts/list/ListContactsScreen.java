@@ -16,12 +16,13 @@
 
 package flow.sample.tree.ui.contacts.list;
 
+import android.support.annotation.NonNull;
 import flow.ClassKey;
 import flow.TreeKey;
 import flow.sample.tree.ui.contacts.ContactsUiKey;
 
 public final class ListContactsScreen extends ClassKey implements TreeKey {
-  @Override public Object getParentKey() {
+  @NonNull @Override public Object getParentKey() {
     return new ContactsUiKey();
   }
 }

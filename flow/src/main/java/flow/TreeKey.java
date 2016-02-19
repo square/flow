@@ -16,11 +16,13 @@
 
 package flow;
 
+import android.support.annotation.NonNull;
+
 /**
  * Represents an absolute path in the logical information tree of an app, from the root of the tree
  * to a leaf, which is typically associated with app "screen" or "state". Each element in a path
  * typically represents a scope, narrowing and adding information from root to leaf.
  */
 public interface TreeKey {
-  Object getParentKey();
+  @NonNull Object getParentKey();
 }

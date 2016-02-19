@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -38,9 +39,9 @@ public class MultiKeySampleActivity extends AppCompatActivity {
   private final class Changer implements KeyChanger {
     Dialog visibleDialog;
 
-    @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-        Direction direction, Map<Object, Context> incomingContexts,
-        TraversalCallback callback) {
+    @Override public void changeKey(@Nullable State outgoingState, @NonNull State incomingState,
+        @NonNull Direction direction, @NonNull Map<Object, Context> incomingContexts,
+        @NonNull TraversalCallback callback) {
 
       final Object mainKey;
       final Object dialogKey;

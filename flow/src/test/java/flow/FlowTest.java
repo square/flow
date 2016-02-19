@@ -15,6 +15,7 @@
  */
 package flow;
 
+import android.support.annotation.NonNull;
 import java.util.Arrays;
 import java.util.Iterator;
 import org.junit.Before;
@@ -44,7 +45,7 @@ public class FlowTest {
   Direction lastDirection;
 
   class FlowDispatcher implements Dispatcher {
-    @Override public void dispatch(Traversal traversal, TraversalCallback callback) {
+    @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
       lastStack = traversal.destination;
       lastDirection = traversal.direction;
       callback.onTraversalCompleted();
@@ -89,7 +90,7 @@ public class FlowTest {
         flow.setDispatcher(this);
       }
 
-      @Override public void dispatch(Traversal traversal, TraversalCallback onComplete) {
+      @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback onComplete) {
         assertThat(firstHistory).hasSameSizeAs(flow.getHistory());
         Iterator<Object> original = firstHistory.iterator();
         for (Object o : flow.getHistory()) {

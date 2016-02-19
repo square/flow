@@ -18,6 +18,7 @@ package flow;
 
 import android.app.Activity;
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.view.Gravity;
 import android.widget.TextView;
@@ -31,9 +32,9 @@ final class DefaultKeyChanger implements KeyChanger {
     this.activity = activity;
   }
 
-  @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-      Direction direction, Map<Object, Context> incomingContexts,
-      TraversalCallback callback) {
+  @Override public void changeKey(@Nullable State outgoingState, @NonNull State incomingState,
+      @NonNull Direction direction, @NonNull Map<Object, Context> incomingContexts,
+      @NonNull TraversalCallback callback) {
     if (textView == null) {
       textView = new TextView(incomingContexts.get(incomingState.getKey()));
       textView.setGravity(Gravity.CENTER);

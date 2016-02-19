@@ -17,10 +17,12 @@
 package flow;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.Map;
 
 public interface KeyChanger {
-  void changeKey(@Nullable State outgoingState, State incomingState, Direction direction,
-      Map<Object, Context> incomingContexts, TraversalCallback callback);
+  void changeKey(@Nullable State outgoingState, @NonNull State incomingState,
+      @NonNull Direction direction, @NonNull Map<Object, Context> incomingContexts,
+      @NonNull TraversalCallback callback);
 }

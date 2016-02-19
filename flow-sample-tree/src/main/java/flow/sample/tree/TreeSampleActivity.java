@@ -18,6 +18,7 @@ package flow.sample.tree;
 
 import android.content.Context;
 import android.support.annotation.LayoutRes;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -54,9 +55,9 @@ public class TreeSampleActivity extends AppCompatActivity {
 
   private final class Changer implements KeyChanger {
 
-    @Override public void changeKey(@Nullable State outgoingState, State incomingState,
-        Direction direction, Map<Object, Context> incomingContexts,
-        TraversalCallback callback) {
+    @Override public void changeKey(@Nullable State outgoingState, @NonNull State incomingState,
+        @NonNull Direction direction, @NonNull Map<Object, Context> incomingContexts,
+        @NonNull TraversalCallback callback) {
 
       Object key = incomingState.getKey();
       Context context = incomingContexts.get(key);

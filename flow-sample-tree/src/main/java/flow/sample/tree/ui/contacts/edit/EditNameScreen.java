@@ -16,6 +16,7 @@
 
 package flow.sample.tree.ui.contacts.edit;
 
+import android.support.annotation.NonNull;
 import flow.TreeKey;
 
 public final class EditNameScreen extends ContactKey implements TreeKey {
@@ -23,7 +24,7 @@ public final class EditNameScreen extends ContactKey implements TreeKey {
     super(contactId);
   }
 
-  @Override public Object getParentKey() {
+  @NonNull @Override public Object getParentKey() {
     return new EditContactKey(contactId);
   }
 }
