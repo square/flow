@@ -52,7 +52,7 @@ public class TreeSampleActivity extends AppCompatActivity {
     }
   }
 
-  private final class Changer extends KeyChanger {
+  private final class Changer implements KeyChanger {
 
     @Override public void changeKey(@Nullable State outgoingState, State incomingState,
         Direction direction, Map<Object, Context> incomingContexts,

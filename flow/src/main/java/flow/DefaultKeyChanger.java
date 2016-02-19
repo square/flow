@@ -23,7 +23,7 @@ import android.view.Gravity;
 import android.widget.TextView;
 import java.util.Map;
 
-final class DefaultKeyChanger extends KeyChanger {
+final class DefaultKeyChanger implements KeyChanger {
   private Activity activity;
   private TextView textView;
 

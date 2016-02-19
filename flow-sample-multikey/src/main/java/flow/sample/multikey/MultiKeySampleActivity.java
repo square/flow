@@ -23,7 +23,7 @@ import java.util.Map;
 public class MultiKeySampleActivity extends AppCompatActivity {
   @Override protected void attachBaseContext(Context baseContext) {
     baseContext = Flow.configure(baseContext, this)
-        .dispatcher(KeyDispatcher.configure(this, new MyKeyChanger()).build())
+        .dispatcher(KeyDispatcher.configure(this, new Changer()).build())
         .defaultKey(new ScreenOne())
         .install();
     super.attachBaseContext(baseContext);
@@ -35,7 +35,7 @@ public class MultiKeySampleActivity extends AppCompatActivity {
     }
   }
 
-  class MyKeyChanger extends KeyChanger {
+  private final class Changer implements KeyChanger {
     Dialog visibleDialog;
 
     @Override public void changeKey(@Nullable State outgoingState, State incomingState,
