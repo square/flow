@@ -16,6 +16,14 @@ jdk:
 script:
   - ./gradlew clean build check
 
+after_success:
+  - .buildscript/deploy_snapshot.sh
+
+env:
+  global:
+    - secure: "LnEHmq5BKRzXvuWJwOjZsIW0gNTr6d/JT1dOuYLsKYmGQ+0MLbjoB1J1AIpZ5X1qcDDUbPomQ2YDYvi+cavjk6FMccyKxnnC5sqjUgTnkHOnVzteGFP+0TYT3JZnjFrzp6mxNXG2vPeuyIAdDZRTogEOe83nfFRvytj6VGK/seI="
+    - secure: "qdCwZom4m109rrqm80N/Q+JTYob5WubDnPVKJlXoMIzh+ppq6XWiqKsBUypzn9sSEVHuYSQAzeUqyp3ET0E/sNyvnOe9cRQEs7aMjYSXw5XUYrsPT10HbAStmqPeGp6X+LuOr+jmfPQyyKeZGBOLq3Trb1yRGlrwMQhE6BFbX8g="
+
 notifications:
   email: false
 
