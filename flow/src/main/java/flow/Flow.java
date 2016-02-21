@@ -113,6 +113,10 @@ public final class Flow {
    * not be affected.
    */
   public void setDispatcher(@NonNull Dispatcher dispatcher) {
+    setDispatcher(dispatcher, false);
+  }
+
+  void setDispatcher(@NonNull Dispatcher dispatcher, final boolean restore) {
     this.dispatcher = checkNotNull(dispatcher, "dispatcher");
 
     if (pendingTraversal == null || //
@@ -122,7 +126,7 @@ public final class Flow {
       // So enqueue a bootstrap traversal.
       move(new PendingTraversal() {
         @Override void doExecute() {
-          bootstrap(history);
+          bootstrap(history, restore);
         }
       });
       return;
@@ -340,11 +344,13 @@ public final class Flow {
       }
     }
 
-    void bootstrap(History history) {
+    void bootstrap(History history, boolean restore) {
       if (dispatcher == null) {
         throw new AssertionError("Bad doExecute method allowed dispatcher to be cleared");
       }
-      keyManager.setUp(history.top());
+      if (!restore) {
+        keyManager.setUp(history.top());
+      }
       dispatcher.dispatch(new Traversal(null, history, Direction.REPLACE, keyManager), this);
     }
 

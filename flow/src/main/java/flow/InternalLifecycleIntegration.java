@@ -138,8 +138,10 @@ public final class InternalLifecycleIntegration extends Fragment {
       }
       History history = selectHistory(intent, savedHistory, defaultHistory, parceler, keyManager);
       flow = new Flow(keyManager, history);
+      flow.setDispatcher(dispatcher, false);
+    } else {
+      flow.setDispatcher(dispatcher, true);
     }
-    flow.setDispatcher(dispatcher);
     dispatcherSet = true;
   }
 
