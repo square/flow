@@ -66,8 +66,8 @@ public final class ArticleKey {
   }
 
   public boolean equals(Object o) {
-    return (o instanceof ArticleKey) &&
-           articleId.equals(((ArticleKey)o).articleId);
+    return o instanceof ArticleKey
+        && articleId.equals(((ArticleKey) o).articleId);
   }
   
   public int hashCode() {
