@@ -38,7 +38,7 @@ public class MainActivity {
 }
 ```
 
-By default, Flow will take over your Activity's content view. When you start your Activity, you should see a "Hello world" screen. Of course you'll want to change this-- that's covered under [Controlling UI](#Controlling-UI) below.
+By default, Flow will take over your Activity's content view. When you start your Activity, you should see a "Hello world" screen. Of course you'll want to change this-- that's covered under [Controlling UI](#controlling-ui) below.
 
 ### Defining UI states with key objects
 
