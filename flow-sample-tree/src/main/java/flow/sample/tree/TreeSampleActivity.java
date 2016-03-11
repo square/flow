@@ -23,6 +23,7 @@ import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 import flow.Direction;
 import flow.Flow;
@@ -62,29 +63,36 @@ public class TreeSampleActivity extends AppCompatActivity {
       Object key = incomingState.getKey();
       Context context = incomingContexts.get(key);
 
-      if (key instanceof WelcomeScreen) {
-        showKeyAsText(context, key, new ListContactsScreen());
-      } else if (key instanceof ListContactsScreen) {
-        showLayout(context, R.layout.list_contacts_screen);
-      } else if (key instanceof EditNameScreen) {
-        showLayout(context, R.layout.edit_name_screen);
-      } else if (key instanceof EditEmailScreen) {
-        showLayout(context, R.layout.edit_email_screen);
-      } else {
-        showKeyAsText(context, key, null);
+      if (outgoingState != null) {
+        ViewGroup view = (ViewGroup) findViewById(android.R.id.content);
+        outgoingState.save(view.getChildAt(0));
       }
+
+      View view;
+      if (key instanceof WelcomeScreen) {
+        view = showKeyAsText(context, key, new ListContactsScreen());
+      } else if (key instanceof ListContactsScreen) {
+        view = showLayout(context, R.layout.list_contacts_screen);
+      } else if (key instanceof EditNameScreen) {
+        view = showLayout(context, R.layout.edit_name_screen);
+      } else if (key instanceof EditEmailScreen) {
+        view = showLayout(context, R.layout.edit_email_screen);
+      } else {
+        view = showKeyAsText(context, key, null);
+      }
+      incomingState.restore(view);
+      setContentView(view);
       callback.onTraversalCompleted();
     }
 
-    private void showLayout(Context context, @LayoutRes int layout) {
+    private View showLayout(Context context, @LayoutRes int layout) {
       LayoutInflater inflater = LayoutInflater.from(context);
-      setContentView(inflater.inflate(layout, null));
+      return inflater.inflate(layout, null);
     }
 
-    private void showKeyAsText(Context context, Object key, @Nullable final Object nextScreenOnClick) {
+    private View showKeyAsText(Context context, Object key, @Nullable final Object nextScreenOnClick) {
       TextView view = new TextView(context);
       view.setText(key.toString());
-      setContentView(view);
 
       if (nextScreenOnClick == null) {
         view.setOnClickListener(null);
@@ -95,6 +103,7 @@ public class TreeSampleActivity extends AppCompatActivity {
           }
         });
       }
+      return view;
     }
   }
 }
