@@ -16,6 +16,7 @@
   -->
 <flow.sample.tree.ui.contacts.edit.EditNameView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/edit_name_screen"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
