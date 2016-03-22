@@ -65,6 +65,11 @@ public final class Flow {
     return wrapper.services.getService(serviceName);
   }
 
+  /** @return null if context does not contain the named service. */
+  @Nullable public static <T> T getService(@NonNull String serviceName, @NonNull View view) {
+    return getService(serviceName, view.getContext());
+  }
+
   @NonNull
   public static Installer configure(@NonNull Context baseContext, @NonNull Activity activity) {
     return new Installer(baseContext, activity);
