@@ -10,7 +10,7 @@ task wrapper(type: Wrapper) {
   gradleVersion = '2.10'
 }
 
-subprojects {
+allprojects {
   buildscript {
     repositories {
       mavenCentral()
@@ -20,11 +20,6 @@ subprojects {
   repositories {
     mavenCentral()
   }
-
-  group = GROUP
-  version = VERSION_NAME
-
-  apply plugin: 'maven'
 
   afterEvaluate { project ->
     if (!(project.plugins.hasPlugin('com.android.application') ||

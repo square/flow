@@ -24,8 +24,8 @@ import java.util.Map;
 
 public interface KeyChanger {
   /**
-   * Transition from {@param outgoingState} to {@param incomingState}.  Implementations should call
-   * {@link State#restore(View)} on the incoming view, and (if {@param outgoingState} is not null)
+   * Transition from outgoing state to incoming state.  Implementations should call
+   * {@link State#restore(View)} on the incoming view, and (if outgoingState is not null)
    * {@link State#save(View)} on the outgoing view.  And don't forget to declare your screen layouts
    * with ids (only layouts with ids will have their state saved/restored)!
    */
