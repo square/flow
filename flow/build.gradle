@@ -1,5 +1,3 @@
-import com.android.builder.core.BuilderConstants;
-
 buildscript {
   dependencies {
     classpath deps.android_gradle_plugin
@@ -26,16 +24,4 @@ dependencies {
   testCompile 'org.apache.maven:maven-ant-tasks:2.1.3'
 }
 
-android.libraryVariants.all { variant ->
-  def name = variant.buildType.name
-  if (!BuilderConstants.DEBUG.equals(name)) {
-    def task = project.tasks.create "jar${name.capitalize()}", Jar
-    task.dependsOn variant.javaCompile
-    task.from variant.javaCompile.destinationDir
-    artifacts.add('archives', task);
-  }
-}
-
-if (hasProperty("POM_DEVELOPER_ID")) {
-  apply from: '../gradle-mvn-push.gradle'
-}
+apply from: rootProject.file('gradle/gradle-mvn-push.gradle')
