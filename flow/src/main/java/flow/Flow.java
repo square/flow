@@ -43,7 +43,11 @@ public final class Flow {
   }
 
   @NonNull public static Flow get(@NonNull Context context) {
-    return InternalContextWrapper.getFlow(context);
+    Flow flow = InternalContextWrapper.getFlow(context);
+    if (null == flow) {
+      throw new IllegalStateException("The passed context must be wrapped with Flow!");
+    }
+    return flow;
   }
 
   /** @return null if context has no Flow key embedded. */

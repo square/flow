@@ -15,14 +15,17 @@
  */
 package flow;
 
+import android.content.Context;
 import android.support.annotation.NonNull;
 import java.util.Arrays;
 import java.util.Iterator;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.mockito.MockitoAnnotations.initMocks;
 
 public class FlowTest {
@@ -45,7 +48,8 @@ public class FlowTest {
   Direction lastDirection;
 
   class FlowDispatcher implements Dispatcher {
-    @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
+    @Override
+    public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
       lastStack = traversal.destination;
       lastDirection = traversal.direction;
       callback.onTraversalCompleted();
@@ -90,7 +94,8 @@ public class FlowTest {
         flow.setDispatcher(this);
       }
 
-      @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback onComplete) {
+      @Override
+      public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback onComplete) {
         assertThat(firstHistory).hasSameSizeAs(flow.getHistory());
         Iterator<Object> original = firstHistory.iterator();
         for (Object o : flow.getHistory()) {
@@ -226,7 +231,7 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Direction.REPLACE);
   }
 
-  @SuppressWarnings("deprecation") @Test public void setHistoryKeepsOriginals() {
+  @SuppressWarnings({ "deprecation", "CheckResult" }) @Test public void setHistoryKeepsOriginals() {
     TestKey able = new TestKey("Able");
     TestKey baker = new TestKey("Baker");
     TestKey charlie = new TestKey("Charlie");
@@ -299,5 +304,19 @@ public class FlowTest {
     assertThat(lastDirection).isEqualTo(Direction.BACKWARD);
 
     assertThat(flow.goBack()).isFalse();
+  }
+
+  @Test public void incorrectFlowGetUsage() {
+    Context mockContext = Mockito.mock(Context.class);
+    //noinspection WrongConstant
+    Mockito.when(mockContext.getSystemService(Mockito.anyString())).thenReturn(null);
+
+    try {
+      Flow.get(mockContext);
+
+      fail("Flow was supposed to throw an exception on wrong usage");
+    } catch (IllegalStateException ignored) {
+      // That's good!
+    }
   }
 }

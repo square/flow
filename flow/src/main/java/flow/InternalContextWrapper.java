@@ -19,13 +19,14 @@ package flow;
 import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
+import android.support.annotation.Nullable;
 
 final class InternalContextWrapper extends ContextWrapper {
   private static final String FLOW_SERVICE = "flow.InternalContextWrapper.FLOW_SERVICE";
   private static final String CONTEXT_MANAGER_SERVICE =
       "flow.InternalContextWrapper.CONTEXT_MANAGER_SERVICE";
 
-  static Flow getFlow(Context context) {
+  @Nullable static Flow getFlow(Context context) {
     @SuppressWarnings("WrongConstant")
     Flow systemService = (Flow) context.getSystemService(FLOW_SERVICE);
     return systemService;
