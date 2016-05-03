@@ -43,7 +43,12 @@ public final class Flow {
   }
 
   @NonNull public static Flow get(@NonNull Context context) {
-    return InternalContextWrapper.getFlow(context);
+    Flow flow = InternalContextWrapper.getFlow(context);
+    if (null == flow) {
+      throw new IllegalStateException("Context was not wrapped with flow. "
+          + "Make sure attachBaseContext was overridden in your main activity");
+    }
+    return flow;
   }
 
   /** @return null if context has no Flow key embedded. */
