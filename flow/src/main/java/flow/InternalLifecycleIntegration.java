@@ -148,7 +148,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   @Override public void onResume() {
     super.onResume();
     if (!dispatcherSet) {
-      flow.setDispatcher(dispatcher);
+      flow.setDispatcher(dispatcher, true);
       dispatcherSet = true;
     }
   }
