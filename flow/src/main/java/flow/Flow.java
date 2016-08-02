@@ -253,8 +253,8 @@ public final class Flow {
    * @return false if going back is not possible or a traversal is in progress.
    */
   @CheckResult public boolean goBack() {
-    boolean canGoBack = history.size() > 1 || (pendingTraversal != null
-        && pendingTraversal.state != TraversalState.FINISHED);
+    boolean canGoBack = history.size() > 1 && (pendingTraversal == null
+        || pendingTraversal.state == TraversalState.FINISHED);
     if (!canGoBack) return false;
     History.Builder builder = history.buildUpon();
     builder.pop();
