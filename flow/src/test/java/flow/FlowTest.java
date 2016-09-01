@@ -56,6 +56,34 @@ public class FlowTest {
     }
   }
 
+  class AsyncDispatcher implements Dispatcher {
+    Traversal traversal;
+    TraversalCallback callback;
+
+    @Override
+    public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
+      this.traversal = traversal;
+      this.callback = callback;
+    }
+
+    void fire() {
+      TraversalCallback oldCallback = callback;
+      callback = null;
+      traversal = null;
+      oldCallback.onTraversalCompleted();;
+    }
+
+    void assertIdle() {
+      assertThat(callback).isNull();
+      assertThat(traversal).isNull();
+    }
+
+    void assertDispatching(Object newTop) {
+      assertThat(callback).isNotNull();
+      assertThat(traversal.destination.top()).isEqualTo(newTop);
+    }
+  }
+
   @Before public void setUp() {
     initMocks(this);
   }
@@ -229,6 +257,87 @@ public class FlowTest {
     assertThat(lastStack.top()).isSameAs(delta);
     assertThat(lastStack.size()).isEqualTo(3);
     assertThat(lastDirection).isEqualTo(Direction.REPLACE);
+  }
+
+  @Test public void secondDispatcherIsBootstrapped() {
+    AsyncDispatcher firstDispatcher = new AsyncDispatcher();
+
+    History history = History.single(able);
+    Flow flow = new Flow(keyManager, history);
+    flow.setDispatcher(firstDispatcher);
+
+    // Quick check that we bootstrapped (and test the test dispatcher).
+    firstDispatcher.assertDispatching(able);
+    firstDispatcher.fire();
+    firstDispatcher.assertIdle();
+
+    // No activity, dispatchers change. Maybe pause / resume. Maybe config change.
+    flow.removeDispatcher(firstDispatcher);
+    AsyncDispatcher secondDispatcher = new AsyncDispatcher();
+    flow.setDispatcher(secondDispatcher);
+
+    // New dispatcher is bootstrapped
+    secondDispatcher.assertDispatching(able);
+    secondDispatcher.fire();
+    secondDispatcher.assertIdle();
+  }
+
+  @Test public void hangingTraversalsSurviveDispatcherChange() {
+    AsyncDispatcher firstDispatcher = new AsyncDispatcher();
+
+    History history = History.single(able);
+    Flow flow = new Flow(keyManager, history);
+    flow.setDispatcher(firstDispatcher);
+    firstDispatcher.fire();
+
+    // Start traversal to second screen.
+    flow.set(baker);
+    firstDispatcher.assertDispatching(baker);
+
+    // Dispatcher is removed before finishing baker--maybe it caused a configuration change.
+    flow.removeDispatcher(firstDispatcher);
+
+    // New dispatcher shows up, maybe from new activity after config change.
+    AsyncDispatcher secondDispatcher = new AsyncDispatcher();
+    flow.setDispatcher(secondDispatcher);
+
+    // New dispatcher is ignored until the in-progress baker traversal is done.
+    secondDispatcher.assertIdle();
+
+    // New dispatcher is bootstrapped with baker.
+    firstDispatcher.fire();
+    secondDispatcher.assertDispatching(baker);
+
+    // Confirm no redundant extra bootstrap traversals enqueued.
+    secondDispatcher.fire();
+    secondDispatcher.assertIdle();
+  }
+
+  @Test public void enqueuedTraversalsSurviveDispatcherChange() {
+    AsyncDispatcher firstDispatcher = new AsyncDispatcher();
+
+    History history = History.single(able);
+    Flow flow = new Flow(keyManager, history);
+    flow.setDispatcher(firstDispatcher);
+    firstDispatcher.fire();
+
+    // Dispatcher is removed. Maybe we paused.
+    flow.removeDispatcher(firstDispatcher);
+
+    // A few traversals are enqueued because software.
+    flow.set(baker);
+    flow.set(charlie);
+
+    // New dispatcher shows up, we resumed.
+    AsyncDispatcher secondDispatcher = new AsyncDispatcher();
+    flow.setDispatcher(secondDispatcher);
+
+    // New dispatcher receives baker and charlie traversals and nothing else.
+    secondDispatcher.assertDispatching(baker);
+    secondDispatcher.fire();
+    secondDispatcher.assertDispatching(charlie);
+    secondDispatcher.fire();
+    secondDispatcher.assertIdle();
   }
 
   @SuppressWarnings({ "deprecation", "CheckResult" }) @Test public void setHistoryKeepsOriginals() {
