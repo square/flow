@@ -24,6 +24,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import flow.Dispatcher;
+import flow.Flow;
 import flow.Traversal;
 import flow.TraversalCallback;
 
@@ -35,29 +36,42 @@ final class BasicDispatcher implements Dispatcher {
     this.activity = activity;
   }
 
-  @Override public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
+  @Override
+  public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback callback) {
     Log.d("BasicDispatcher", "dispatching " + traversal);
-    Object dest = traversal.destination.top();
+    Object destKey = traversal.destination.top();
 
     ViewGroup frame = (ViewGroup) activity.findViewById(R.id.basic_activity_frame);
 
-    if (traversal.origin != null) {
-      if (frame.getChildCount() > 0) {
-        traversal.getState(traversal.origin.top()).save(frame.getChildAt(0));
-        frame.removeAllViews();
+    // We're already showing something, clean it up.
+    if (frame.getChildCount() > 0) {
+      final View currentView = frame.getChildAt(0);
+
+      // Save the outgoing view state.
+      if (traversal.origin != null) {
+        traversal.getState(traversal.origin.top()).save(currentView);
       }
+
+      // Short circuit if we would just be showing the same view again.
+      final Object currentKey = Flow.getKey(currentView);
+      if (destKey.equals(currentKey)) {
+        callback.onTraversalCompleted();
+        return;
+      }
+
+      frame.removeAllViews();
     }
 
     @LayoutRes final int layout;
-    if (dest instanceof HelloScreen) {
+    if (destKey instanceof HelloScreen) {
       layout = R.layout.hello_screen;
-    } else if (dest instanceof WelcomeScreen) {
+    } else if (destKey instanceof WelcomeScreen) {
       layout = R.layout.welcome_screen;
     } else {
-      throw new AssertionError("Unrecognized screen " + dest);
+      throw new AssertionError("Unrecognized screen " + destKey);
     }
 
-    View incomingView = LayoutInflater.from(traversal.createContext(dest, activity)) //
+    View incomingView = LayoutInflater.from(traversal.createContext(destKey, activity)) //
         .inflate(layout, frame, false);
 
     frame.addView(incomingView);
