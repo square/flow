@@ -1,6 +1,15 @@
 Change Log
 ==========
 
+Version 1.0-alpha2 *(2016-09-02)*
+----------------------------------
+Important bug fixes for 1.0 alpha.
+
+* API change: KeyChanger is now an interface
+* Fix for service accounting bugs (@novachevskyi)
+* Better exceptions for bad setup (@maxandron)
+
+
 Version 1.0-alpha *(2016-02-18)*
 --------------------------------
 Presented for review and feedback. API should still be considered unstable, docs incomplete, and functionality buggy. All of the above should be mostly resolved before beta.
