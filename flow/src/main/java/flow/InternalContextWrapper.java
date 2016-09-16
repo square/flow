@@ -62,4 +62,50 @@ final class InternalContextWrapper extends ContextWrapper {
     }
     return super.getSystemService(name);
   }
+  
+  @Override
+  public void startActivity(Intent intent) {
+    activity.startActivity(intent);
+  }
+
+  @TargetApi(16)
+  @Override
+  public void startActivity(Intent intent, Bundle options) {
+    activity.startActivity(intent, options);
+  }
+
+
+  @Override
+  public void startActivities(Intent[] intents) {
+    activity.startActivities(intents);
+  }
+
+  @TargetApi(16)
+  @Override
+  public void startActivities(Intent[] intents, Bundle options) {
+    activity.startActivities(intents, options);
+  }
+
+  @Override
+  public void startIntentSender(IntentSender intent, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags)
+      throws IntentSender.SendIntentException {
+    activity.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags);
+  }
+
+  @TargetApi(16)
+  @Override
+  public void startIntentSender(IntentSender intent, Intent fillInIntent, int flagsMask, int flagsValues, int extraFlags, Bundle options)
+      throws IntentSender.SendIntentException {
+    activity.startIntentSender(intent, fillInIntent, flagsMask, flagsValues, extraFlags, options);
+  }
+
+  @Override
+  public void setTheme(int resid) {
+    activity.setTheme(resid);
+  }
+
+  @Override
+  public Resources.Theme getTheme() {
+    return activity.getTheme();
+  }
 }
