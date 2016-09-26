@@ -52,7 +52,7 @@ public class State {
   }
 
   public void save(@NonNull View view) {
-    SparseArray<Parcelable> state = new SparseArray<>();
+    SparseArray<Parcelable> state = new ViewTreeSparseArray();
     view.saveHierarchyState(state);
     viewState = state;
   }
@@ -114,6 +114,16 @@ public class State {
 
     @Nullable @Override public Bundle getBundle() {
       return null;
+    }
+  }
+
+  private final class ViewTreeSparseArray extends SparseArray<Parcelable> {
+    @Override public void put(int key, Parcelable value) {
+      int oldSize = size();
+      super.put(key, value);
+      if (oldSize == size()) {
+        throw new IllegalStateException("Duplicate View id in current tree being saved: " + key);
+      }
     }
   }
 }
