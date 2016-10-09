@@ -97,7 +97,7 @@ public class MultiKeySampleActivity extends AppCompatActivity {
                 //final History.Builder newHistory = getFlow().getHistory().buildUpon();
                 //newHistory.pop(); // drop the dialog
                 //newHistory.push(new ScreenTwo());
-                //getFlow().setHistory(newHistory.build(), Flow.Direction.FORWARD);
+                //getFlow().setHistory(newHistory.build(), Direction.FORWARD);
               }
             }) //
             .setTitle(dialogKey.toString()) //
