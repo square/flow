@@ -22,24 +22,40 @@ import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.util.SparseArray;
 import android.view.View;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static flow.Preconditions.checkNotNull;
 
 public class State {
+  private static final String VIEW_STATE_IDS = "VIEW_STATE_IDS";
+  private static final String BUNDLE = "BUNDLE";
+  private static final String VIEW_STATE_PREFIX = "VIEW_STATE_";
+  private static final String KEY = "KEY";
+
   /** Creates a State instance that has no state and is effectively immutable. */
   @NonNull public static State empty(@NonNull final Object key) {
     return new EmptyState(key);
   }
 
   @NonNull static State fromBundle(@NonNull Bundle savedState, @NonNull KeyParceler parceler) {
-    Object key = parceler.toKey(savedState.getParcelable("KEY"));
+    Object key = parceler.toKey(savedState.getParcelable(KEY));
     State state = new State(key);
-    state.viewState = savedState.getSparseParcelableArray("VIEW_STATE");
-    state.bundle = savedState.getBundle("BUNDLE");
+    int[] viewIds = checkNotNull(savedState.getIntArray(VIEW_STATE_IDS), "Null view state ids?");
+    for (int viewId : viewIds) {
+      SparseArray<Parcelable> viewState =
+          savedState.getSparseParcelableArray(VIEW_STATE_PREFIX + viewId);
+      if (viewState != null) {
+        state.viewStateById.put(viewId, viewState);
+      }
+    }
+    state.bundle = savedState.getBundle(BUNDLE);
     return state;
   }
 
   private final Object key;
   @Nullable private Bundle bundle;
-  @Nullable SparseArray<Parcelable> viewState;
+  @NonNull private Map<Integer, SparseArray<Parcelable>> viewStateById = new LinkedHashMap<>();
 
   State(Object key) {
     // No external instances.
@@ -51,13 +67,21 @@ public class State {
     return state;
   }
 
+  /**
+   * Save view hierarchy state so it can be restored later from {@link #restore(View)}.  The view
+   * must have a non-zero id.
+   */
   public void save(@NonNull View view) {
+    int viewId = view.getId();
+    Preconditions.checkArgument(viewId != 0,
+        "Cannot save state for View with no id " + view.getClass().getSimpleName());
     SparseArray<Parcelable> state = new SparseArray<>();
     view.saveHierarchyState(state);
-    viewState = state;
+    viewStateById.put(viewId, state);
   }
 
   public void restore(@NonNull View view) {
+    SparseArray<Parcelable> viewState = viewStateById.get(view.getId());
     if (viewState != null) {
       view.restoreHierarchyState(viewState);
     }
@@ -73,12 +97,20 @@ public class State {
 
   Bundle toBundle(KeyParceler parceler) {
     Bundle outState = new Bundle();
-    outState.putParcelable("KEY", parceler.toParcelable(getKey()));
-    if (viewState != null && viewState.size() > 0) {
-      outState.putSparseParcelableArray("VIEW_STATE", viewState);
+    outState.putParcelable(KEY, parceler.toParcelable(getKey()));
+    int[] viewIds = new int[viewStateById.size()];
+    int c = 0;
+    for (Map.Entry<Integer, SparseArray<Parcelable>> entry : viewStateById.entrySet()) {
+      Integer viewId = entry.getKey();
+      viewIds[c++] = viewId;
+      SparseArray<Parcelable> viewState = entry.getValue();
+      if (viewState.size() > 0) {
+        outState.putSparseParcelableArray(VIEW_STATE_PREFIX + viewId, viewState);
+      }
     }
+    outState.putIntArray(VIEW_STATE_IDS, viewIds);
     if (bundle != null && !bundle.isEmpty()) {
-      outState.putBundle("BUNDLE", bundle);
+      outState.putBundle(BUNDLE, bundle);
     }
     return outState;
   }
@@ -99,7 +131,7 @@ public class State {
   }
 
   private static final class EmptyState extends State {
-    public EmptyState(Object flowState) {
+    EmptyState(Object flowState) {
       super(flowState);
     }
 
