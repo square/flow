@@ -55,8 +55,7 @@ public class State {
 
   private final Object key;
   @Nullable private Bundle bundle;
-  // TODO shouldn't this be private?
-  @NonNull Map<Integer, SparseArray<Parcelable>> viewStateById = new LinkedHashMap<>();
+  @NonNull private Map<Integer, SparseArray<Parcelable>> viewStateById = new LinkedHashMap<>();
 
   State(Object key) {
     // No external instances.
