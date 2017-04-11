@@ -1,6 +1,11 @@
 Change Log
 ==========
 
+Version 1.0-alpha2 *(2017-??-??)*
+----------------------------------
+
+* API change: added Flow#setHistoryFilter to address https://github.com/square/flow/issues/220
+
 Version 1.0-alpha2 *(2016-09-02)*
 ----------------------------------
 Important bug fixes for 1.0 alpha.
@@ -14,10 +19,10 @@ Version 1.0-alpha *(2016-02-18)*
 --------------------------------
 Presented for review and feedback. API should still be considered unstable, docs incomplete, and functionality buggy. All of the above should be mostly resolved before beta.
 
-1.0 brings major functional improvements and API changes. 
+1.0 brings major functional improvements and API changes.
 
 * Activity integration has been rewritten and is much simpler. One line to configure and install; one optional line to handle the back button; one optional line to handle new Intent. Flow handles lifecycle internally.
-* Resource management (including shared resources) is now natively supported via TreeKeys-- Path has effectively been absorbed and simplified. Contexts are now managed internally and there's much less nesting of wrappers. 
+* Resource management (including shared resources) is now natively supported via TreeKeys-- Path has effectively been absorbed and simplified. Contexts are now managed internally and there's much less nesting of wrappers.
 * Multiple simultaneous states are now supported via MultiKeys-- Flow now works natively with UIs composed of dialogs, sheets, master-detail views, etc. MultiKeys can be composed of TreeKeys for resource sharing.
 * Persistence has been expanded and simplified. You can now save a Bundle along with view state, and Flow takes care of all the lifecycle.
 * Nested/queued traversals are much safer and more efficient.
@@ -39,12 +44,12 @@ Version 0.10 *(2015-05-01)*
 
 Version 0.9 *(2015-04-24)*
 ------
-A large number of breaking changes have been made in the interest of focusing 
+A large number of breaking changes have been made in the interest of focusing
 the library.
 
 * Backstack is now called History and has some new method names.
-* The `resetTo`, `goTo`, `replaceTo`, `forward`, and `backward` operations are 
-  all gone. In their place are two simple methods: `set(Object)` and 
+* The `resetTo`, `goTo`, `replaceTo`, `forward`, and `backward` operations are
+  all gone. In their place are two simple methods: `set(Object)` and
   `set(History, Direction)`.
 * `HasParent` and `goUp` are gone. "Up" navigation is left as an exercise to app
   authors who need it, at least for the time being.
@@ -53,7 +58,7 @@ the library.
 * Listener is now called Dispatcher, and can be set on a Flow after
   construction. Dispatcher gets more information than Listener did.
 
-There are also some new features, and more are coming. 
+There are also some new features, and more are coming.
 
 * Added a Context service for easily obtaining the Flow.
 * Added `FlowDelegate` for easier integration into an Activity.

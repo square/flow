@@ -103,6 +103,7 @@ public final class Flow {
   }
 
   private History history;
+  private HistoryFilter historyFilter = new NotPersistentHistoryFilter();
   private Dispatcher dispatcher;
   private PendingTraversal pendingTraversal;
   private List<Object> tearDownKeys = new ArrayList<>();
@@ -117,6 +118,10 @@ public final class Flow {
     return history;
   }
 
+  History getFilteredHistory() {
+    return historyFilter.scrubHistory(getHistory());
+  }
+
   /**
    * Set the dispatcher, may receive an immediate call to {@link Dispatcher#dispatch}. If a {@link
    * Traversal Traversal} is currently in progress with a previous Dispatcher, that Traversal will
@@ -124,6 +129,14 @@ public final class Flow {
    */
   public void setDispatcher(@NonNull Dispatcher dispatcher) {
     setDispatcher(dispatcher, false);
+  }
+
+  /**
+   * Set the {@link HistoryFilter}, responsible for scrubbing history before it is persisted.
+   * Use this to customize the default behavior described on {@link NotPersistent}.
+   */
+  public void setHistoryFilter(@NonNull HistoryFilter historyFilter) {
+    this.historyFilter = historyFilter;
   }
 
   void setDispatcher(@NonNull Dispatcher dispatcher, final boolean restore) {

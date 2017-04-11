@@ -22,6 +22,7 @@ import java.lang.annotation.Target;
 
 /**
  * Applied to a state object, indicates that it should not be persisted with the history.
+ * This behavior can be changed via {@link Flow#setHistoryFilter}.
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
