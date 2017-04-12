@@ -172,7 +172,7 @@ public final class InternalLifecycleIntegration extends Fragment {
     }
 
     Bundle bundle = new Bundle();
-    save(bundle, parceler, flow.getHistory(), keyManager);
+    save(bundle, parceler, flow.getFilteredHistory(), keyManager);
     if (!bundle.isEmpty()) {
       outState.putParcelable(INTENT_KEY, bundle);
     }
