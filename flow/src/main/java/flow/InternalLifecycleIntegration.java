@@ -60,6 +60,7 @@ public final class InternalLifecycleIntegration extends Fragment {
           }
           // We always replace the dispatcher because it frequently references the Activity.
           fragment.dispatcher = dispatcher;
+          fragment.intent = a.getIntent();
           if (newFragment) {
             activity.getFragmentManager() //
                 .beginTransaction() //
@@ -111,7 +112,7 @@ public final class InternalLifecycleIntegration extends Fragment {
       Object key = keys.next();
       parcelables.add(State.empty(key).toBundle(parceler));
     }
-    bundle.putParcelableArrayList("FLOW_STATE", parcelables);
+    bundle.putParcelableArrayList(PERSISTENCE_KEY, parcelables);
     intent.putExtra(INTENT_KEY, bundle);
   }
 
