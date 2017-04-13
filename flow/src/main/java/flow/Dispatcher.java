@@ -23,6 +23,19 @@ public interface Dispatcher {
    * Called when the history is about to change.  Note that Flow does not consider the
    * Traversal to be finished, and will not actually update the history, until the callback is
    * triggered. Traversals cannot be canceled.
+   * <p>
+   * Also called immediately after {@link Flow#setDispatcher}, to update the new dispatcher
+   * to Flow's current state. Such bootstrap Traversals have a null {@link Traversal#origin},
+   * and {@link Direction#REPLACE} as their direction. It should be noted that the dispatcher
+   * is set and unset each time the app pauses and resumes, meaning the dispatcher will receive
+   * a bootstrap call each time the app is activated.
+   * <p>
+   * Dispatchers are required to be idempotent. They should check whether the app is already in
+   * the correct state for the incoming key before performing any redundant work. (This probably
+   * includes comparing the {@link Flow#getKey(android.view.View) key of the currently visible
+   * view(s)} to that in {@link Traversal#destination} before doing any unnecessary inflation
+   * and rendering). If no update  is needed, short circuit
+   * by firing the callback immediately and returning.
    *
    * @param callback Must be called to indicate completion of the traversal.
    */
