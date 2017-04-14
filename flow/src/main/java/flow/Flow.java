@@ -261,18 +261,39 @@ public final class Flow {
   }
 
   /**
-   * Go back one key.
+   * Go back one key. Typically called from {@link Activity#onBackPressed()}, with
+   * the return value determining whether or not to call super. E.g.
+   * <pre>
+   * public void onBackPressed() {
+   *   if (!Flow.get(this).goBack()) {
+   *     super.onBackPressed();
+   *   }
+   * }
+   * </pre>
    *
-   * @return false if going back is not possible or a traversal is in progress.
+   * @return false if going back is not possible.
    */
   @CheckResult public boolean goBack() {
     boolean canGoBack = history.size() > 1 || (pendingTraversal != null
         && pendingTraversal.state != TraversalState.FINISHED);
     if (!canGoBack) return false;
-    History.Builder builder = history.buildUpon();
-    builder.pop();
-    final History newHistory = builder.build();
-    setHistory(newHistory, Direction.BACKWARD);
+
+    move(new PendingTraversal() {
+      @Override void doExecute() {
+        if (history.size() <= 1) {
+          // The history shrank while this op was pending. It happens, let's
+          // no-op. See lengthy discussions:
+          // https://github.com/square/flow/issues/195
+          // https://github.com/square/flow/pull/197
+          return;
+        }
+
+        History.Builder builder = history.buildUpon();
+        builder.pop();
+        final History newHistory = builder.build();
+        dispatch(newHistory, Direction.BACKWARD);
+      }
+    });
     return true;
   }
 
@@ -316,11 +337,13 @@ public final class Flow {
   private enum TraversalState {
     /** {@link PendingTraversal#execute} has not been called. */
     ENQUEUED,
+
     /**
      * {@link PendingTraversal#execute} was called, waiting for {@link
      * PendingTraversal#onTraversalCompleted}.
      */
     DISPATCHED,
+
     /**
      * {@link PendingTraversal#onTraversalCompleted} was called.
      */
