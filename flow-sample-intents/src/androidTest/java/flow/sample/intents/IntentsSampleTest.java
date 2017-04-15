@@ -1,4 +1,4 @@
-package flow.sample.basic;
+package flow.sample.intents;
 
 import android.content.Context;
 import android.content.Intent;
