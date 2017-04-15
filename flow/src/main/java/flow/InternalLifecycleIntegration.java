@@ -39,7 +39,12 @@ public final class InternalLifecycleIntegration extends Fragment {
   static final String INTENT_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
   static InternalLifecycleIntegration find(Activity activity) {
-    return (InternalLifecycleIntegration) activity.getFragmentManager().findFragmentByTag(TAG);
+    Fragment fragmentByTag = activity.getFragmentManager().findFragmentByTag(TAG);
+    if (fragmentByTag == null) {
+      throw new IllegalStateException("Flow services are not yet available. Do not make this call "
+          + "before receiving Activity#onPause().");
+    }
+    return (InternalLifecycleIntegration) fragmentByTag;
   }
 
   static void install(final Application app, final Activity activity,
@@ -194,7 +199,8 @@ public final class InternalLifecycleIntegration extends Fragment {
     return defaultHistory;
   }
 
-  private static void save(Bundle bundle, KeyParceler parceler, History history, KeyManager keyManager) {
+  private static void save(Bundle bundle, KeyParceler parceler, History history,
+      KeyManager keyManager) {
     ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
     final Iterator<Object> keys = history.reverseIterator();
     while (keys.hasNext()) {
@@ -219,5 +225,4 @@ public final class InternalLifecycleIntegration extends Fragment {
       }
     }
   }
-
 }

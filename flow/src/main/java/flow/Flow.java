@@ -38,10 +38,23 @@ public final class Flow {
     }
   };
 
+  /**
+   * Convenience overload of {@link #get(Context)}.
+   */
   @NonNull public static Flow get(@NonNull View view) {
     return get(view.getContext());
   }
 
+  /**
+   * Returns the Flow instance for the {@link Activity} that owns the given context.
+   * Note that it is not safe to call this method before the first call to that
+   * Activity's {@link Activity#onResume()} method in the current Android task. In practice
+   * this boils down to two rules:
+   * <ol>
+   *   <li>In views, do not access Flow before {@link View#onAttachedToWindow()} is called.
+   *   <li>In activities, do not access flow before {@link Activity#onResume()} is called.
+   * </ol>
+   */
   @NonNull public static Flow get(@NonNull Context context) {
     Flow flow = InternalContextWrapper.getFlow(context);
     if (null == flow) {
