@@ -38,8 +38,12 @@ public final class InternalLifecycleIntegration extends Fragment {
       InternalLifecycleIntegration.class.getSimpleName() + "_state";
   static final String INTENT_KEY = InternalLifecycleIntegration.class.getSimpleName() + "_history";
 
-  static InternalLifecycleIntegration find(Activity activity) {
-    Fragment fragmentByTag = activity.getFragmentManager().findFragmentByTag(TAG);
+  static @Nullable InternalLifecycleIntegration find(Activity activity) {
+    return (InternalLifecycleIntegration) activity.getFragmentManager().findFragmentByTag(TAG);
+  }
+
+  static @Nullable InternalLifecycleIntegration require(Activity activity) {
+    Fragment fragmentByTag = find(activity);
     if (fragmentByTag == null) {
       throw new IllegalStateException("Flow services are not yet available. Do not make this call "
           + "before receiving Activity#onPause().");
