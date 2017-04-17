@@ -109,7 +109,7 @@ public final class Flow {
     //noinspection ConstantConditions
     checkArgument(intent != null, "intent may not be null");
     if (intent.hasExtra(InternalLifecycleIntegration.INTENT_KEY)) {
-      InternalLifecycleIntegration.find(activity).onNewIntent(intent);
+      InternalLifecycleIntegration.require(activity).onNewIntent(intent);
       return true;
     }
     return false;

@@ -51,12 +51,12 @@ final class InternalContextWrapper extends ContextWrapper {
   @Override public Object getSystemService(String name) {
     if (FLOW_SERVICE.equals(name)) {
       if (flow == null) {
-        flow = InternalLifecycleIntegration.find(activity).flow;
+        flow = InternalLifecycleIntegration.require(activity).flow;
       }
       return flow;
     } else if (CONTEXT_MANAGER_SERVICE.equals(name)) {
       if (keyManager == null) {
-        keyManager = InternalLifecycleIntegration.find(activity).keyManager;
+        keyManager = InternalLifecycleIntegration.require(activity).keyManager;
       }
       return keyManager;
     }
