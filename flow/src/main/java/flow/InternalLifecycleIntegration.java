@@ -22,6 +22,7 @@ import android.app.Fragment;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -42,7 +43,7 @@ public final class InternalLifecycleIntegration extends Fragment {
     return (InternalLifecycleIntegration) activity.getFragmentManager().findFragmentByTag(TAG);
   }
 
-  static @Nullable InternalLifecycleIntegration require(Activity activity) {
+  static @NonNull InternalLifecycleIntegration require(Activity activity) {
     Fragment fragmentByTag = find(activity);
     if (fragmentByTag == null) {
       throw new IllegalStateException("Flow services are not yet available. Do not make this call "
