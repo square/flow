@@ -24,7 +24,7 @@ Manage all types of UIs-- complex master-detail views, multiple layers, and wind
 Gradle:
 
 ```groovy
-compile 'com.squareup.flow:flow:1.0.0-alpha2'
+compile 'com.squareup.flow:flow:1.0.0-alpha3'
 ```
 
 Install Flow into your Activity:
