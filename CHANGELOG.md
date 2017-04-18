@@ -1,10 +1,15 @@
 Change Log
 ==========
 
-Version 1.0-alpha2 *(2017-??-??)*
+Version 1.0-alpha2 *(2017-04-18)*
 ----------------------------------
+Important bug fixes for 1.0 alpha, and introduction of HistoryFilter.
 
 * API change: added Flow#setHistoryFilter to address https://github.com/square/flow/issues/220
+* JavaDoc for Flow#get, better exception when it fails.
+* Fix for crasher when calling goBack() during a transition
+* Fix for intent handling (@Zhuinden)
+* Allow saving state for multiple views in a single State (for MultiKeys) (@edenman)
 
 Version 1.0-alpha2 *(2016-09-02)*
 ----------------------------------
