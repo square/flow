@@ -1,7 +1,7 @@
 Change Log
 ==========
 
-Version 1.0-alpha2 *(2017-04-18)*
+Version 1.0-alpha3 *(2017-04-18)*
 ----------------------------------
 Important bug fixes for 1.0 alpha, and introduction of HistoryFilter.
 
