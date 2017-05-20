@@ -287,8 +287,8 @@ public final class Flow {
    * @return false if going back is not possible.
    */
   @CheckResult public boolean goBack() {
-    boolean canGoBack = history.size() > 1 || (pendingTraversal != null
-        && pendingTraversal.state != TraversalState.FINISHED);
+    if(pendingTraversal != null && pendingTraversal.state != TraversalState.FINISHED) return true;
+    boolean canGoBack = history.size() > 1;
     if (!canGoBack) return false;
 
     move(new PendingTraversal() {
