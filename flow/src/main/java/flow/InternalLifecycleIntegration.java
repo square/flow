@@ -47,7 +47,7 @@ public final class InternalLifecycleIntegration extends Fragment {
     Fragment fragmentByTag = find(activity);
     if (fragmentByTag == null) {
       throw new IllegalStateException("Flow services are not yet available. Do not make this call "
-          + "before receiving Activity#onPause().");
+          + "before receiving Activity#onResume().");
     }
     return (InternalLifecycleIntegration) fragmentByTag;
   }
