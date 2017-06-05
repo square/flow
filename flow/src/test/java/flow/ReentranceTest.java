@@ -390,7 +390,7 @@ public class ReentranceTest {
 
   private void verifyHistory(History history, Object... keys) {
     List<Object> actualKeys = new ArrayList<>(history.size());
-    for (Object entry : history) {
+    for (Object entry : history.framesFromBottom()) {
       actualKeys.add(entry);
     }
     assertThat(actualKeys).containsExactly(keys);

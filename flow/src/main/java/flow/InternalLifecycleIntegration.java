@@ -25,7 +25,6 @@ import android.os.Parcelable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import static flow.Preconditions.checkArgument;
 import static flow.Preconditions.checkNotNull;
@@ -117,9 +116,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   static void addHistoryToIntent(Intent intent, History history, KeyParceler parceler) {
     Bundle bundle = new Bundle();
     ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
-    final Iterator<Object> keys = history.reverseIterator();
-    while (keys.hasNext()) {
-      Object key = keys.next();
+    for (Object key : history.framesFromTop()) {
       parcelables.add(State.empty(key).toBundle(parceler));
     }
     bundle.putParcelableArrayList(PERSISTENCE_KEY, parcelables);
@@ -207,9 +204,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   private static void save(Bundle bundle, KeyParceler parceler, History history,
       KeyManager keyManager) {
     ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
-    final Iterator<Object> keys = history.reverseIterator();
-    while (keys.hasNext()) {
-      Object key = keys.next();
+    for (Object key : history.framesFromTop()) {
       if (!key.getClass().isAnnotationPresent(NotPersistent.class)) {
         parcelables.add(keyManager.getState(key).toBundle(parceler));
       }

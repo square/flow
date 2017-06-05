@@ -32,6 +32,10 @@ import static java.util.Collections.unmodifiableList;
 
 /**
  * Describes the history of a {@link Flow} at a specific point in time.
+ *
+ * <p><em>Note: use of this class as an {@link Iterable} is deprecated. Use {@link
+ * #framesFromBottom()}
+ * and {@link #framesFromTop()} instead.</em>
  */
 public final class History implements Iterable<Object> {
 
@@ -46,17 +50,35 @@ public final class History implements Iterable<Object> {
     return emptyBuilder().push(key).build();
   }
 
+  private static <T> Iterator<T> iterateFromTop(List<Object> history) {
+    return new ReadStateIterator<>(history.iterator());
+  }
+
+  private static <T> Iterator<T> iterateFromBottom(List<Object> history) {
+    return new ReadStateIterator<>(new ReverseIterator<>(history));
+  }
+
   private History(List<Object> history) {
     checkArgument(history != null && !history.isEmpty(), "History may not be empty");
     this.history = history;
   }
 
-  @NonNull public <T> Iterator<T> reverseIterator() {
-    return new ReadStateIterator<>(history.iterator());
+  @NonNull public <T> Iterable<T> framesFromTop() {
+    return new HistoryIterable<>(history, true);
   }
 
-  @NonNull @Override public Iterator<Object> iterator() {
-    return new ReadStateIterator<>(new ReverseIterator<>(history));
+  @NonNull public <T> Iterable<T> framesFromBottom() {
+    return new HistoryIterable<>(history, false);
+  }
+
+  /** @deprecated Use {@link #framesFromTop()} instead. */
+  @Deprecated @NonNull public <T> Iterator<T> reverseIterator() {
+    return iterateFromTop(history);
+  }
+
+  /** @deprecated Use {@link #framesFromBottom()} instead. */
+  @Deprecated @NonNull @Override public Iterator<Object> iterator() {
+    return iterateFromBottom(history);
   }
 
   public int size() {
@@ -194,6 +216,24 @@ public final class History implements Iterable<Object> {
     }
   }
 
+  private static class HistoryIterable<T> implements Iterable<T> {
+    private final List<Object> history;
+    private final boolean fromTop;
+
+    HistoryIterable(List<Object> history, boolean fromTop) {
+      this.history = history;
+      this.fromTop = fromTop;
+    }
+
+    @NonNull @Override public Iterator<T> iterator() {
+      if (fromTop) {
+        return iterateFromTop(history);
+      } else {
+        return iterateFromBottom(history);
+      }
+    }
+  }
+
   private static class ReverseIterator<T> implements Iterator<T> {
     private final ListIterator<T> wrapped;
 
@@ -214,6 +254,7 @@ public final class History implements Iterable<Object> {
     }
   }
 
+  /** Wraps an {@link Iterator} and delegates to it, but throws on {@link #remove()}. */
   private static class ReadStateIterator<T> implements Iterator<T> {
     private final Iterator<Object> iterator;
 

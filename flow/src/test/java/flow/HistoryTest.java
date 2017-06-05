@@ -105,12 +105,28 @@ public class HistoryTest {
     }
   }
 
+  @Test public void framesFromBottom() {
+    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
+    History history = History.emptyBuilder().pushAll(paths).build();
+    for (Object o : history.framesFromBottom()) {
+      assertThat(o).isSameAs(paths.remove(paths.size() - 1));
+    }
+  }
+
   @Test public void reverseIterator() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
     History history = History.emptyBuilder().pushAll(paths).build();
     Iterator<Object> i = history.reverseIterator();
     while (i.hasNext()) {
       assertThat(i.next()).isSameAs(paths.remove(0));
+    }
+  }
+
+  @Test public void framesFromTop() {
+    List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
+    History history = History.emptyBuilder().pushAll(paths).build();
+    for (Object o : history.framesFromTop()) {
+      assertThat(o).isSameAs(paths.remove(0));
     }
   }
 

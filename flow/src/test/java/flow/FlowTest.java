@@ -135,8 +135,8 @@ public class FlowTest {
       @Override
       public void dispatch(@NonNull Traversal traversal, @NonNull TraversalCallback onComplete) {
         assertThat(firstHistory).hasSameSizeAs(flow.getHistory());
-        Iterator<Object> original = firstHistory.iterator();
-        for (Object o : flow.getHistory()) {
+        Iterator<Object> original = firstHistory.framesFromBottom().iterator();
+        for (Object o : flow.getHistory().framesFromBottom()) {
           assertThat(o).isEqualTo(original.next());
         }
         onComplete.onTraversalCompleted();
@@ -460,9 +460,7 @@ public class FlowTest {
       @NonNull @Override public History scrubHistory(@NonNull History history) {
         History.Builder builder = History.emptyBuilder();
 
-        final Iterator<Object> keys = history.reverseIterator();
-        while (keys.hasNext()) {
-          Object key = keys.next();
+        for (Object key : history.framesFromTop()) {
           if (!key.equals(able)) {
             builder.push(key);
           }
