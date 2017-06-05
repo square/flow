@@ -203,6 +203,19 @@ public final class Flow {
   }
 
   /**
+   * Accepts a {@link HistoryUpdater function} to be applied to the history, allowing a
+   * transition to be calculated.
+   */
+  public void updateHistory(@NonNull final HistoryUpdater updater) {
+    move(new PendingTraversal() {
+      @Override void doExecute() {
+        HistoryUpdater.Result result = updater.call(getHistory());
+        dispatch(preserveEquivalentPrefix(getHistory(), result.history), result.direction);
+      }
+    });
+  }
+
+  /**
    * Replaces the history with the given key and dispatches in the given direction.
    */
   public void replaceHistory(@NonNull final Object key, @NonNull final Direction direction) {
@@ -232,45 +245,7 @@ public final class Flow {
    * Objects' equality is always checked using {@link Object#equals(Object)}.
    */
   public void set(@NonNull final Object newTopKey) {
-    move(new PendingTraversal() {
-      @Override void doExecute() {
-        if (newTopKey.equals(history.top())) {
-          dispatch(history, Direction.REPLACE);
-          return;
-        }
-
-        History.Builder builder = history.buildUpon();
-        int count = 0;
-        // Search backward to see if we already have newTop on the stack
-        Object preservedInstance = null;
-        for (Iterator<Object> it = history.reverseIterator(); it.hasNext(); ) {
-          Object entry = it.next();
-
-          // If we find newTop on the stack, pop back to it.
-          if (entry.equals(newTopKey)) {
-            for (int i = 0; i < history.size() - count; i++) {
-              preservedInstance = builder.pop();
-            }
-            break;
-          } else {
-            count++;
-          }
-        }
-
-        History newHistory;
-        if (preservedInstance != null) {
-          // newTop was on the history. Put the preserved instance back on and dispatch.
-          builder.push(preservedInstance);
-          newHistory = builder.build();
-          dispatch(newHistory, Direction.BACKWARD);
-        } else {
-          // newTop was not on the history. Push it on and dispatch.
-          builder.push(newTopKey);
-          newHistory = builder.build();
-          dispatch(newHistory, Direction.FORWARD);
-        }
-      }
-    });
+    updateHistory(new HistoryUpdater.DoSet(newTopKey));
   }
 
   /**
