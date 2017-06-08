@@ -48,6 +48,10 @@ final class FlowContextWrapper extends ContextWrapper {
       }
       return inflater;
     }
+    Object service = services.getService(name);
+    if (service != null) {
+      return service;
+    }
     return super.getSystemService(name);
   }
 }
