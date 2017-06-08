@@ -51,8 +51,8 @@ public final class Flow {
    * Activity's {@link Activity#onResume()} method in the current Android task. In practice
    * this boils down to two rules:
    * <ol>
-   *   <li>In views, do not access Flow before {@link View#onAttachedToWindow()} is called.
-   *   <li>In activities, do not access flow before {@link Activity#onResume()} is called.
+   * <li>In views, do not access Flow before {@link View#onAttachedToWindow()} is called.
+   * <li>In activities, do not access flow before {@link Activity#onResume()} is called.
    * </ol>
    */
   @NonNull public static Flow get(@NonNull Context context) {
@@ -243,9 +243,7 @@ public final class Flow {
         int count = 0;
         // Search backward to see if we already have newTop on the stack
         Object preservedInstance = null;
-        for (Iterator<Object> it = history.reverseIterator(); it.hasNext(); ) {
-          Object entry = it.next();
-
+        for (Object entry : history.framesFromTop()) {
           // If we find newTop on the stack, pop back to it.
           if (entry.equals(newTopKey)) {
             for (int i = 0; i < history.size() - count; i++) {
@@ -321,8 +319,8 @@ public final class Flow {
   }
 
   private static History preserveEquivalentPrefix(History current, History proposed) {
-    Iterator<Object> oldIt = current.reverseIterator();
-    Iterator<Object> newIt = proposed.reverseIterator();
+    Iterator<Object> oldIt = current.framesFromTop().iterator();
+    Iterator<Object> newIt = proposed.framesFromTop().iterator();
 
     History.Builder preserving = current.buildUpon().clear();
 
