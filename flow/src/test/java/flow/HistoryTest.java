@@ -108,9 +108,12 @@ public class HistoryTest {
   @Test public void framesFromBottom() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
     History history = History.emptyBuilder().pushAll(paths).build();
-    for (Object o : history.framesFromBottom()) {
-      assertThat(o).isSameAs(paths.remove(paths.size() - 1));
-    }
+    Iterator<Object> iterator = history.framesFromBottom().iterator();
+
+    assertThat(iterator.next()).isSameAs(ABLE);
+    assertThat(iterator.next()).isSameAs(BAKER);
+    assertThat(iterator.next()).isSameAs(CHARLIE);
+    assertThat(iterator.hasNext()).isFalse();
   }
 
   @Test public void reverseIterator() {
@@ -125,9 +128,12 @@ public class HistoryTest {
   @Test public void framesFromTop() {
     List<Object> paths = new ArrayList<>(Arrays.<Object>asList(ABLE, BAKER, CHARLIE));
     History history = History.emptyBuilder().pushAll(paths).build();
-    for (Object o : history.framesFromTop()) {
-      assertThat(o).isSameAs(paths.remove(0));
-    }
+    Iterator<Object> iterator = history.framesFromTop().iterator();
+
+    assertThat(iterator.next()).isSameAs(CHARLIE);
+    assertThat(iterator.next()).isSameAs(BAKER);
+    assertThat(iterator.next()).isSameAs(ABLE);
+    assertThat(iterator.hasNext()).isFalse();
   }
 
   @Test public void emptyBuilderPeekIsNullable() {
