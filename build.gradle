@@ -1,5 +1,5 @@
 ext.deps = [
-    android_gradle_plugin      : 'com.android.tools.build:gradle:2.4.0-alpha7',
+    android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha5',
 ]
 
 ext.minSdkVersion = 14
@@ -14,11 +14,19 @@ allprojects {
   buildscript {
     repositories {
       jcenter()
+
+      maven {
+        url "https://maven.google.com"
+      }
     }
   }
 
   repositories {
     jcenter()
+
+    maven {
+      url "https://maven.google.com"
+    }
   }
 
   afterEvaluate { project ->
