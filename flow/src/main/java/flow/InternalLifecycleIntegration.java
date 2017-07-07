@@ -116,7 +116,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   static void addHistoryToIntent(Intent intent, History history, KeyParceler parceler) {
     Bundle bundle = new Bundle();
     ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
-    for (Object key : history.framesFromTop()) {
+    for (Object key : history.framesFromBottom()) {
       parcelables.add(State.empty(key).toBundle(parceler));
     }
     bundle.putParcelableArrayList(PERSISTENCE_KEY, parcelables);
@@ -204,7 +204,7 @@ public final class InternalLifecycleIntegration extends Fragment {
   private static void save(Bundle bundle, KeyParceler parceler, History history,
       KeyManager keyManager) {
     ArrayList<Parcelable> parcelables = new ArrayList<>(history.size());
-    for (Object key : history.framesFromTop()) {
+    for (Object key : history.framesFromBottom()) {
       if (!key.getClass().isAnnotationPresent(NotPersistent.class)) {
         parcelables.add(keyManager.getState(key).toBundle(parceler));
       }

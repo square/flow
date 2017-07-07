@@ -10,7 +10,7 @@ class NotPersistentHistoryFilter implements HistoryFilter {
   @NonNull @Override public History scrubHistory(@NonNull History history) {
     History.Builder builder = History.emptyBuilder();
 
-    for (Object key : history.framesFromTop()) {
+    for (Object key : history.framesFromBottom()) {
       if (!key.getClass().isAnnotationPresent(NotPersistent.class)) {
         builder.push(key);
       }
