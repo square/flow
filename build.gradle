@@ -1,12 +1,28 @@
 buildscript {
-  ext.deps = [
-    android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha7',
+  ext.versions = [
+      'minSdk': 14,
+      'compileSdk': 25,
+      'buildTools': '25.0.0',
+      'supportLibrary': '23.1.1'
   ]
 
-  ext.versions = [
-    'minSdk': 14,
-    'compileSdk': 25,
-    'buildTools': '25.0.0',
+  ext.deps = [
+    android_gradle_plugin: 'com.android.tools.build:gradle:3.0.0-alpha7',
+    'support': [
+      'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
+      'appcompat': "com.android.support:appcompat-v7:${versions.supportLibrary}",
+      'design': "com.android.support:design:${versions.supportLibrary}",
+      'test': [
+          'espresso': 'com.android.support.test.espresso:espresso-core:2.2.1',
+          'runner': 'com.android.support.test:runner:0.4',
+          'rules': 'com.android.support.test:rules:0.4',
+      ]
+    ],
+    'junit': 'junit:junit:4.10',
+    'assertj': 'org.assertj:assertj-core:1.7.1',
+    'mockito': 'org.mockito:mockito-core:1.10.19',
+    'robolectric': 'org.robolectric:robolectric:3.0',
+    'antTasks': 'org.apache.maven:maven-ant-tasks:2.1.3',
   ]
 
   dependencies {

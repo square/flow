@@ -25,10 +25,10 @@ android {
 
 dependencies {
   compile project(':flow')
-  compile 'com.android.support:appcompat-v7:23.1.1'
-  androidTestCompile 'com.android.support.test:runner:0.4'
-  androidTestCompile 'com.android.support.test:rules:0.4'
-  androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+  compile deps.support.appcompat
+  androidTestCompile deps.support.test.runner
+  androidTestCompile deps.support.test.rules
+  androidTestCompile deps.support.test.espresso
 }
 
 //noinspection GroovyAssignabilityCheck
