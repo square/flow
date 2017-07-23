@@ -6,10 +6,6 @@ ext.minSdkVersion = 14
 ext.compileSdkVersion = 25
 ext.buildToolsVersion = '25.0.0'
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '3.5'
-}
-
 allprojects {
   buildscript {
     repositories {
