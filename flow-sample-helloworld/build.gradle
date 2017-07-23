@@ -30,10 +30,3 @@ dependencies {
   androidTestCompile deps.support.test.rules
   androidTestCompile deps.support.test.espresso
 }
-
-//noinspection GroovyAssignabilityCheck
-configurations.all {
-  resolutionStrategy {
-    force 'com.android.support:support-annotations:23.1.1'
-  }
-}
