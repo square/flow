@@ -7,7 +7,6 @@ buildscript {
   ]
 
   ext.deps = [
-    android_gradle_plugin: 'com.android.tools.build:gradle:3.0.0-alpha7',
     'support': [
       'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
       'appcompat': "com.android.support:appcompat-v7:${versions.supportLibrary}",
@@ -18,15 +17,16 @@ buildscript {
           'rules': 'com.android.support.test:rules:0.4',
       ]
     ],
-    'junit': 'junit:junit:4.10',
+    'junit': 'junit:junit:4.12',
     'assertj': 'org.assertj:assertj-core:1.7.1',
-    'mockito': 'org.mockito:mockito-core:1.10.19',
-    'robolectric': 'org.robolectric:robolectric:3.0',
+    'mockito': 'org.mockito:mockito-core:2.8.47',
+    'robolectric': 'org.robolectric:robolectric:3.4-rc5',
     'antTasks': 'org.apache.maven:maven-ant-tasks:2.1.3',
   ]
 
   dependencies {
-    classpath deps.android_gradle_plugin
+    classpath 'com.android.tools.build:gradle:3.0.0-alpha7'
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
   }
 
   repositories {
@@ -34,6 +34,8 @@ buildscript {
     google()
   }
 }
+
+apply plugin: 'com.github.ben-manes.versions'
 
 subprojects {
   repositories {
