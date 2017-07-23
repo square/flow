@@ -24,10 +24,10 @@ android {
 }
 
 dependencies {
-  compile project(':flow')
-  compile deps.support.appcompat
-  compile deps.support.design
-  androidTestCompile deps.support.test.runner
-  androidTestCompile deps.support.test.rules
-  androidTestCompile deps.support.test.espresso
+  implementation project(':flow')
+  implementation deps.support.appcompat
+  implementation deps.support.design
+  androidTestImplementation deps.support.test.runner
+  androidTestImplementation deps.support.test.rules
+  androidTestImplementation deps.support.test.espresso
 }
