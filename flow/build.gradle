@@ -5,12 +5,13 @@ buildscript {
 }
 
 apply plugin: 'com.android.library'
+
 android {
-  compileSdkVersion rootProject.ext.compileSdkVersion
-  buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
   defaultConfig {
-    minSdkVersion rootProject.ext.minSdkVersion
+    minSdkVersion versions.minSdk
     versionName VERSION_NAME
   }
 }

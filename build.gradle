@@ -1,10 +1,14 @@
-ext.deps = [
+buildscript {
+  ext.deps = [
     android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha7',
-]
+  ]
 
-ext.minSdkVersion = 14
-ext.compileSdkVersion = 25
-ext.buildToolsVersion = '25.0.0'
+  ext.versions = [
+    'minSdk': 14,
+    'compileSdk': 25,
+    'buildTools': '25.0.0',
+  ]
+}
 
 allprojects {
   buildscript {
