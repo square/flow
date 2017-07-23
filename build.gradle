@@ -8,16 +8,18 @@ buildscript {
     'compileSdk': 25,
     'buildTools': '25.0.0',
   ]
+
+  dependencies {
+    classpath deps.android_gradle_plugin
+  }
+
+  repositories {
+    jcenter()
+    google()
+  }
 }
 
 allprojects {
-  buildscript {
-    repositories {
-      jcenter()
-      google()
-    }
-  }
-
   repositories {
     jcenter()
     google()
