@@ -19,18 +19,13 @@ buildscript {
   }
 }
 
-allprojects {
+subprojects {
   repositories {
     jcenter()
     google()
   }
 
   afterEvaluate { project ->
-    if (!(project.plugins.hasPlugin('com.android.application') ||
-        project.plugins.hasPlugin('com.android.library'))) {
-      return
-    }
-
     android {
       lintOptions {
         quiet false
