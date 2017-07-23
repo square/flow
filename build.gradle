@@ -14,19 +14,13 @@ allprojects {
   buildscript {
     repositories {
       jcenter()
-
-      maven {
-        url "https://maven.google.com"
-      }
+      google()
     }
   }
 
   repositories {
     jcenter()
-
-    maven {
-      url "https://maven.google.com"
-    }
+    google()
   }
 
   afterEvaluate { project ->
