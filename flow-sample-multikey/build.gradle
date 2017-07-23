@@ -1,46 +1,46 @@
 buildscript {
-    dependencies {
-        classpath deps.android_gradle_plugin
-    }
+  dependencies {
+    classpath deps.android_gradle_plugin
+  }
 }
 
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion rootProject.ext.compileSdkVersion
+  buildToolsVersion rootProject.ext.buildToolsVersion
 
-    defaultConfig {
-        applicationId "flow.sample.multikey"
+  defaultConfig {
+    applicationId "flow.sample.multikey"
 
-        minSdkVersion rootProject.ext.minSdkVersion
-        versionName VERSION_NAME
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    minSdkVersion rootProject.ext.minSdkVersion
+    versionName VERSION_NAME
+    testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+  }
+
+  buildTypes {
+    release {
+      minifyEnabled false
     }
+  }
 
-    buildTypes {
-        release {
-            minifyEnabled false
-        }
-    }
-
-    packagingOptions {
-        exclude 'LICENSE.txt'
-    }
+  packagingOptions {
+    exclude 'LICENSE.txt'
+  }
 }
 
 dependencies {
-    compile project(':flow')
-    compile 'com.android.support:appcompat-v7:23.1.1'
-    compile 'com.android.support:design:23.1.1'
-    androidTestCompile 'com.android.support.test:runner:0.4'
-    androidTestCompile 'com.android.support.test:rules:0.4'
-    androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
+  compile project(':flow')
+  compile 'com.android.support:appcompat-v7:23.1.1'
+  compile 'com.android.support:design:23.1.1'
+  androidTestCompile 'com.android.support.test:runner:0.4'
+  androidTestCompile 'com.android.support.test:rules:0.4'
+  androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
 }
 
 //noinspection GroovyAssignabilityCheck
 configurations.all {
-    resolutionStrategy {
-        force 'com.android.support:support-annotations:23.1.1'
-    }
+  resolutionStrategy {
+    force 'com.android.support:support-annotations:23.1.1'
+  }
 }
