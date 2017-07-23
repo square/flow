@@ -1,5 +1,5 @@
 ext.deps = [
-    android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha5',
+    android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha7',
 ]
 
 ext.minSdkVersion = 14
