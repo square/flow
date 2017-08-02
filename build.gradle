@@ -1,45 +1,65 @@
-ext.deps = [
-    android_gradle_plugin      : 'com.android.tools.build:gradle:3.0.0-alpha5',
-]
+buildscript {
+  ext.versions = [
+      'minSdk': 14,
+      'compileSdk': 25,
+      'buildTools': '25.0.0',
+      'supportLibrary': '23.1.1'
+  ]
 
-ext.minSdkVersion = 14
-ext.compileSdkVersion = 25
-ext.buildToolsVersion = '25.0.0'
+  ext.deps = [
+    'support': [
+      'annotations': "com.android.support:support-annotations:${versions.supportLibrary}",
+      'appcompat': "com.android.support:appcompat-v7:${versions.supportLibrary}",
+      'design': "com.android.support:design:${versions.supportLibrary}",
+      'test': [
+          'espresso': 'com.android.support.test.espresso:espresso-core:2.2.1',
+          'runner': 'com.android.support.test:runner:0.4',
+          'rules': 'com.android.support.test:rules:0.4',
+      ]
+    ],
+    'junit': 'junit:junit:4.12',
+    'assertj': 'org.assertj:assertj-core:1.7.1',
+    'mockito': 'org.mockito:mockito-core:2.8.47',
+    'robolectric': 'org.robolectric:robolectric:3.4-rc5',
+    'antTasks': 'org.apache.maven:maven-ant-tasks:2.1.3',
+  ]
 
-task wrapper(type: Wrapper) {
-  gradleVersion = '3.5'
-}
-
-allprojects {
-  buildscript {
-    repositories {
-      jcenter()
-
-      maven {
-        url "https://maven.google.com"
-      }
-    }
+  dependencies {
+    classpath 'com.android.tools.build:gradle:3.0.0-alpha7'
+    classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
   }
 
   repositories {
     jcenter()
+    google()
+  }
+}
 
-    maven {
-      url "https://maven.google.com"
-    }
+apply plugin: 'com.github.ben-manes.versions'
+
+subprojects {
+  repositories {
+    jcenter()
+    google()
   }
 
   afterEvaluate { project ->
-    if (!(project.plugins.hasPlugin('com.android.application') ||
-        project.plugins.hasPlugin('com.android.library'))) {
-      return
-    }
-
     android {
       lintOptions {
         quiet false
         textReport true
         textOutput 'stdout'
+      }
+    }
+  }
+
+  configurations.all {
+    resolutionStrategy {
+      eachDependency { details ->
+        // Force all of the primary support libraries to use the same version.
+        if (details.requested.group == 'com.android.support') {
+          details.useVersion versions.supportLibrary
+        }
       }
     }
   }

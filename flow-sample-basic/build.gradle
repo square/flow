@@ -1,19 +1,13 @@
-buildscript {
-  dependencies {
-    classpath deps.android_gradle_plugin
-  }
-}
-
 apply plugin: 'com.android.application'
 
 android {
-  compileSdkVersion rootProject.ext.compileSdkVersion
-  buildToolsVersion rootProject.ext.buildToolsVersion
+  compileSdkVersion versions.compileSdk
+  buildToolsVersion versions.buildTools
 
   defaultConfig {
     applicationId "flow.sample.basic"
 
-    minSdkVersion rootProject.ext.minSdkVersion
+    minSdkVersion versions.minSdk
     versionName VERSION_NAME
     testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
   }
@@ -30,17 +24,10 @@ android {
 }
 
 dependencies {
-  compile project(':flow')
-  compile 'com.android.support:appcompat-v7:23.1.1'
-  compile 'com.android.support:design:23.1.1'
-  androidTestCompile 'com.android.support.test:runner:0.4'
-  androidTestCompile 'com.android.support.test:rules:0.4'
-  androidTestCompile 'com.android.support.test.espresso:espresso-core:2.2.1'
-}
-
-//noinspection GroovyAssignabilityCheck
-configurations.all {
-  resolutionStrategy {
-    force 'com.android.support:support-annotations:23.1.1'
-  }
+  implementation project(':flow')
+  implementation deps.support.appcompat
+  implementation deps.support.design
+  androidTestImplementation deps.support.test.runner
+  androidTestImplementation deps.support.test.rules
+  androidTestImplementation deps.support.test.espresso
 }
