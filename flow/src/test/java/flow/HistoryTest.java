@@ -164,4 +164,11 @@ public class HistoryTest {
     assertThat(history.peek(1)).isEqualTo(BAKER);
     assertThat(history.peek(2)).isEqualTo(ABLE);
   }
+
+  @Test public void historyIsIsolatedFromItsBuilder() {
+    History.Builder builder = History.emptyBuilder().pushAll(asList(ABLE, BAKER, CHARLIE));
+    History history = builder.build();
+    builder.pop();
+    assertThat(history.peek(0)).isEqualTo(CHARLIE);
+  }
 }
