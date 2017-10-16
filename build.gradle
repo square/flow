@@ -2,7 +2,7 @@ buildscript {
   ext.versions = [
       'minSdk': 14,
       'compileSdk': 26,
-      'buildTools': '26.0.1',
+      'buildTools': '26.0.2',
       'supportLibrary': '26.0.2'
   ]
 
@@ -25,7 +25,7 @@ buildscript {
   ]
 
   dependencies {
-    classpath 'com.android.tools.build:gradle:3.0.0-beta5'
+    classpath 'com.android.tools.build:gradle:3.0.0-rc1'
     classpath 'com.github.ben-manes:gradle-versions-plugin:0.15.0'
   }
 
