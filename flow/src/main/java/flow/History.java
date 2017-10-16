@@ -208,7 +208,7 @@ public final class History implements Iterable<Object> {
     }
 
     @NonNull public History build() {
-      return new History(history);
+      return new History(new ArrayList<>(history));
     }
 
     @Override public String toString() {
