@@ -43,8 +43,6 @@ public final class KeyDispatcher implements Dispatcher {
     }
 
     public Dispatcher build() {
-      final KeyChanger keyChanger =
-          this.keyChanger == null ? new DefaultKeyChanger(activity) : this.keyChanger;
       return new KeyDispatcher(activity, keyChanger);
     }
   }
