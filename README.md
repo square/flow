@@ -1,3 +1,7 @@
+# Deprecated
+
+Flow had a good run and served us well, but new use is strongly discouraged. The app suite at Square that drove its creation is in the process of replacing Flow with [Square Workflow](https://square.github.io/workflow/).
+
 # Flow
 
 _"Name-giving will be the foundation of our science."_ &mdash; Linnaeus
