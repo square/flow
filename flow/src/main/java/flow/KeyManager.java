@@ -77,10 +77,10 @@ class KeyManager {
   void setUp(Object key) {
     Services parent = managedServices.get(ROOT_KEY).services;
     if (key instanceof MultiKey) {
+      ensureNode(parent, key).uses++;
       for (Object part : ((MultiKey) key).getKeys()) {
         setUp(part);
       }
-      ensureNode(parent, key).uses++;
     } else if (key instanceof TreeKey) {
       TreeKey treeKey = (TreeKey) key;
       final Object parentKey = treeKey.getParentKey();
